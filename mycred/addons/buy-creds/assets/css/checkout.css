@@ -10,7 +10,6 @@
 #buycred-checkout-wrapper.open #checkout-box table tr th, #buycred-checkout-page table tr th { font-weight: bold; text-align: left; font-size: 13px; line-height: 17px; }
 #buycred-checkout-wrapper.open #checkout-box table tr td, #buycred-checkout-page table tr td { font-weight: normal; font-size: 12px; line-height: 14px; text-align: left; }
 #buycred-checkout-wrapper.open #checkout-box table tr.total td, #buycred-checkout-page table tr.total td { font-weight: bold; }
-#buycred-checkout-wrapper.open #checkout-box table tr .right, #buycred-checkout-page table tr .right { text-align: right; }
 #buycred-checkout-wrapper.open #checkout-box table tr .item, #buycred-checkout-page table tr .item { width: 70%; }
 #buycred-checkout-wrapper.open #checkout-box table tr .cost, #buycred-checkout-page table tr .cost { width: 30%; }
 #buycred-checkout-wrapper.open #checkout-box p, #buycred-checkout-page p { text-align: left; font-size: 12px; line-height: 14px; }
