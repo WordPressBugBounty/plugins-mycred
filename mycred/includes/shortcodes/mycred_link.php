@@ -19,6 +19,7 @@ if ( ! function_exists( 'mycred_render_shortcode_link' ) ) :
 
 		global $mycred_link_points;
 
+		// Sanitize input attributes
 		$atts = shortcode_atts( array(
 			'id'       => '',
 			'rel'      => '',
@@ -36,31 +37,36 @@ if ( ! function_exists( 'mycred_render_shortcode_link' ) ) :
 		), $atts, MYCRED_SLUG . '_link' );
 
 		// Make sure point type exists
-		if ( ! mycred_point_type_exists( $atts['ctype'] ) )
+		if ( ! mycred_point_type_exists( sanitize_text_field( $atts['ctype'] ) ) ) {
 			$atts['ctype'] = MYCRED_DEFAULT_TYPE_KEY;
+		}
 
-		// HREF is required
-		if ( empty( $atts['href'] ) )
+		// HREF is required - Sanitize URL
+		if ( empty( $atts['href'] ) ) {
 			$atts['href'] = '#';
+		} else {
+			$atts['href'] = esc_url( $atts['href'] );
+		}
 
 		// All links must contain the 'mycred-points-link' class
-		if ( empty( $atts['class'] ) )
+		if ( empty( $atts['class'] ) ) {
 			$atts['class'] = 'mycred-points-link';
-		else
-			$atts['class'] = 'mycred-points-link ' . $atts['class'];
+		} else {
+			$atts['class'] = 'mycred-points-link ' . esc_attr( $atts['class'] );
+		}
 
-		// If no id exists, make one
+		// If no id exists, generate one - Sanitize ID creation
 		if ( empty( $atts['id'] ) ) {
-			$id         = str_replace( array( 'http://', 'https://', 'http%3A%2F%2F', 'https%3A%2F%2F' ), 'hs', $atts['href'] );
-			$id         = str_replace( array( '/', '-', '_', ':', '.', '?', '=', '+', '\\', '%2F' ), '', $id );
-			$atts['id'] = $id;
+			$id = str_replace( array( 'http://', 'https://', 'http%3A%2F%2F', 'https%3A%2F%2F' ), 'hs', esc_url( $atts['href'] ) );
+			$id = str_replace( array( '/', '-', '_', ':', '.', '?', '=', '+', '\\', '%2F' ), '', $id );
+			$atts['id'] = sanitize_html_class( $id );
 		}
 
 		// Construct anchor attributes
 		$attr = array();
 		foreach ( $atts as $attribute => $value ) {
 			if ( ! empty( $value ) && ! in_array( $attribute, array( 'amount', 'ctype' ) ) ) {
-				$attr[] = $attribute . '="' . $value . '"';
+				$attr[] = esc_attr( $attribute ) . '="' . esc_attr( $value ) . '"';
 			}
 		}
 
@@ -76,28 +82,31 @@ if ( ! function_exists( 'mycred_render_shortcode_link' ) ) :
 				// Get hook settings
 				$prf_hook = apply_filters( 'mycred_option_id', 'mycred_pref_hooks' );
 				$hooks = mycred_get_option( $prf_hook, false );
-				if ( $atts['ctype'] != MYCRED_DEFAULT_TYPE_KEY )
+				if ( $atts['ctype'] != MYCRED_DEFAULT_TYPE_KEY ) {
 					$hooks = mycred_get_option( 'mycred_pref_hooks_' . sanitize_key( $atts['ctype'] ), false );
+				}
 
 				// Apply points value
 				if ( $hooks !== false && is_array( $hooks ) && array_key_exists( 'link_click', $hooks['hook_prefs'] ) ) {
-					$atts['amount'] = $hooks['hook_prefs']['link_click']['creds'];
+					$atts['amount'] = intval( $hooks['hook_prefs']['link_click']['creds'] );
 				}
 
 			}
 
-			// Add key
+			// Add token for the link
 			$token  = mycred_create_token( array( $atts['amount'], $atts['ctype'], $atts['id'], urlencode( $atts['href'] ) ) );
-			$attr[] = 'data-token="' . $token . '"';
+			$attr[] = 'data-token="' . esc_attr( $token ) . '"';
 
-			// Make sure jQuery script is called
+			// Ensure jQuery script is called
 			$mycred_link_points = true;
 
 		}
 
-		// Return result
-		return apply_filters( 'mycred_link', '<a ' . implode( ' ', $attr ) . '>' . do_shortcode( $link_title ) . '</a>', $atts, $link_title );
+		// Return the rendered anchor tag
+		return apply_filters( 'mycred_link', '<a ' . implode( ' ', $attr ) . '>' . wp_kses_post( do_shortcode( $link_title ) ) . '</a>', $atts, $link_title );
 
 	}
 endif;
+
 add_shortcode( MYCRED_SLUG . '_link', 'mycred_render_shortcode_link' );
+

@@ -3,7 +3,7 @@
  * Plugin Name: myCred
  * Plugin URI: https://mycred.me
  * Description: An adaptive points management system for WordPress powered websites.
- * Version: 2.7.4
+ * Version: 2.7.5
  * Tags: point, credit, loyalty program, engagement, reward, woocommerce rewards
  * Author: myCred
  * Author URI: https://mycred.me
@@ -20,7 +20,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 	final class myCRED_Core {
 
 		// Plugin Version
-		public $version             = '2.7.4';
+		public $version             = '2.7.5';
 
 		// Instnace
 		protected static $_instance = NULL;
@@ -265,8 +265,6 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 				// If myCRED has been setup and is ready to begin
 				if ( mycred_is_installed() ) {
 
-					// myCRED Subscription
-					$this->file( myCRED_MEMBERSHIP_DIR . 'subscription-functions.php' );
 					$this->file( myCRED_MEMBERSHIP_DIR . 'mycred-connect-membership.php' );
 					$this->file( myCRED_INCLUDES_DIR   . 'mycred-main-menu.php' );
 					$this->file( myCRED_INCLUDES_DIR   . 'mycred-database-upgrade.php' );
@@ -288,9 +286,6 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 
 					//Uninstall Settings
 					$this->file( myCRED_INCLUDES_DIR . 'mycred-uninstall.php' );
-
-					//License
-					$this->file( myCRED_CLASSES_DIR . 'class.mycred-license.php' );
 
 					if ( is_multisite() ) {
 
@@ -1192,6 +1187,48 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
             	mycred_override_open_badge();
 			}
 
+			if ( is_admin() && ! class_exists( 'myCRED_License' ) ) {
+
+				$show_notice = false;
+
+				$active_plugins = get_option( 'active_plugins', array() );
+
+				$mycred_addons_list = mycred_get_premium_addons_list();
+				
+				if ( ! empty( $active_plugins ) ) {
+					foreach( $active_plugins as $plugin ) {
+
+						$plugin_filename = explode( '/', $plugin );
+
+						if ( isset( $plugin_filename[1] ) && in_array( $plugin_filename[1], $mycred_addons_list ) ) {
+							$show_notice = true;
+							break;
+						}
+
+					}
+				}
+
+				if ( $show_notice ) {		
+					add_action( 'admin_notices', array( $this, 'premium_addons_license_notice' ) );
+				}
+
+			}
+
+		}
+
+		public function premium_addons_license_notice() {
+		    ?>
+		    <div class="notice notice-error is-dismissible">
+		        <p>
+		            <?php 
+		            printf(
+		                __('Our myCred license system has been upgraded. Please manually update your myCred premium addons (one time) for uninterrupted usage. For further information, please follow this %s.', 'mycred'),
+		                '<a href="https://mycred.me/blog/mycred-is-updating-its-license-system/" target="_blank">' . __('link', 'mycred') . '</a>'
+		            );
+		            ?>
+		        </p>
+		    </div>
+		    <?php
 		}
 
 	}

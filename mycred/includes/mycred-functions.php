@@ -5015,3 +5015,60 @@ if ( ! function_exists( 'mycred_checkbox_radio_fields' ) ) :
         }
     }
 endif;
+
+if ( ! function_exists( 'mycred_get_premium_addons_list' ) ) :
+    function mycred_get_premium_addons_list() {
+
+    	return array(
+    		'mycred-cashcred-paypal.php',
+		    'mycred-2co.php',
+		    'mycred-anniversary-pro.php',
+		    'mycred-beaver-builder.php',
+		    'mycred-birthday-plus.php',
+		    'mycred-bp-charges.php',
+		    'mycred-cashcred-paystack.php',
+		    'mycred-cashcred-stripe.php',
+		    'mycred-coinbase.php',
+		    'mycred-coinpayment.php',
+		    'mycred-coupons-plus.php',
+		    'mycred-daily-login-rewards.php',
+		    'mycred-dokan.php',
+		    'mycred-email-digest.php',
+		    'mycred-email-plus.php',
+		    'mycred-expiration-addon.php',
+		    'mycred-gateway-edd.php',
+		    'mycred-jwplayer.php',
+		    'mycred-level-cred.php',
+		    'mycred-nominations.php',
+		    'mycred-notice-plus.php',
+		    'mycred-pacman.php',
+		    'mycred-payfast.php',
+		    'mycred-paymentwall.php',
+		    'mycred-paystack.php',
+		    'mycred-pending-points.php',
+		    'mycred-points-cap.php',
+		    'mycred-progress-bar.php',
+		    'mycred-progress-map.php',
+		    'mycred-reset-points.php',
+		    'mycred-rest.php',
+		    'mycred-robokassa.php',
+		    'mycred-sms-payments.php',
+		    'mycred-social-proof.php',
+		    'mycred-social-shares.php',
+		    'mycred-stripe.php',
+		    'mycred-submission.php',
+		    'mycred-time-based-reward.php',
+		    'mycred-todo-list.php',
+		    'mycred-transfer-plus.php',
+		    'mycred-userpro.php',
+		    'mycred-usersultra.php',
+		    'mycred-vc.php',
+		    'mycred-videos.php',
+		    'mycred-wc-vendors-addon.php',
+		    'mycred-wepay.php',
+		    'mycred-wheel-of-fortune.php',
+		    'mycred-woocommerce-plus.php'
+    	);
+        
+    }
+endif;
