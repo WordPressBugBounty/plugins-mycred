@@ -3,7 +3,7 @@
  * Plugin Name: myCred
  * Plugin URI: https://mycred.me
  * Description: An adaptive points management system for WordPress powered websites.
- * Version: 2.7.5.2
+ * Version: 2.7.6
  * Tags: point, credit, loyalty program, engagement, reward, woocommerce rewards
  * Author: myCred
  * Author URI: https://mycred.me
@@ -20,7 +20,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 	final class myCRED_Core {
 
 		// Plugin Version
-		public $version             = '2.7.5.2';
+		public $version             = '2.7.6';
 
 		// Instnace
 		protected static $_instance = NULL;
@@ -54,14 +54,14 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 		 * @since 1.7
 		 * @version 1.0
 		 */
-		public function __clone() { _doing_it_wrong( __FUNCTION__, 'Cheatin&#8217; huh?', '2.7.5.2' ); }
+		public function __clone() { _doing_it_wrong( __FUNCTION__, 'Cheatin&#8217; huh?', '2.7.6' ); }
 
 		/**
 		 * Not allowed
 		 * @since 1.7
 		 * @version 1.0
 		 */
-		public function __wakeup() { _doing_it_wrong( __FUNCTION__, 'Cheatin&#8217; huh?', '2.7.5.2' ); }
+		public function __wakeup() { _doing_it_wrong( __FUNCTION__, 'Cheatin&#8217; huh?', '2.7.6' ); }
 
 		/**
 		 * Get
@@ -659,6 +659,10 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 			wp_register_script( 'mycred-edit-balance',   plugins_url( 'assets/js/mycred-edit-balance.js', myCRED_THIS ),  array( 'jquery', 'jquery-ui-core', 'jquery-ui-dialog', 'jquery-effects-core', 'jquery-effects-slide', 'jquery-numerator' ), $this->version );
 			wp_register_script( 'mycred-edit-log',       plugins_url( 'assets/js/mycred-edit-log.js', myCRED_THIS ),      array( 'jquery', 'jquery-ui-core', 'jquery-ui-dialog', 'jquery-effects-core', 'jquery-effects-slide', 'common' ), $this->version );
 			wp_register_script( 'mycred-select2-script', plugins_url( 'assets/js/select2.js', myCRED_THIS ),              array( 'jquery' ), $this->version, true );
+
+			if( is_plugin_active('mycred-toolkit/mycred-toolkit.php') || is_plugin_active('mycred-toolkit-pro/mycred-toolkit-pro.php') ) {
+				wp_register_script('mycred-toolkit-script', plugins_url('includes/toolkit/build/admin.bundle.js', myCRED_THIS), array('wp-element'), '1.0.0',true );
+			}
 
 			do_action( 'mycred_register_assets' );
 

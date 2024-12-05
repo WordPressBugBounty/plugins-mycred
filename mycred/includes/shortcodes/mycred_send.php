@@ -60,7 +60,8 @@ if ( ! function_exists( 'mycred_render_shortcode_send' ) ) :
 
 		$reload = absint( $reload );
 
-		$render = '<button type="button" class="mycred-send-points-button btn btn-primary' . $class . '" data-reload="' . $reload . '" data-to="' . $recipient . '" data-ref="' . esc_attr( $ref ) . '" data-log="' . esc_attr( $log ) . '" data-amount="' . $amount . '" data-type="' . esc_attr( $type ) . '">' . $mycred->template_tags_general( $content ) . '</button>';
+		$render = '<button type="button" class="mycred-send-points-button btn btn-primary ' . esc_attr( $class ) . '" data-reload="' . esc_attr( $reload ) . '" data-to="' . esc_attr( $recipient ) . '" data-ref="' . esc_attr( $ref ) . '" data-log="' . esc_attr( $log ) . '" data-amount="' . esc_attr( $amount ) . '" data-type="' . esc_attr( $type ) . '">' . wp_kses_post( $mycred->template_tags_general( $content ) ) . '</button>';
+
 
 		return apply_filters( 'mycred_send', $render, $atts, $content );
 

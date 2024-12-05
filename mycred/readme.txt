@@ -1,35 +1,34 @@
-=== myCred - Loyalty Points and Rewards plugin for WordPress and WooCommerce - Give Points, Ranks, Badges, Cashback, WooCommerce rewards, and WooCommerce credits for Gamification ===
+=== myCred – Exclusive Platform for Loyalty Points and Rewards – Create Leaderboards, Ranks, Badges, Cashback Coupons, Referral Programs, WooCommerce & eCommerce wallet, Gamification Awards, and Achievements. ===
 Contributors: mycred,wpexpertsio
 Tags: badges, gamification, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 6.7
-Stable tag: 2.7.5.2
+Stable tag: 2.7.6
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-A WordPress gamification plugin is also a points management system. Award ranks, loyalty points and rewards or WooCommerce rewards to your users.
+A WordPress gamification plugin is also a **points management system**. Award ranks, loyalty points and rewards or WooCommerce rewards to your users.
 
 == Description ==
 
-myCred is an intelligent and adaptive **points management system** that allows you to build and manage a broad range of digital rewards including points, ranks and, badges on your WordPress/WooCommerce powered website. 
+myCred is an adaptive points management system that allows you to build and manage a broad range of digital rewards, including leaderboards, ranks, and badges on your WordPress/WooCommerce-powered website.
 
 [youtube https://www.youtube.com/watch?v=-M19tzYo1jo]
 
-Build **brand loyalty** by rewarding your customers through store reward systems, cash back, community leaderboard, website content monetization, etc. - The possibilities are endless. 
+Build **brand loyalty** by rewarding your customers through store reward systems, cash back, community leaderboard, website content monetization, etc. – The possibilities are endless.
 
-**Increase customer engagement tenfold - Rewarding your users for community engagement will help your business grow.**
+**Increase customer engagement tenfold – Rewarding your users for community engagement will help your business grow.**
 
-= AMAZING AWARD SYSTEMS TO ENGAGE AND REWARD LOYAL CUSTOMERS =
+AMAZING AWARD SYSTEMS TO ENGAGE AND REWARD LOYAL CUSTOMERS 
 
 myCred allows **THREE different ways** through which you can award your users:
 
-* **Points -** Set events and triggers to allow real-time tracking and automatically award your users with loyalty points and daily rewards. 
+**Points –** Set events and triggers to allow real-time tracking and automatically award your users with loyalty points and daily rewards.
 
-* **Ranks -** Set ranks within your leaderboards and reward your users with significant perks after they reach a certain milestone.
+**Ranks –** Set ranks within your leaderboards and reward your users with significant perks after they reach a certain milestone.
 
-* **Badges -** Boost your users' participation by rewarding them for their exceptional performance.
-
+**Badges –** Boost your users’ participation by rewarding them for their exceptional performance.
 
 - Gain access to 50+ myCred add-ons.
 - Premium support & priority updates.
@@ -39,144 +38,130 @@ myCred allows **THREE different ways** through which you can award your users:
 
 [Check package pricing page for add-on list](https://mycred.me/membership/)
 
-= WooCommerce Cart & Checkout Block Compatibility = 
+= WooCommerce Cart & Checkout Block Compatibility =
 myCred is compatible with WooCommerce’s cart & checkout block compatibility, making it easier for users to fill out checkout page seamlessly and win WooCommerce rewards.
 
 = Features =
 = Point Management =
-Empower your users by rewarding them points and rewards - each user has their own POINT BALANCE to purchase online products, cash back, or online activities.
+Empower your users by rewarding them points and rewards – each user has their own POINT BALANCE to purchase online products, cash back, or online activities.
 
-**- Point Balances**: Each user on your website will have their own point balance, where they can gain/lose viewpoints.
-**- Account History**: Each time a user gains or loses points on your website, transaction is logged into a central log.
-**- Points Management**: You have full control over your users' point balances. Adjust user balance by adding or removing points and rewards with or without a log entry.
-**- Automatic Points**: Automatically award or deduct points from your user's balance for their interaction on your WordPress/WooCommerce or gamification based website.
-**- Multiple Point Types**: Create multiple point types through admin area to manage things easily. There is no limit to the number of point types you can have at your disposal.
-**- Buy Points**: buyCred add-on allows your users to purchase points and rewards using real money using some of most popular payment gateways available in market today.
-**- Store Payments**: myCred supports some of most popular store plugins for WordPress, allowing your users to pay for orders/tickets using their point balance instead of real money.
-**- Upload Point-type image**: Give your gamification point type a unique identity by assigning them an image. Use it to create a WooCommerce wallet. 
-**- Import/Export Points and Point Types**: Save time by importing/exporting user points and point types (all  or specific). You can also export setup settings for all point types.
-**- Import/Export Setup Settings**: Setup myCred quickly by importing/exporting setup settings in JSON format. Export option is available for all or specific user fields.
+**– Point Balances**: Each user on your website will have their own point balance, where they can gain/lose viewpoints.
+**– Account History**: Each time a user gains or loses points on your website, transaction is logged into a central log.
+**– Points Management**: You have full control over your users’ point balances. Adjust user balance by adding or removing points and rewards with or without a log entry.
+**- Automatic Points**: Automatically award or deduct points from your users' balances for their interactions on your WordPress/WooCommerce or gamification-based website.
+**- Multiple Point Types**: Create multiple point types through the admin area to manage things easily. The number of point types you can have is unlimited.
+**- Buy Points**: The buyCred add-on allows your users to purchase points and rewards using real money through some of the most popular payment gateways available in the market today.
+**– Store Payments**: myCred supports some of most popular store plugins for WordPress, allowing your users to pay for orders/tickets using their point balance instead of real money.
+**– Upload Point-type image**: Give your gamification point type a unique identity by assigning them an image. Use it to create a WooCommerce wallet.
+**– Import/Export Point Types**: Save time by importing/exporting user points and point types (all or specific). You can also export setup settings for all point types.
+**– Import/Export Setup Settings**: Setup myCred quickly by importing/exporting setup settings in JSON format. Export option is available for all or specific user fields.
 
 = Badges & Ranks =
-
-**-  Open Badge Functionality** - new opportunities to recognize and validate achievements digitally.
-**-  Add badge details** (name, achievement, website details, etc.).
-**-  Badge recognition and validation** through different badge verification websites.
-**-  Single Badge Page** is an exclusive page for each badge and its information (badge name, image, badge description, achievements, and benefits)
-**-  Open Badge Search Filter** - [myCred badge list] shortcode gives you  ability to add search fields and filters for badges.
-**-  Evidence Shortcode** - Technical support for gamification and badge verification purposes.
-**-  Badge Evidence Download Button** - Access Open Badges of any users on website. Admin can also download any given badge images.
-**-  The "Quick Edit" badge option** will allow you to modify information of any particular badge.
-**-  Social share setting** - Allow users to share their achieved badges on their social profiles.
-**-  Import/Export User Badges** - Import/Export option for user badges (all or specific). The admin can import badges with ID/Title/Slug.
-**-  Import/Export User Ranks** - Import/Export option for user ranks (all or specific). The admin can import ranks with ID/Title/Slug.
-**-  Export Options** - Admin can easily export badges and ranks in a raw or formatted file. Export option is available for all or specific user fields.
-**-  Award Badges/Ranks on Coupons** - Assign user badges, ranks, and WooCommerce rewards to coupons so that users will get rewarded when using specific coupons at checkout.
-**-  Attributes** - Add title, excerpt, and display attributes in mycred_my_badges shortcode to make it a digital wallet system.
+**– Open Badge Functionality** – new opportunities to recognize and validate achievements digitally.
+**– Add badge details** (name, achievement, website details, etc.).
+**– Badge recognition and validation** through different badge verification websites.
+**– Single Badge Page** is an exclusive page for each badge and its information (badge name, image, badge description, achievements, and benefits)
+**– Open Badge Search Filter** – [myCred badge list] shortcode gives you ability to add search fields and filters for badges.
+**– Evidence Shortcode** – Technical support for gamification and badge verification purposes.
+**– Badge Evidence Download Button** – Access Open Badges of any users on website. Admin can also download any given badge images.
+**– The “Quick Edit” badge** option will allow you to modify information of any particular badge.
+**– Social share setting** – Allow users to share the badges they have achieved on their social profiles.
+**– Import/Export User Badges** – Import/Export option for user badges (all or specific). The admin can import badges with ID/Title/Slug.
+**– Import/Export User Ranks** – Import/Export option for user ranks (all or specific). The admin can import ranks with ID/Title/Slug.
+**– Export Options** – Admin can easily export badges and ranks in a raw or formatted file. The export option is available for all or specific user fields.
+**– Award Badges/Ranks on Coupons** – Assign user badges, ranks, and WooCommerce rewards to coupons to reward users when using specific coupons at checkout.
+**– Attributes** – Add title, excerpt, and display attributes in mycred_my_badges shortcode to make it a digital wallet system.
 
 = cashCred =
 **GIVE USERS THE POWER TO CONVERT THEIR MYCRED POINTS INTO REAL MONEY.**
 
-cashCred is a built-in myCred add-on that allows users to redeem myCred points as a digital wallet for real money. Earn points through myCred's intelligent rewards system. Instead of cash, reward users with points that can be encashed.
+cashCred is a built-in myCred add-on that allows users to redeem myCred points as a digital wallet for real money. Earn rewards through myCred’s intelligent rewards system. Instead of cash, reward users with points that can be encashed.
 
 cashCred works perfectly with a reward system that engages users to perform activities that require user interaction (watching a video, filling out a survey, and more).
 
-**-  Convert Points to Cash** - Users can redeem myCred points for money.
-**-  Multiple Point Types** - Allow multiple custom point types.
-**-  Exchange Rates** - Define exchange rates for each points type.
-**-  Cash Withdrawal** - Users can send a request to admin for cash withdrawal or cashback.
-**-  User Requests** - Approve or deny user requests for cash withdrawal.
-**-  Additional Notes** - Write additional notes for users, which will be displayed on the payment form.
-**-  Currency Code** - Define currency code (USD, GBP, AUD, etc.) for the payment form.
-**-  Shortcode Support** - Display cashCred module on website using a shortcode.
-**-  Set Limits & Restrictions** - Set minimum or maximum restriction limits on point conversion requests.
-**-  Pay Through PayPal** - cashCred supports payment through PayPal.
-**-  Pay Through Stripe** - cashCred supports payment through Stripe.
-**-  Create email events/templates** for cashCred pending/approved/cancel requests.
-**-  Point Transfer** - Users can transfer cashCred points to other users.
-**-  Min/Max Fee** - Setup Numerical Difference (set a range for Minimum and Maximum fee).
-**-  Fees (points/percentage)** - Setup Parameters (fees can be set up using points or percentage).
-**-  Registered References** - All registered references will be listed on support page.
-
-= Template Tags = 
-
-**-  Signup Referral Hook (%user_name%)** - This hook returns a username whenever a user signup using a referral link.
-**-  Sell Content (%Price%)** - This template tag returns number of points a user needs to purchase content.
-**-  Badges (%badge_title% and %badge_image%)** - Display users' new badge title and image in outgoing email.
-**-  Ranks (%rank_title% and %rank_image%)** - Display users' new rank title and image in outgoing email.
+**– Convert Points to Cash** – Users can redeem myCred points for money.
+**– Multiple Point Types** – Allow multiple custom point types.
+**– Exchange Rates** – Define exchange rates for each point type.
+**– Cash Withdrawal** – Users can send a request to admin for cash withdrawal or cashback.
+**– User Requests** – Approve or deny user requests for cash withdrawal.
+**– Additional Notes** – Write additional notes for users, which will be displayed on the payment form.
+**– Currency Code** – Define currency code (USD, GBP, AUD, etc.) for the payment form.
+**– Shortcode Support** – Display cashCred module on website using a shortcode.
+**– Set Limits & Restrictions** – Set minimum or maximum restriction limits on point conversion requests.
+**– Pay Through PayPal** – cashCred supports payment through PayPal.
+**– Pay Through Stripe** – cashCred supports payment through Stripe.
+**– Create email events/templates** for cashCred pending/approved/cancel requests.
+**– Point Transfer** – Users can transfer cashCred points to other users.
+**– Min/Max Fee** – Setup Numerical Difference (set a range for Minimum and Maximum fee).
+**– Fees (points/percentage)** – Setup Parameters (fees can be set up using points or percentage).
+**– Registered References** – All registered references will be listed on support page.
 
 = Dedicated Log =
-Each time myCred adds or deducts points from a user, adjustment is logged in a dedicated log, allowing your users to browse their history. This log keeps a record of your user's accountability, badges, and ranks, among other useful statistics.
+Each time myCred adds or deducts points from a user, adjustment is logged in a dedicated log, allowing your users to browse their history. This log keeps a record of your user’s accountability, badges, and ranks, among other useful statistics.
 
 This log data can be converted into charts to help you visualize the usage and circulation of points on your website.
 
-You can achieve following features by using a dedicated log for your points system:
+You can achieve following features by using a dedicated log for your point system:
 
-- Set a limit to maximum number of times each hook can give out points to your user.
-- Badges will use the log's data to determine which user has earned a badge.
+ -Set a limit to maximum number of times each hook can give out points to your user.
+- Badges will use the log’s data to determine which user has earned a badge.
 - Add-ons such as Sell Content use log to track users who have purchased posts from your website.
 - Add-ons use log to ensure that a user does not gain repetitive points for same interaction within a given time frame.
 
 = Central Deposit = 
-Central Deposit is a built-in add-on that allows admin to nominate any available user account to become  primary account from where all point-related transactions are managed.
+Central Deposit is a built-in add-on that allows admin to nominate any available user account to become primary account from where all point-related transactions are managed.
 
-* **Central Deposit Account** - Admin can choose any existing user account to become a central deposit account that controls all points and their transactions.
-* **Centralized Transaction Mangement** - Any points spent or earned are recorded in a point log that can be accessed from user's myCred admin dashboard.
-* **Ignore Manual Adjustments** - After a central deposit account is nominated, the admin can not add points to customer's account manually.
-* **Set Starting from** - Setup starting date 
-* **Interval (in days)** - Deposit points after x days interval.
-* **Amount** - The amount of points to be scheduled.
-* **Recurring** - Enabling this options will deposit the amount recursively after defined interval. We have also added two new email triggers for Central deposit.
+* **Central Deposit Account** – Admin can choose any existing user account to become a central deposit account that controls all points and their transactions.
+* **Centralized Transaction Management** – Any points spent or earned are recorded in a point log that can be accessed from the user’s myCred admin dashboard.
+* **Ignore Manual Adjustments** — After a central deposit account is nominated, the admin can not manually add points to the customer’s account.
+* **Set Starting from** – Setup starting date.
+* **Interval (in days)** – Deposit points after x-day interval.
+* **Amount** – The amount of points to be scheduled.
+* **Recurring** – Enabling this options will deposit the amount recursively after defined interval. We have also added two new email triggers for Central deposit.
 * Added Email notification on Minimum balance in central deposit.
 * Added Email notification on No balance Left in central deposit.
 
-= Achievements/Assets =
+= Achievements/Assets = 
+Issue badges for any combination of achievements.
+Detailed badge categorization.
+Industry-related achievements.
+Achievement list Shortcode allows you to display myCred badge listing in tabs individually or in a category.
 
--  Issue badges for any combination of achievements.
--  Detailed badge categorization.
--  Industry-related achievements.
--  Achievement list Shortcode allows you to display myCred badge listing in tabs individually or in a category. 
+Additional features
+**– White-Labeling**: myCred has built-in support for white-labeling: This allows you to rename plugin in your admin area to anything you like such as WooCommerce rewards or cashback.
+**– Import & Export**: myCred comes with three built-in import tools allowing you to import points, use gamification, log entries, or migrate your CubePoints installation.
+**– Multi-Site Support**: myCred has built-in support for multi-sites, allowing you to choose between using a unique myCred installation or centralizing balances across your network.
+**– Leaderboards**: Generate leaderboards based on your user’s balance or point history – display users with the most points for a particular instance.
+**– Theme Independent**: The myCred plugin is theme independent – Your theme needs to support widgets and shortcodes to run myCred.
+**– BuddyPress Ready**: myCred has had built-in support for BuddyPress through which you can access BuddyPress-related features like inserting point balances/badges/ranks into your user’s profiles.
+**– A “Bulk Assign” tool** for awarding/revoking points, badges, and ranks in bulk.
+**– Enable/Disable add-ons** – Save time by using toggle buttons to enable or disable add-ons.
+**– Treasures** – A brand new collection of attractive graphical images that can be used for ranks and badges.
 
-= Additional features =
+= BUILT-IN ADD-ONS = 
 
-**-  White-Labeling: myCred has built-in support for white-labeling**: This allows you to rename plugin in your admin area to anything you like such as WooCommerce rewards or cashback.
-**-  Import & Export**: myCred comes with three built-in import tools allowing you to import points, use gamification, log entries, or migrate your CubePoints installation.
-**-  Multi-Site Support**: myCred has built-in support for multi-sites, allowing you to choose between using a unique myCred installation or centralize balances across your network.
-**-  Leaderboards**: Generate leaderboards based on your user's balance or points history - display users with the most points for a particular instance.
-**-  Theme Independent**: The myCred plugin is theme independent - Your theme needs to support widgets and shortcodes to run myCred.
-**-  BuddyPress Ready**: myCred has had built-in support for BuddyPress through which you can access BuddyPress-related features like Insert point balances/badges/ranks into your user's profiles.
-**-  A "Bulk Assign" tool** for awarding/revoking points, badges, and ranks in bulk.
-**-  Enable/Disable add-ons** - Save time and use toggle buttons for enabling or disabling add-ons. 
-**-  Treasures** - A brand new collection of attractive graphical images that can be used for ranks and badges.
+myCred is much more than just a point management system or a gamification plugin – It comes with several [built-in add-ons](https://www.mycred.me/add-ons/) like WooCommerce rewards that enable you to perform complex tasks such as transfer or buy points for real money, allow payments in stores, etc. 
 
+**– Badges**: Award your users badges based on their history using gamification.
+**– buyCred**: Let your users buy points in exchange for real money.
+**– Coupons**: Create coupons that can be redeemed for points.
+**– Email notifications**: Setup email notifications for status updates.
+**– Gateway**: Let users pay with points in your store.
+**– Notifications**: Enable popup notifications that display status updates.
+**– Ranks**: Create ranks based on the user’s point balance.
+**– Sell Content**: Sell your content in exchange for points.
+**– Statistics**: Get a statistical overview of points or rewards in circulation, etc.
+**– Transfers**: Allow your users to transfer points to other users.
 
-= BUILT-IN ADD-ONS =
+- [Gamification for WooCommerce](https://mycred.me/woocommerce-loyalty-rewards-badge-and-points-system/) 
+myCred WooCommerce offers seamless integration with WooCommerce, improving your e-commerce experience. This built-in add-on introduces five key features: compatibility with WooCommerce blocks, points for each order, first orders, order ranges, and several orders. Earn rewards based on various order criteria, while admins have full control over point allocation through customizable hooks. The addon also supports myCred as a payment gateway, displaying user reward balances on the cart & checkout pages.
 
-myCred is much more than just a point management system or a gamification plugin - It comes with several [built-in add-ons](https://www.mycred.me/add-ons/) like WooCommerce rewards that enable you to perform complex tasks such as transfer or buy points for real money, allow payments in stores, etc. 
-
-**- Badges:** Award your users badges based on their points history using gamification.
-**- buyCred:** Let your users buy points in exchange for real money.
-**- Coupons:** Create coupons that can be redeemed for points. 
-**- Email notifications:** Setup email notifications for status updates.
-**- Gateway:** Let users pay with points in your store.
-**- Notifications:** Enable popup notifications that display status updates.
-**- Ranks:** Create ranks based on the user's point balance.
-**- Sell Content:** Sell your content in exchange for points.
-**- Statistics:** Get a statistical overview of points in circulation, etc.
-**- Transfers:** Allow your users to transfer points to other users. 
-
-= myCred WooCommerce =
-
-myCred WooCommerce offers seamless integration with WooCommerce, improving your e-commerce experience. This built-in adddon introduces five key features: compatibility with WooCommerce blocks, points for each order, points for first orders, points for order ranges, and points for several orders. Earn rewards based on various order criteria, while admins have full control over points allocation through customizable hooks. The addon also supports myCred as a payment gateway, displaying user points or balances on the cart & checkout pages.
-
-= BUILT-IN PLUGIN SUPPORT =
-
-myCred supports some of the most popular WordPress plugins like **BuddyPress, WooCommerce, Jetpack, Contact Form 7, Disqus, Gravity Forms,** among countless others for gamification. 
+= BUILT-IN PLUGIN SUPPORT = 
+myCred supports some of the most popular WordPress plugins like **BuddyPress, WooCommerce, Jetpack, Contact Form 7, Disqus, Gravity Forms,** among countless others for gamification.
 
 **Simple & organized** To keep your admin area organized, myCred will only show features and setting for those third-party plugins that are installed and enabled.
 
-
-= INTEGRATED WITH THE MOST POPULAR LEARNING MANAGEMENT SYSTEMS =
+= INTEGRATED WITH THE MOST POPULAR LEARNING MANAGEMENT SYSTEMS = 
 myCred is integrated with a large number of popular learning management systems, that include:
 
 - [LearnDash](https://wordpress.org/plugins/mycred-learndash/)
@@ -184,14 +169,13 @@ myCred is integrated with a large number of popular learning management systems,
 - [WPLMS](https://wplms.io/support/knowledge-base/wplms-mycred-add-on/) (Free third-party integration)
 - [LearnPress](https://thimpress.com/product/mycred-add-on-for-learnpress/) (Paid third-party integration).
 
-= MYCRED'S INTEGRATION WITH YOUR FAVORITE PAGE BUILDERS: =
 
+= MYCRED’S INTEGRATION WITH YOUR FAVORITE PAGE BUILDERS: =
 - [myCred Elementor](https://www.mycred.me/store/mycred-elementor/)
 - [myCred Beaver Builder](https://www.mycred.me/store/mycred-beaver-builder/)
 - [myCred for WPBakery Page Builder](https://www.mycred.me/store/mycred-for-wpbakery-page-builder/)
 
-
-= MYCRED OFFERS A VARIETY OF FREE PLUGINS THAT INCLUDE: =
+= MYCRED OFFERS A VARIETY OF FREE PLUGINS THAT INCLUDE: = 
 
 - [LifterLMS Plugin Integration with myCred](https://www.mycred.me/store/mycred-lifterlms-integration/)
 - [myCred BP Group Leaderboards](https://www.mycred.me/store/mycred-bp-group-leaderboards/)
@@ -199,8 +183,7 @@ myCred is integrated with a large number of popular learning management systems,
 - [myCred for Rating Form](https://www.mycred.me/store/mycred-for-rating-form/)
 [Explore to find out more...](https://www.mycred.me/product-category/freebies/)
 
-
-= MYCRED'S THIRD-PARTY BRIDGES PLUGINS: =
+= MYCRED’S THIRD-PARTY BRIDGES PLUGINS: = 
 
 - [Stripe - buyCred Gateway](https://www.mycred.me/store/buycred-stripe/)
 - [Easy Digital Downloads - myCred Gateway](https://www.mycred.me/store/mycred-for-easy-digital-downloads/)
@@ -211,13 +194,12 @@ myCred is integrated with a large number of popular learning management systems,
 - [myCred for Users Ultra](https://www.mycred.me/store/mycred-for-users-ultra/)
 - [myCred for User Pro](https://www.mycred.me/store/mycred-for-user-pro/)
 
-= MYCRED'S GAMIFICATION PLUGINS: =
+= MYCRED’S GAMIFICATION PLUGINS: =
 
 - [myCred PacMan](https://www.mycred.me/store/mycred-pacman/)
 - [Wheel of Fortune Add-On](https://www.mycred.me/store/wheel-of-fortune-add-on/)
 
-
-= MYCRED'S ENHANCEMENT PLUGINS: =
+= MYCRED’S ENHANCEMENT PLUGINS: =
 
 - [myCred WooCommerce Plus](https://www.mycred.me/store/mycred-woocommerce-plus/)
 - [myCred Email Digest](https://mycred.me/store/mycred-email-digest/)
@@ -236,19 +218,15 @@ myCred is integrated with a large number of popular learning management systems,
 - [myCred Video Add-on For Vimeo](https://www.mycred.me/store/video-add-on/)
 - [myCred Notifications Plus Add-on](https://www.mycred.me/store/notifications-plus-add-on/)
 
-
 = Documentation =
 
 You can find extensive [documentation](http://codex.mycred.me/) on myCred related add-ons in the myCred Codex. You can also find a list of [frequently asked](https://mycred.me/about/faq/) questions on the myCred website.
 
-
 = Customizations =
 
-myCred has the ability to do-it-all because we have put in a lot of effort to make sure that the supported plugins are as developer-friendly as possible. If you need to build a custom feature, simply submit a [request for a quote](https://mycred.me/customize/request-quote/) via the myCred website.
-
+myCred has the ability to do it all because we have put in a lot of effort to make sure that the supported plugins are as developer-friendly as possible. If you need to build a custom feature, simply submit a request for a quote via the myCred website.
 
 = Support =
-
 We offer support on our [myCred website](https://mycred.me/support/) from 9 AM - 5 PM, Monday to Friday (GMT+5).
 
 You can either submit a [customization request](https://mycred.me/customize/request-quote/) or open a [support ticket](https://mycred.me/support/) any time you're facing trouble with myCred. 
@@ -270,10 +248,39 @@ You can either submit a [customization request](https://mycred.me/customize/requ
 
 [Chapter VI - Reference Guides](http://codex.mycred.me/chapter-vi/)
 
-
 == Frequently Asked Questions ==
 
-You can find a list of [frequently asked questions](https://mycred.me/about/faq/) on myCred website.
+= Is myCred compatible with any theme? =
+
+Yes, myCred is designed to be theme independent, meaning it can work with any WordPress theme that supports widgets and shortcodes. This flexibility allows users to integrate gamification features seamlessly into their existing website design without compatibility issues.
+
+= Do I need coding skills for using myCred plugin? =
+
+No! You dont need any technical coding skill to install or use myCred. 
+
+= Where can I find documentation about myCred? =
+
+Extensive documentation for myCred, including guides for add-ons and frequently asked questions, is available in the [myCred Codex.](https://codex.mycred.me/) Users can also visit the official [myCred website](https://mycred.me/about/) for additional resources and support options to help them effectively utilize the plugin.
+
+= Something is not working. What do I do? =
+
+You can share complete detail and remain in contact with our support team till your query is resolved. Just reach out to [support.](https://objectsws.atlassian.net/servicedesk/customer/portal/7/group/7/create/93)
+
+= Can a customer or admin check the point's transaction history?
+
+Yes! Users and administrators can view precise information about how points are earned or deducted, ensuring complete transparency in point management. Each point type menu displays a comprehensive transaction history tracking user interactions. The history reveals specific details like the user's name, the exact hook or action that triggered the point transaction, and the complete transaction details. 
+
+= Can myCred be easily translated? =
+
+Yes, myCred supports translation and localization, making it easy to adapt the plugin for different languages. Users can use translation files or plugins like WPML or Loco Translate to customize the language settings according to their needs.
+
+= How can I report security bugs? =
+
+You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team help validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/mycred)
+
+= I have a question other than those mentioned here, where can I ask question? =
+
+You can directly contact our [support.](https://objectsws.atlassian.net/servicedesk/customer/portal/7/group/7/create/93)
 
 == Screenshots ==
 
@@ -286,9 +293,11 @@ You can find a list of [frequently asked questions](https://mycred.me/about/faq/
 
 == Upgrade Notice ==
 
+= 2.7.6 =
+Bug fixes and improvements.
+
 = 2.7.5.2 =
 Code improvement.
-
 
 = 2.7.5.1 =
 Code improvement.
@@ -426,6 +435,10 @@ New features and Bug fixes.
 The banking module have been replaced by Central deposite module, and interest related functionality has been removed. If you are using simple interest or compound interest related functionality, you will fine the respective functionalities missing after the update.
 
 == Changelog ==
+
+= 2.7.6 =
+- **NEW** - Added compatibility for myCred Toolkit.
+- **Fix** - Fixed security issues in mycred_send shortcode.
 
 = 2.7.5.2 =
 - **TWEAK** - Removed unnecessary files.
