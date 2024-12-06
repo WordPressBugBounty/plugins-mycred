@@ -1,9 +1,9 @@
-=== myCred – Exclusive Platform for Loyalty Points and Rewards – Create Leaderboards, Ranks, Badges, Cashback Coupons, Referral Programs, WooCommerce & eCommerce wallet, Gamification Awards, and Achievements. ===
+=== myCred - Points Management System For Gamification, Ranks, Badges, and Loyalty Rewards Program. ===
 Contributors: mycred,wpexpertsio
 Tags: badges, gamification, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 6.7
-Stable tag: 2.7.6
+Stable tag: 2.7.6.1
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -231,6 +231,8 @@ We offer support on our [myCred website](https://mycred.me/support/) from 9 AM -
 
 You can either submit a [customization request](https://mycred.me/customize/request-quote/) or open a [support ticket](https://mycred.me/support/) any time you're facing trouble with myCred. 
 
+= 3rd Party Services =
+* MUI - https://mui.com/material-ui/
 
 == Installation ==
 
@@ -292,6 +294,9 @@ You can directly contact our [support.](https://objectsws.atlassian.net/serviced
 6. **Badges Layout & Alignment**
 
 == Upgrade Notice ==
+
+= 2.7.6.1 =
+Added block.json files to blocks
 
 = 2.7.6 =
 Bug fixes and improvements.
@@ -435,6 +440,9 @@ New features and Bug fixes.
 The banking module have been replaced by Central deposite module, and interest related functionality has been removed. If you are using simple interest or compound interest related functionality, you will fine the respective functionalities missing after the update.
 
 == Changelog ==
+
+= 2.7.6.1 =
+- **NEW** - Added block.json files to blocks.
 
 = 2.7.6 =
 - **NEW** - Added compatibility for myCred Toolkit.
