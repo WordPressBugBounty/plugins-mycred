@@ -3,7 +3,7 @@ Contributors: mycred,wpexpertsio
 Tags: badges, gamification, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 6.7
-Stable tag: 2.7.6.1
+Stable tag: 2.7.6.2
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -295,6 +295,9 @@ You can directly contact our [support.](https://objectsws.atlassian.net/serviced
 
 == Upgrade Notice ==
 
+= 2.7.6.2 =
+Code improvement.
+
 = 2.7.6.1 =
 Added block.json files to blocks
 
@@ -440,6 +443,9 @@ New features and Bug fixes.
 The banking module have been replaced by Central deposite module, and interest related functionality has been removed. If you are using simple interest or compound interest related functionality, you will fine the respective functionalities missing after the update.
 
 == Changelog ==
+
+= 2.7.6.2 =
+- **NEW** - Added compatibility for mycred toolkit.
 
 = 2.7.6.1 =
 - **NEW** - Added block.json files to blocks.
