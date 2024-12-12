@@ -34,12 +34,12 @@ if ( ! class_exists( 'myCRED_Hook_Click_Links' ) ) :
 
 			if ( ! is_user_logged_in() ) return;
 
-			add_action( 'mycred_register_assets',      array( $this, 'register_script' ) );
-			add_action( 'mycred_front_enqueue_footer', array( $this, 'enqueue_footer' ) );
-			add_filter( 'mycred_parse_tags_link',      array( $this, 'parse_custom_tags' ), 10, 2 );
+			add_action( 'mycred_register_assets',      		  array( $this, 'register_script' ) );
+			add_action( 'mycred_front_enqueue_footer', 		  array( $this, 'enqueue_footer' ) );
+			add_filter( 'mycred_parse_tags_link',      		  array( $this, 'parse_custom_tags' ), 10, 2 );
 
-			if ( isset( $_POST['action'] ) && $_POST['action'] == 'mycred-click-points' && isset( $_POST['token'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['token'] ) ), 'mycred-link-points' ) )
-				$this->ajax_call_link_points();
+			add_action( 'wp_ajax_mycred-click-points', 		  array( $this, 'ajax_call_link_points' ) );
+			add_action( 'wp_ajax_nopriv_mycred-click-points', array( $this, 'ajax_call_link_points' ) );
 
 		}
 
@@ -114,7 +114,7 @@ if ( ! class_exists( 'myCRED_Hook_Click_Links' ) ) :
 					'mycred-link-points',
 					'myCREDlink',
 					array(
-						'ajaxurl' => esc_url( isset( $post->ID ) ? mycred_get_permalink( $post->ID ) : home_url( '/' ) ),
+						'ajaxurl' => admin_url( 'admin-ajax.php' ),
 						'token'   => wp_create_nonce( 'mycred-link-points' )
 					)
 				);

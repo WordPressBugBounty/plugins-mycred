@@ -9,11 +9,37 @@ class myCRED_Setup_Import_Export
         
     }
 
-    public function get_setup_page()
+    public function get_setup_import_page()
+    {
+        ?>
+        <input type="hidden" class="request-tab" value="<?php echo isset( $_GET['import'] ) ? sanitize_key( $_GET['import'] ) : '';?>" />
+        <form action="" enctype="multipart/form-data" class="mycred-tools-setup-import mycred-upload-file">
+            <h3><?php esc_html_e( 'Setup', 'mycred' ); ?></h3>
+            <label class="import-file" for="import-file">
+                <span class="dashicons dashicons-upload"></span>
+                Upload File
+            </label>
+            <input type="file" id="import-file" name="file" accept=".json" />
+            <span>
+                <button class="button mycred-ui-btn-purple button-primary" id="import">
+                    <span class="dashicons dashicons-database-import  v-align-middle"></span> <?php esc_html_e( 'Import Setup','mycred' ); ?>
+                </button>
+                <span class="mycred-spinner spinner"></span>
+            </span>
+            <p><i>
+                <?php esc_html_e( 'Accepts JSON format.', 'mycred' ); ?>
+            </i></p>
+        </form>
+        <div style="clear: both;"></div>
+        <?php 
+
+    }
+
+    public function get_setup_export_page()
     {
         $this->mycred_tools_import_export = new myCRED_Tools_Import_Export();
         ?>
-        <input type="hidden" class="request-tab" value="<?php if( isset( $_GET['mycred-tools'] ) ) echo sanitize_key( $_GET['mycred-tools'] );?>" />
+        <input type="hidden" class="request-tab" value="<?php echo isset( $_GET['export'] ) ? sanitize_key( $_GET['export'] ) : '';?>" />
         <form action="" enctype="multipart/form-data" class="mycred-tools-setup">
         <h3><?php esc_html_e( 'Setup', 'mycred' ); ?></h3>
         <?php
@@ -144,23 +170,7 @@ class myCRED_Setup_Import_Export
                 <span class="mycred-spinner spinner"></span>
             </div>
         </form>
-
-        <form action="" enctype="multipart/form-data" class="mycred-tools-setup-import">
-            <h3><?php esc_html_e( 'Import', 'mycred' ); ?></h3>
-            <input type="file" id="import-file" name="file" accept=".json" />
-            <span>
-                <button class="button mycred-ui-btn-purple button-primary" id="import">
-                    <span class="dashicons dashicons-database-import  v-align-middle"></span> <?php esc_html_e( 'Import Setup','mycred' ); ?>
-                </button>
-                <span class="mycred-spinner spinner"></span>
-            </span>
-            <p><i>
-                <?php esc_html_e( 'Accepts JSON format.', 'mycred' ); ?>
-            </i></p>
-        </form>
-        <div style="clear: both;"></div>
-        <?php 
-
+        <?php
     }
 
     public function export_setup( $post_field )

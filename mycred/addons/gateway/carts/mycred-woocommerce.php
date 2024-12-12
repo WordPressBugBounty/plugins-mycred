@@ -803,30 +803,30 @@ if ( ! function_exists( 'mycred_woo_after_order_total' ) ) :
 
 ?>
 <tr class="total">
-	<th><strong><?php echo esc_html( $mycred->template_tags_general( $available_gateways['mycred']->get_option( 'total_label' ) ) ); ?></strong></th>
-	<td>
-		<div class="current-balance order-total-in-points">
-			<strong class="<?php if ( $balance < $cost ) echo 'mycred-low-funds'; else echo 'mycred-funds'; ?>"<?php if ( $balance < $cost ) echo ' style="color:red;"'; ?>><?php echo esc_html( $mycred->format_creds( $cost ) ); ?></strong> 
-		</div>
-	</td>
+    <th><strong><?php echo esc_html( $mycred->template_tags_general( $available_gateways['mycred']->get_option( 'total_label' ) ) ); ?></strong></th>
+    <td data-title="<?php echo esc_html( $mycred->template_tags_general( $available_gateways['mycred']->get_option( 'total_label' ) ) ); ?>">
+        <div class="current-balance order-total-in-points">
+            <strong class="<?php if ( $balance < $cost ) echo 'mycred-low-funds'; else echo 'mycred-funds'; ?>"<?php if ( $balance < $cost ) echo ' style="color:red;"'; ?>><?php echo esc_html( $mycred->format_creds( $cost ) ); ?></strong> 
+        </div>
+    </td>
 </tr>
 <?php
 
-			}
+        }
 
-		}
+    }
 
-		// If we should show the users balance
-		if ( ! empty( $balance_label ) ) {
-
+    // If we should show the users balance
+    if ( ! empty( $balance_label ) ) {
 ?>
+
 <tr class="total">
-	<th><strong><?php echo esc_html( $mycred->template_tags_general( $balance_label ) ); ?></strong></th>
-	<td>
-		<div class="current-balance">
-			<?php echo esc_html( $mycred->format_creds( $balance ) ); ?>
-		</div>
-	</td>
+    <th><strong><?php echo esc_html( $mycred->template_tags_general( $balance_label ) ); ?></strong></th>
+    <td data-title="<?php echo esc_html( $mycred->template_tags_general( $balance_label ) ); ?>">
+        <div class="current-balance">
+            <?php echo esc_html( $mycred->format_creds( $balance ) ); ?>
+        </div>
+    </td>
 </tr>
 <?php
 

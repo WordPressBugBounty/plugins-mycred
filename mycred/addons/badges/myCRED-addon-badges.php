@@ -1312,7 +1312,7 @@ th#badge-users { width: 10%; }
                     foreach ( $point_types as $type_id => $type_label ) {
                         $point_type_options .= '<option value="' . $type_id . '"';
                         if ( $setup['reward']['type'] == $type_id ) $point_type_options .= ' selected="selected"';
-                        $point_type_options .= '>' . $type_label . '</option>';
+                        $point_type_options .= '>' . wp_slash( $type_label ) . '</option>';
                     }
 
                     $rewards            = str_replace( '{{pointtypes}}',     $point_type_options, $rewards );
@@ -1320,7 +1320,7 @@ th#badge-users { width: 10%; }
                     $rewards            = str_replace( '{{logtemplate}}',    esc_js( $setup['reward']['log'] ), $rewards );
                     $rewards            = str_replace( '{{rewardamount}}',   $setup['reward']['amount'], $rewards );
 
-                    $template           = str_replace( '{{rewards}}',       $rewards, $template );
+                    $template           = str_replace( '{{rewards}}',       wp_unslash( $rewards ), $template );
 
                     $rewards            = str_replace( $level,              '{{level}}', $rewards );
 

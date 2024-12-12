@@ -60,10 +60,10 @@ if ( ! function_exists( 'mycred_render_cashcred' ) ) :
 	?>
 <div id="cashcred">
 	<ul class="cashcred-nav-tabs">
-		<li id="tab1" class="active button"><?php esc_html_e( 'Withdraw Request', 'mycred' ); ?></li>
-		<li id="tab2" class="button"><?php esc_html_e( 'Approved Requests', 'mycred' ); ?></li>
-		<li id="tab3" class="button"><?php esc_html_e( 'Cancelled Requests', 'mycred' ); ?></li>
-		<li id="tab4" class="button"><?php esc_html_e( 'Payment Settings', 'mycred' ); ?></li>
+		<li id="tab1" class="active"><?php _e('Withdraw Request','mycred'); ?></li>
+		<li id="tab2"><?php _e('Approved Requests','mycred'); ?></li>
+		<li id="tab3"><?php _e('Cancelled Requests','mycred'); ?></li>
+		<li id="tab4"><?php _e('Payment Settings','mycred'); ?></li>
 	</ul>
 	<div id="cashcred_tab_content">
 		<!--------First tab--------->
@@ -72,7 +72,7 @@ if ( ! function_exists( 'mycred_render_cashcred' ) ) :
 
 			
 			<?php if( count( $pending_withdrawal ) > 0 ){ ?>
-			<h4><?php esc_html_e( 'You have pending withdrawal', 'mycred' ); ?></h4>
+			<h4><?php esc_html_e('You have pending withdrawal','mycred'); ?></h4>
 			<table>
 				<thead class="cashcred-table-heading">
 					<tr>
@@ -87,12 +87,12 @@ if ( ! function_exists( 'mycred_render_cashcred' ) ) :
 
 
 
-						<th><?php esc_html_e( 'Amount', 'mycred' ) ?></th>
-						<th><?php esc_html_e( 'Point Type', 'mycred' ) ?></th>
+						<th><?php esc_html_e('Amount','mycred') ?></th>
+						<th><?php esc_html_e('Point Type','mycred') ?></th>
 						<th>
 							<?php 
 							// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-							apply_filters( 'mycred_change_gateway_text', 'Gateway' ); 
+							apply_filters('mycred_change_gateway_text','Gateway'); 
 							?>	
 						</th>
 

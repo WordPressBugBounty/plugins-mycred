@@ -94,6 +94,7 @@ final class MyCred_Gutenberg {
             'mycred-history',
             'mycred-hook-table',
             'mycred-leaderboard',
+            'mycred-leaderboard-position',
             'mycred-link',
             'mycred-my-balance',
             'mycred-total-balance',
@@ -145,6 +146,12 @@ final class MyCred_Gutenberg {
             $mycred_modules[] = 'mycred-chart-top-balance';
             $mycred_modules[] = 'mycred-chart-instance-history';
             $mycred_modules[] = 'mycred-chart-top-instance';
+        }
+        if(class_exists('myCRED_Sell_Content_Module')) {
+            $mycred_modules[] = 'mycred-content-buyer-count';
+            $mycred_modules[] = 'mycred-content-sale-count';
+            $mycred_modules[] = 'mycred-content-buyer-avatars';
+            $mycred_modules[] = 'mycred-sales-history';
         }
 
         foreach ($mycred_modules as $mycred_module) {

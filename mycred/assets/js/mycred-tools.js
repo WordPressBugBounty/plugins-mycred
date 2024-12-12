@@ -115,97 +115,150 @@ jQuery(document).ready(function() {
     $selector = jQuery('.bulk-ranks');
     $selector.select2();
 
-    //Bulk Assign AJAX
-    jQuery(document).on('click', '.tools-bulk-assign-award-btn', function(e) {
+ function myCred_tools_bulk_assign(loop, awarded_user_count, remaining_user) {
+    var $confirm;
 
-        e.preventDefault();
+    if (loop === undefined) loop = 0;
+    if (awarded_user_count === undefined) awarded_user_count = 0;
+    if (remaining_user === undefined) remaining_user = 0;
 
-        var $confirm;
-
-        var $selectedType = jQuery('.bulk-award-type').find(':selected').val();
+    // Only confirm once, during the first loop
+    if (loop === 0) {
         var $pointsToAward = jQuery('[name="bulk_award_point"]').val();
-        var $pointType = jQuery('[name="bulk_award_pt"]').val();
-        var $logEntry = jQuery('.log-entry').prop('checked');
-        var $logEntryText = jQuery('[name="log_entry_text"]').val();
-        var $awardToAllUsers = jQuery('.award-to-all').prop('checked');
-        var $users = JSON.stringify(jQuery('[name="bulk_users"]').val());
-        var $user_roles = JSON.stringify(jQuery('[name="bulk_roles"]').val());
+
+        // Check if log entry is checked and the log text is empty
+        var $logEntryChecked = jQuery('#bulk-check-log').prop('checked');
+        var $logEntryText = jQuery('#bulk-log-entry').val();
+
+        if ($logEntryChecked && !$logEntryText) {
+            alert('Log entry is required.');
+            jQuery('.popup').hide().attr("aria-hidden", "true");
+            return false;  // Stop the process if log entry is required but missing
+        }
 
         if ($pointsToAward < 0)
             $confirm = confirm(mycredTools.revokeConfirmText);
         else
             $confirm = confirm(mycredTools.awardConfirmText);
 
-        if (!$confirm)
-            return false;
+        if (!$confirm) {
+            jQuery('.popup').hide().attr("aria-hidden", "true");
+            return false; // Stop the process if user cancels
+        }
+    }
 
-        //Ranks 
-        var $rankToAward = jQuery('.bulk-ranks').find(':selected').val();
+    var $selectedType = jQuery('.request-tab').val();
+    var $pointsToAward = jQuery('[name="bulk_award_point"]').val();
+    var $pointType = jQuery('[name="bulk_award_pt"]').val();
+    var $logEntry = jQuery('.log-entry').prop('checked');
+    var $logEntryText = jQuery('[name="log_entry_text"]').val();
+    var $awardToAllUsers = jQuery('.award-to-all').prop('checked');
+    var $users;
+    var $user_roles = JSON.stringify(jQuery('[name="bulk_roles"]').val());
 
-        //Badges
-        var $badgesToAward = JSON.stringify(jQuery('[name="bulk_badges"]').val());
+    // Only assign to selected users if 'Assign to all users' is NOT checked
+    if (jQuery('#bulk-reward-all-users').is(":not(:checked)")) {
+        var selectedUsers = jQuery('#bulk-users').val();  // Get selected users
 
-        jQuery.ajax({
-            url: ajaxurl,
-            type: 'POST',
-            data: {
-                action: 'mycred-tools-assign-award',
-                token: mycredTools.token,
-                selected_type: $selectedType,
-                points_to_award: $pointsToAward,
-                point_type: $pointType,
-                log_entry: $logEntry,
-                log_entry_text: $logEntryText,
-                award_to_all_users: $awardToAllUsers,
-                users: $users,
-                user_roles: $user_roles,
-                //Ranks
-                rank_to_award: $rankToAward,
-                //Badges
-                badges_to_award: $badgesToAward
+        // If there are selected users, assign to them
+        if (selectedUsers.length > 0) {
+            $users = JSON.stringify(selectedUsers);  // Only assign points to selected users
+        } else {
+            alert('No users selected for point assignment.');
+            return false;  // Stop the process if no users are selected
+        }
+    } else {
+        // Logic to handle if all users should receive the points
+        $users = JSON.stringify(jQuery('[name="bulk_users"]').val());
+    }
 
-            },
-            beforeSend: function() {
-                jQuery('.tools-bulk-assign-award-btn').closest('td').find('span.mycred-spinner').addClass('is-active');
-            },
-            success: function(data) {
+    //Ranks 
+    var $rankToAward = jQuery('.bulk-ranks').find(':selected').val();
 
-                jQuery('.tools-bulk-assign-award-btn').closest('td').find('span.mycred-spinner').removeClass('is-active');
+    //Badges
+    var $badgesToAward = JSON.stringify(jQuery('[name="bulk_badges"]').val());
 
-                if (data.success === true && $pointsToAward < 0) {
-                    alert(mycredTools.successfullyDeducted);
-                    mycredToolsResetForm();
-                    return;
-                }
+    
 
-                if (data.success === true) {
-                    alert(mycredTools.successfullyAwarded);
-                    mycredToolsResetForm();
-                    return;
-                }
-
-                if ( mycredTools.hasOwnProperty( data.success ) ) 
-                    alert( mycredTools[ data.success ] );
-
+    jQuery.ajax({
+        url: ajaxurl,
+        type: 'POST',
+        data: {
+            action: 'mycred-tools-assign-award',
+            token: mycredTools.token,
+            selected_type: $selectedType,
+            points_to_award: $pointsToAward,
+            point_type: $pointType,
+            log_entry: $logEntry,
+            log_entry_text: $logEntryText,
+            award_to_all_users: $awardToAllUsers,
+            users: $users,  // Selected users or all users
+            user_roles: $user_roles,
+            //Ranks
+            rank_to_award: $rankToAward,
+            //Badges
+            badges_to_award: $badgesToAward,
+            loop: loop
+        },
+        success: function(response) {
+         
+            if (Array.isArray(selectedUsers) && selectedUsers.length > 0) {           
+                alert(mycredTools.successfullyAwarded);
+                mycredToolsResetForm();
+                jQuery('.popup').hide().attr("aria-hidden", "true");
+                jQuery("#openMyPopup").focus();
+                return;
             }
-        })
-    });
 
-    //jQuery Bulk Revoke
-    jQuery(document).on('click', '.tools-revoke-btn', function(e) {
+            // Continue the loop if more users are left
+            loop++;
+            awarded_user_count += 100;
+            if (awarded_user_count > response.user_count) {
+                awarded_user_count = response.user_count;
+            }
+
+            remaining_user = response.user_count;
+            remaining_user -= awarded_user_count;
+
+            jQuery('#myCred_users').html('Users : ' + awarded_user_count);
+            jQuery('#myCred_user_remaining').html('User Remaining : ' + remaining_user);
+
+            if (response.run_again == true) {
+                myCred_tools_bulk_assign(loop, awarded_user_count);
+            } else {
+                alert(mycredTools.successfullyAwarded);
+                mycredToolsResetForm();
+                jQuery('.popup').hide().attr("aria-hidden", "true");
+                jQuery("#openMyPopup").focus();
+            }
+        }
+    });
+}
+
+
+    //Bulk Assign AJAX
+    jQuery(document).on('click', '.tools-bulk-assign-award-btn', function(e) {
 
         e.preventDefault();
+        jQuery('.popup').show().attr("aria-hidden", "false");
+        jQuery("#closePopup").focus();
+        jQuery( '#myCred_users' ).html( 'Users : 0' );
+        jQuery( '#myCred_user_remaining' ).html( 'User Remaining : 0' );
+        myCred_tools_bulk_assign();
+        
+    });  
 
-        var $confirm = confirm(mycredTools.revokeConfirmText);
+    function myCred_tools_bulk_revoke( loop, awarded_user_count, remaining_user ) {
 
-        if (!$confirm)
-            return false;
-
-        var $selectedType = jQuery('.bulk-award-type').find(':selected').val();
+        var $selectedType = jQuery('.request-tab').val();
         var $badgesToRevoke = JSON.stringify(jQuery('[name="bulk_badges"]').val());
         var $awardToAllUsers = jQuery('.award-to-all').prop('checked');
         var $users = JSON.stringify(jQuery('[name="bulk_users"]').val());
         var $user_roles = JSON.stringify(jQuery('[name="bulk_roles"]').val());
+
+        if( loop === undefined ) loop = 0;
+        if( awarded_user_count === undefined ) awarded_user_count = 0;
+        if( remaining_user === undefined ) remaining_user = 0;
 
         jQuery.ajax({
             url: ajaxurl,
@@ -219,25 +272,48 @@ jQuery(document).ready(function() {
                 award_to_all_users: $awardToAllUsers,
                 users: $users,
                 user_roles: $user_roles,
+                loop: loop,
             },
-            beforeSend: function() {
-                jQuery('.tools-revoke-btn').closest('td').find('span.mycred-spinner').addClass('is-active');
-            },
-            success: function(data) {
+            success: function(response) {
 
-                jQuery('.tools-revoke-btn').closest('td').find('span.mycred-spinner').removeClass('is-active');
+                loop++;
+                awarded_user_count += 100;
+                if ( awarded_user_count > response.user_count ) {
+                    awarded_user_count = response.user_count;
+                }
 
-                if (data.success === true) {
+                remaining_user = response.user_count;
+                remaining_user -= awarded_user_count; 
+
+                if ( response.run_again == true ) {
+                    myCred_tools_bulk_revoke( loop, awarded_user_count );
+                }
+                jQuery( '#myCred_users' ).html( 'Users : ' + awarded_user_count );
+                jQuery( '#myCred_user_remaining' ).html( 'User Remaining : ' + remaining_user );
+
+                if ( response.run_again != true && response.success === true ) {
                     alert(mycredTools.successfullyRevoked);
                     mycredToolsResetForm();
+                    jQuery('.popup').hide().attr("aria-hidden", "true");
+                    jQuery("#openMyPopup").focus();
                     return;
                 }
 
-                if ( mycredTools.hasOwnProperty( data.success ) ) 
-                    alert( mycredTools[ data.success ] );
-
+                if ( mycredTools.hasOwnProperty( response.success ) ) 
+                    alert( mycredTools[ response.success ] );
             }
         });
+    } 
+
+    //jQuery Bulk Revoke
+    jQuery(document).on('click', '.tools-revoke-btn', function(e) {
+
+        e.preventDefault();
+        jQuery('.popup').show().attr("aria-hidden", "false");
+        jQuery("#closePopup").focus();
+        jQuery( '#myCred_users' ).html( 'Users : 0' );
+        jQuery( '#myCred_user_remaining' ).html( 'User Remaining : 0' );
+        myCred_tools_bulk_revoke();
     });
 
     /*
@@ -332,25 +408,25 @@ jQuery(document).ready(function() {
 
         var $postField, $setupTypes = Array();
 
-        if (($pt == undefined || $pt.length == 0) && $requestTab == 'points') {
+        if (($pt == undefined || $pt.length == 0) && $requestTab == 'export-points') {
             alert('Select alteast one Point Type.');
             return false;
         }
 
-        if (($pt == undefined || $pt.length == 0) && $requestTab == 'badges') {
+        if (($pt == undefined || $pt.length == 0) && $requestTab == 'export-badges') {
             alert('Select alteast one Badge.');
             return false;
         }
 
-        if (($pt == undefined || $pt.length == 0) && $requestTab == 'ranks') {
+        if (($pt == undefined || $pt.length == 0) && $requestTab == 'export-ranks') {
             alert('Select alteast one Rank.');
             return false;
         }
 
-        if ($requestTab == 'badges' || $requestTab == 'ranks')
+        if ($requestTab == 'export-badges' || $requestTab == 'export-ranks')
             var $postField = jQuery('#tools-badge-fields-import-export').val()
 
-        if ($requestTab == 'setup') {
+        if ($requestTab == 'export-setup') {
             $fileFormat = 'json';
             $_setupTypes = jQuery('.mycred-tools-setup input[type=checkbox]');
             var $counter = 0;
@@ -444,7 +520,7 @@ jQuery(document).ready(function() {
         var $requestTab = jQuery('.request-tab').val(),
             $importFormatType;
 
-        if ($requestTab == 'badges' || $requestTab == 'ranks')
+        if ($requestTab == 'import-badges' || $requestTab == 'import-ranks')
             $importFormatType = jQuery('#import-format-type').val();
 
         if (document.getElementById('import-file').files.length == 0) {
@@ -452,13 +528,13 @@ jQuery(document).ready(function() {
             return false;
         }
 
-        if ((document.getElementById('import-file').files[0].type !== 'application/vnd.ms-excel' && document.getElementById('import-file').files[0].type !== 'text/csv') && ($requestTab != 'setup')) {
+        if ((document.getElementById('import-file').files[0].type !== 'application/vnd.ms-excel' && document.getElementById('import-file').files[0].type !== 'text/csv') && ($requestTab != 'import-setup')) {
             alert('Upload csv format file.');
             return false;
         }
 
         //Setup
-        if (document.getElementById('import-file').files[0].type !== 'application/json' && ($requestTab == 'setup')) {
+        if (document.getElementById('import-file').files[0].type !== 'application/json' && ($requestTab == 'import-setup')) {
             alert('Upload JSON format file.');
             return false;
         }

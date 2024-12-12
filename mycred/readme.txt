@@ -3,7 +3,7 @@ Contributors: mycred,wpexpertsio
 Tags: badges, gamification, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 6.7
-Stable tag: 2.7.6.2
+Stable tag: 2.8
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -295,11 +295,14 @@ You can directly contact our [support.](https://objectsws.atlassian.net/serviced
 
 == Upgrade Notice ==
 
+= 2.8 =
+New features and improvements.
+
 = 2.7.6.2 =
 Code improvement.
 
 = 2.7.6.1 =
-Added block.json files to blocks
+Code improvement.
 
 = 2.7.6 =
 Bug fixes and improvements.
@@ -443,6 +446,22 @@ New features and Bug fixes.
 The banking module have been replaced by Central deposite module, and interest related functionality has been removed. If you are using simple interest or compound interest related functionality, you will fine the respective functionalities missing after the update.
 
 == Changelog ==
+
+= 2.8 =
+- **NEW** - Introduced a new Hook: "Points for Viewing Specific Content (Members)".
+- **NEW** - Introduced a new Hook: "Points for Viewing Specific Content (Authors)".
+- **NEW** - Added mycred_leaderboard_position, mycred_content_buyer_avatars, mycred_content_buyer_count, mycred_content_sale_count, mycred_email_subscriptions, mycred_sales_history, and mycred_referral_stats Gutenberg blocks.
+- **NEW** - Added decimal_sep and thousand_sep attributes in mycred_my_balance_converted.
+- **NEW** - Added mycred_my_balance_converted and mycred_my_balance_converted_output filter hooks.
+- **TWEAK** - Tools UI improvements.
+- **TWEAK** - The bulk assign tool could not process a user base exceeding 5000 users.
+- **TWEAK** - If the level image is not set in the badge, the default image will be shown in the mycred_badges shortcode.
+- **FIX** - Ranks search was not working properly.
+- **FIX** - The link click reward was not working in some scenarios.
+- **FIX** - On multisite, mycred_my_badges was not working correctly.
+- **FIX** - The bulk assign tool was not working correctly on multisite.
+- **FIX** - myCred Main menu issues on multisite with master template enabled.
+- **FIX** - myCred network-wide activation issues on multisite.
 
 = 2.7.6.2 =
 - **NEW** - Added compatibility for mycred toolkit.

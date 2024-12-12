@@ -149,6 +149,7 @@ if ( ! class_exists( 'myCRED_Ranks_Module' ) ) :
 			add_filter( 'submenu_file',                       array( $this, 'subparent_file' ), 10, 2 );
 			add_filter( 'admin_url',                          array( $this, 'replace_add_new_rank_url' ), 10, 3 );
 
+			add_action( 'restrict_manage_posts', 			  array( $this, 'add_search_filters' ), 10 );
 			add_filter( 'post_row_actions',                   array( $this, 'adjust_row_actions' ), 10, 2 );
 
 			add_filter( 'post_updated_messages',              array( $this, 'post_updated_messages' ) );
@@ -2074,6 +2075,22 @@ if ( ! class_exists( 'myCRED_Ranks_Module' ) ) :
 			$current_assign_rank = mycred_get_users_rank($user_id);
 			mycred_update_post_meta( $current_assign_rank->post_id, 'mycred_rank_users', mycred_count_users_with_rank( $current_assign_rank->post_id ) - 1 );		
 		
+		}
+
+		/**
+		 * Search Filters
+		 * @since 2.7.1
+		 * @version 1.0
+		 */
+		public function add_search_filters( $post_type ){
+
+			if( MYCRED_RANK_KEY !== $post_type ) return;
+			
+			if ( ! empty( $_GET['ctype'] ) ) :?>
+			<input type="hidden" name="ctype" value="<?php echo esc_attr( $_GET['ctype'] );?>">
+			<?php 
+			endif;
+
 		}
 
 	}

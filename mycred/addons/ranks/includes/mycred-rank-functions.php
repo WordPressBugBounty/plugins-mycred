@@ -458,7 +458,7 @@ if ( ! function_exists( 'mycred_find_users_rank' ) ) :
 
 			// Demotions
 			if ( $results->current_id !== false && $current_rank !== false && $current_rank->maximum > $results->maximum )
-				do_action( 'mycred_user_got_demoted', $user_id, $current_rank_id, $current_rank, $point_type );
+				do_action( 'mycred_user_got_demoted', $user_id, $current_rank_id, $results, $point_type );
 
 			// Promotions
 			else {

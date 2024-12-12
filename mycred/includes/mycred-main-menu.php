@@ -47,11 +47,26 @@ if ( ! class_exists( 'myCRED_Main_Menu' ) ):
 			
 			}
 
-			add_action( 'admin_menu', array( $this, 'add_submenu' ) );
+			add_action( 'admin_menu', array( $this, 'add_submenu' ), 999 );
 
 		}
 
 		public function add_submenu() {
+
+            if ( mycred_override_settings() && ! mycred_is_main_site() ) {
+
+				global $submenu;
+
+				if ( ! empty( $submenu['mycred-main'] ) && count( $submenu['mycred-main'] ) > 1 ) {
+					unset( $submenu['mycred-main'][0] );
+				}
+				else {
+					remove_menu_page( 'mycred-main' );
+				}
+
+				return;
+
+            }
 
 			mycred_add_main_submenu(
 				__( 'About', 'mycred' ),

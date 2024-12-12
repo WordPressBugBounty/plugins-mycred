@@ -15,6 +15,8 @@ class myCRED_Tools {
 	 */
 	public function __construct() {
 
+        if ( mycred_override_settings() && ! mycred_is_main_site() ) return;
+
 		add_action( 'admin_menu', array( $this, 'tools_sub_menu' ) );
 
 		add_action( 'wp_ajax_mycred-tools-select-user', array( $this, 'tools_select_user' ) );
@@ -89,39 +91,50 @@ class myCRED_Tools {
 	 */
 	public function tools_page() { 
 		
-		$import_export = get_mycred_tools_page_url('points');
-		$logs_cleanup = get_mycred_tools_page_url('logs-cleanup');
-		$reset_data = get_mycred_tools_page_url('reset-data');
-		$pages = array( 
-			'import-export',
-			'points', 
-			'badges', 
-			'ranks',
-			'setup'
+		$import = get_mycred_tools_page_url( 'import', 'import-points' );
+		$export = get_mycred_tools_page_url( 'export', 'export-points' );
+
+		// $logs_cleanup = get_mycred_tools_page_url('logs-cleanup');
+		// $reset_data = get_mycred_tools_page_url('reset-data');
+		$import_page = array( 
+			'import-points', 
+			'import-badges', 
+			'import-ranks',
+			'import-setup'
+		);
+
+		$export_page = array( 
+			'export-points', 
+			'export-badges', 
+			'export-ranks',
+			'export-setup'
 		);
 		?>
 
 		<div class="" id="myCRED-wrap">
-			<div class="mycredd-tools">
+			<div class="mycred-tools">
 				<h1>Tools</h1>
 			</div>
 			<div class="clear"></div>
 			<div class="mycred-tools-main-nav">
 				<ul class="subsubsub">
 					<li>
-						<a href="<?php echo esc_url( admin_url('admin.php?page=mycred-tools') ) ?>" class="<?php echo !isset( $_GET['mycred-tools'] ) ? 'current' : ''; ?>">Bulk Assign</a>|
+						<a href="<?php echo esc_url( admin_url('admin.php?page=mycred-tools') ) ?>" class="<?php echo ( !isset( $_GET['import'] ) && !isset( $_GET['export'] ) ) ? 'current' : ''; ?>">Bulk Assign</a>|
 					</li>
 					<li>
-						<a href="<?php echo esc_url( $import_export ) ?>" class="<?php echo ( isset( $_GET['mycred-tools'] ) && in_array( $_GET['mycred-tools'], $pages ) ) ? 'current' : ''; ?>">Import/Export</a>
+						<a href="<?php echo esc_url( $import ) ?>" class="<?php echo ( isset( $_GET['import'] ) && in_array( $_GET['import'], $import_page ) ) ? 'current' : ''; ?>">Import</a>
+					</li>
+					<li>
+						<a href="<?php echo esc_url( $export ) ?>" class="<?php echo ( isset( $_GET['export'] ) && in_array( $_GET['export'], $export_page ) ) ? 'current' : ''; ?>">Export</a>
 					</li>
 				</ul>
 				<div class="clear"></div>
 			</div>
 		<?php
 
-		if ( isset( $_GET['mycred-tools'] ) ) {
+		if ( isset( $_GET['import'] ) ) {
 
-			if ( in_array( $_GET['mycred-tools'], $pages ) )
+			if ( in_array( $_GET['import'], $import_page ) )
 			{ 
 				$mycred_tools_import_export = new myCRED_Tools_Import_Export();
 
@@ -129,14 +142,24 @@ class myCRED_Tools {
 			}
 		}
 
-		if ( isset( $_GET['mycred-tools'] ) ) {
+		elseif ( isset( $_GET['export'] ) ) {
+
+			if ( in_array( $_GET['export'], $export_page ) )
+			{ 
+				$mycred_tools_import_export = new myCRED_Tools_Import_Export();
+
+				$mycred_tools_import_export->get_header();
+			}
+		}
+
+		elseif ( isset( $_GET['mycred-tools'] ) ) {
 			if ( $_GET['mycred-tools'] == 'logs-cleanup' ) { ?>
 				<h1>LOGS-CLEANUP</h1>
 				<?php
 			}
 		}
 
-		if ( isset( $_GET['mycred-tools'] ) ) 
+		elseif ( isset( $_GET['mycred-tools'] ) ) 
 		{
 			if ( $_GET['mycred-tools'] == 'reset-data' ) { ?>
 				<h1>RESET-DATA</h1>
@@ -147,8 +170,7 @@ class myCRED_Tools {
 		{
 
 			$mycred_tools_bulk_assign = new myCRED_Tools_Bulk_Assign();
-
-			$mycred_tools_bulk_assign->get_page();
+			$mycred_tools_bulk_assign->get_header();
 
 		}
 
@@ -205,21 +227,35 @@ class myCRED_Tools {
 
 		check_ajax_referer( 'mycred-tools', 'token' );
 
-		$this->response = array( 'success' => 'tryLater' );
+		$user_count = count_users();
+        $user_count = $user_count['total_users'];
+        $total_ajax_request = ceil( $user_count / 100 );
+        $run_again = false;
+
+        $loop = isset( $_POST['loop'] ) ? $_POST['loop'] : '';
+        $offset = $loop * 100;
+
+        if ( $loop != $total_ajax_request ) {
+        	$run_again = true;
+        }
+
+		$this->response = array( 
+			'success' => 'tryLater',
+		);
 
 		if( isset( $_REQUEST['selected_type'] ) ) {
 
 			$selected_type = sanitize_key( $_REQUEST['selected_type'] );
 
 			switch ( $selected_type ) {
-				case 'points':
-					$this->process_points();
+				case 'mycred-tools':
+					$this->process_points( $offset, $run_again, $user_count );
 					break;
 				case 'ranks':
-					$this->process_ranks();
+					$this->process_ranks( $offset, $run_again, $user_count );
 					break;
 				case 'badges':
-					$this->process_badges();
+					$this->process_badges( $offset, $run_again, $user_count );
 					break;
 				default:
 					break;
@@ -232,7 +268,7 @@ class myCRED_Tools {
 
 	}
 
-	private function process_points() {
+	private function process_points( $offset = 0, $run_again = false , $user_count = 0 ) {
 
 		if ( ! isset( $_REQUEST['point_type'] ) ) {
 
@@ -262,8 +298,8 @@ class myCRED_Tools {
 		$points_to_award = sanitize_text_field( wp_unslash( $_REQUEST['points_to_award'] ) );
 
 		$log_entry = isset( $_REQUEST['log_entry'] ) ? ( sanitize_key( $_REQUEST['log_entry'] ) == 'true' ? true : false ) : false;
-
-		$users_to_award = $this->get_requested_users();
+		$users_to_award = $this->get_requested_users( $offset );
+		$count_user = count( $users_to_award );
 
 		if ( empty( $users_to_award ) ) return;
 
@@ -299,11 +335,15 @@ class myCRED_Tools {
 
 		}
 
-		$this->response = array( 'success' => true );
+		$this->response = array(
+			'success' => true,
+			'run_again' => $run_again,
+			'user_count' => $user_count
+		);
 
 	}
 
-	private function process_ranks() {
+	private function process_ranks( $offset = 0, $run_again = false , $user_count = 0 ) {
 
 		if( class_exists( 'myCRED_Ranks_Module' ) && mycred_manual_ranks() ) {
 
@@ -326,7 +366,7 @@ class myCRED_Tools {
 
 			}
 
-			$users_to_award = $this->get_requested_users();
+			$users_to_award = $this->get_requested_users( $offset );
 
 			if ( empty( $users_to_award ) ) return;
 
@@ -338,13 +378,17 @@ class myCRED_Tools {
 
 			}
 
-			$this->response = array( 'success' => true );
+			$this->response = array(
+				'success' => true,
+				'run_again' => $run_again,
+				'user_count' => $user_count
+			);
 
 		}
 
 	}
 
-	private function process_badges() {
+	private function process_badges( $offset = 0, $run_again = false , $user_count = 0 ) {
 
 		$current_user_id = get_current_user_id();
 		$mycred          = mycred();
@@ -369,9 +413,9 @@ class myCRED_Tools {
 			$this->response = array( 'success' => 'badgesFieldRequried' );
 			return;
 
-		}
-
-		$selected_users = $this->get_requested_users();
+		}	
+		
+		$selected_users = $this->get_requested_users( $offset );
 
 		if ( empty( $selected_users ) ) return;
 
@@ -397,12 +441,16 @@ class myCRED_Tools {
 
 		}
 
-		$this->response = array( 'success' => true );
+		$this->response = array(
+			'success' => true,
+			'run_again' => $run_again,
+			'user_count' => $user_count
+		);
 
 	}
 
-	private function get_requested_users() {
-		
+	private function get_requested_users( $offset = 0 ) {
+
 		$users_to_award = array();
 
 		if ( isset( $_REQUEST['award_to_all_users'] ) ) {
@@ -410,15 +458,19 @@ class myCRED_Tools {
 			$award_to_all_users = sanitize_key( $_REQUEST['award_to_all_users'] ) == 'true' ? true : false;
 
 			if ( $award_to_all_users ) {
-				
-				$users = $this->get_all_users();
-
-				foreach( $users as $email => $user_name ) {
-					$users_to_award[] = $email;
+				$args = array(
+					'orderby' => array(
+						'ID'
+					),
+					'offset' => $offset,
+					'number' => 100
+				);
+				$users = get_users( $args ); 
+				foreach( $users as $user  ) {
+					$users_to_award[] = $user->data->user_email;
 				}
 
 				$users_to_award = $this->get_users_by_email( $users_to_award );
-
 			}
 			else {
 
@@ -512,12 +564,15 @@ endif;
 $mycred_tools = new myCRED_Tools();
 
 if ( ! function_exists( 'get_mycred_tools_page_url' ) ) :
-	function get_mycred_tools_page_url( $urls ) {
-		
+	function get_mycred_tools_page_url( $urls, $argument = '', $check = false ) {
+
 		$args = array(
 			'page'         => MYCRED_SLUG . '-tools',
-			'mycred-tools' =>  $urls,
+			$urls =>  $argument,
 		);
+
+		// if( $check == true )
+			// apply_filters();
 
 		return esc_url( add_query_arg( $args, admin_url( 'admin.php' ) ) );
 

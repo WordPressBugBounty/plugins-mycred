@@ -4,29 +4,36 @@ if ( ! defined( 'myCRED_VERSION' ) ) exit;
 /**
  * Register Hook
  * @since 0.1
- * @version 1.1
+ * @version 1.2
  */
 add_filter( 'mycred_setup_hooks', 'mycred_register_buddypress_hook', 40 );
 function mycred_register_buddypress_hook( $installed ) {
 
 	if ( ! class_exists( 'BuddyPress' ) ) return $installed;
 
-	if ( bp_is_active( 'xprofile' ) ) {
-		$installed['hook_bp_profile'] = array(
-			'title'         => __( 'BuddyPress: Members', 'mycred' ),
-			'description'   => __( 'Awards %_plural% for profile related actions.', 'mycred' ),
-			'documentation' => 'http://codex.mycred.me/hooks/buddypress-profiles/',
-			'callback'      => array( 'myCRED_BuddyPress_Profile' )
-		);
-	}
+	global $bp;
 
-	if ( bp_is_active( 'groups' ) ) {
-		$installed['hook_bp_groups'] = array(
-			'title'         => __( 'BuddyPress: Groups', 'mycred' ),
-			'description'   => __( 'Awards %_plural% for group related actions. Use minus to deduct %_plural% or zero to disable a specific hook.', 'mycred' ),
-			'documentation' => 'http://codex.mycred.me/hooks/buddypress-groups/',
-			'callback'      => array( 'myCRED_BuddyPress_Groups' )
-		);
+	// Check if Buddypress is actually installed, not the buddyboss
+	if ( empty( $bp->buddyboss ) ) {
+		
+		if ( bp_is_active( 'xprofile' ) ) {
+			$installed['hook_bp_profile'] = array(
+				'title'         => __( 'BuddyPress: Members', 'mycred' ),
+				'description'   => __( 'Awards %_plural% for profile related actions.', 'mycred' ),
+				'documentation' => 'http://codex.mycred.me/hooks/buddypress-profiles/',
+				'callback'      => array( 'myCRED_BuddyPress_Profile' )
+			);
+		}
+
+		if ( bp_is_active( 'groups' ) ) {
+			$installed['hook_bp_groups'] = array(
+				'title'         => __( 'BuddyPress: Groups', 'mycred' ),
+				'description'   => __( 'Awards %_plural% for group related actions. Use minus to deduct %_plural% or zero to disable a specific hook.', 'mycred' ),
+				'documentation' => 'http://codex.mycred.me/hooks/buddypress-groups/',
+				'callback'      => array( 'myCRED_BuddyPress_Groups' )
+			);
+		}
+
 	}
 
 	return $installed;
@@ -37,13 +44,18 @@ function mycred_register_buddypress_hook( $installed ) {
  * myCRED_BuddyPress_Profile class
  * Creds for profile updates
  * @since 0.1
- * @version 1.3
+ * @version 1.4
  */
 add_action( 'mycred_load_hooks', 'mycred_load_buddypress_profile_hook', 40 );
 function mycred_load_buddypress_profile_hook() {
 
 	// If the hook has been replaced or if plugin is not installed, exit now
 	if ( class_exists( 'myCRED_BuddyPress_Profile' ) || ! class_exists( 'BuddyPress' ) ) return;
+
+	global $bp;
+
+	// If the BuddyBoss Platform is installed instead of BuddyPress, exit now
+	if ( ! empty( $bp->buddyboss ) ) return;
 
 	class myCRED_BuddyPress_Profile extends myCRED_Hook {
 

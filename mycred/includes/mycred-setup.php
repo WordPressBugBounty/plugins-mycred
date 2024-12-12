@@ -74,6 +74,16 @@ if ( ! class_exists( 'myCRED_Setup' ) ) :
 			if ( ! function_exists( 'mycred_install_log' ) )
 				require_once myCRED_INCLUDES_DIR . 'mycred-functions.php';
 
+			if ( is_multisite() ) {
+				
+				global $mycred_network_blog_id;
+				
+				if ( ! empty( $mycred_network_blog_id ) ) {
+					mycred_install_log( $first_type['format']['decimals'], true, $mycred_network_blog_id );
+				}
+				
+			}
+
 			mycred_install_log( $first_type['format']['decimals'], true );
 
 			mycred_add_option( 'mycred_setup_completed', time() );

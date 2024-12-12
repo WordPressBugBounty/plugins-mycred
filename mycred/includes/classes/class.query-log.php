@@ -2436,7 +2436,8 @@ if ( ! function_exists( 'mycred_get_all_references' ) ) :
 			'visitor_referral'    => __( 'Visitor Referral', 'mycred' ),
 			'signup_referral'     => __( 'Signup Referral', 'mycred' ),
 			'anniversary'         => __( 'Anniversary', 'mycred' ),
-			'bulk_assign'		  => __( 'Bulk Assign', 'mycred' )
+			'bulk_assign'		  => __( 'Bulk Assign', 'mycred' ),
+			'view_contents_specific'  => __( 'Viewing Specific Content', 'mycred' )
 		);
 
 		if ( class_exists( 'BuddyPress' ) ) {

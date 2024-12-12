@@ -80,6 +80,8 @@ if ( ! class_exists( 'myCRED_Network_Module' ) ) :
 
 				add_filter( 'wpmu_blogs_columns',         array( $this, 'site_column_headers' ) );
 				add_action( 'manage_sites_custom_column', array( $this, 'site_column_content' ), 10, 2 );
+            	add_action( 'wp_ajax_mycred_active_network_site', array( $this, 'mycred_active_network_site' ) );
+
 
 			}
 
@@ -135,7 +137,9 @@ if ( ! class_exists( 'myCRED_Network_Module' ) ) :
 		public function site_column_content( $column_name, $blog_id ) {
 
 			if ( $column_name == MYCRED_SLUG ) {
-
+				
+				wp_enqueue_script( 'mycred-accordion' );
+				
 				if ( mycred_is_site_blocked( $blog_id ) ) {
 
 					echo '<span class="dashicons dashicons-warning"></span><div class="row-actions"><span class="info" style="color: #666">' . esc_html__( 'Blocked', 'mycred' ) . '</span></div>';
@@ -148,7 +152,7 @@ if ( ! class_exists( 'myCRED_Network_Module' ) ) :
 						if ( get_blog_option( $blog_id, 'mycred_setup_completed', false ) !== false )
 							echo '<span class="dashicons dashicons-yes" style="color: green;"></span><div class="row-actions"><span class="info" style="color: #666">' . esc_html__( 'Installed', 'mycred' ) . '</span></div>';
 						else
-							echo '<span class="dashicons dashicons-minus"></span><div class="row-actions"><span class="info" style="color: #666">' . esc_html__( 'Not Installed', 'mycred' ) . '</span></div>';
+							echo '<span class="dashicons dashicons-minus"></span><button id="mycred-activate-network-sites" class="mycred-activate-network-sites" data-id="'.esc_attr($blog_id).'" type="button"> Activate</button><div style="display:none" class="mycred-loader"></div><div class="row-actions"><span class="info" style="color: #666">' . esc_html__( 'Not Installed', 'mycred' ) . '</span></div>';
 
 					}
 					else {
@@ -161,6 +165,37 @@ if ( ! class_exists( 'myCRED_Network_Module' ) ) :
 				}
 
 			}
+
+		}
+
+		public function mycred_active_network_site() {
+		
+			$blog_id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0;
+				
+			global $mycred_network_blog_id;
+
+			$mycred_network_blog_id = $blog_id;
+
+			switch_to_blog( $blog_id );
+
+			if ( is_mycred_ready() == false && $this->network_enabled ) {
+
+				// Load Installer
+				require_once myCRED_INCLUDES_DIR . 'mycred-install.php';
+				$installer = mycred_installer();
+
+				// Compatibility check
+				$installer::compat();
+
+				// First time activation
+				if ( get_option( 'mycred_version', false ) === false )
+					$installer::activate();	
+
+				wp_send_json_success( );
+
+			}
+
+			restore_current_blog();
 
 		}
 

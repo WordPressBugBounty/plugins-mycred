@@ -1122,7 +1122,7 @@ if ( ! class_exists( 'myCRED_Sell_Content_Module' ) ) :
 		 */
 		public function sanitize_extra_settings( $new_data, $data, $general ) {
 
-			$settings = $data['sell_content'];
+			$settings = ! empty( $data['sell_content'] ) ? $data['sell_content'] : array();
 
 			// Post Types
 			$post_types = array();

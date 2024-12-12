@@ -161,6 +161,22 @@ if ( ! class_exists( 'myCRED_Hooks_Module' ) ) :
 				'callback'      => array( 'myCRED_Hook_Affiliate' )
 			);
 
+			// View Specific Content (Member)
+			$installed['view_contents_specific'] = array(
+				'title'         => __( '%plural% for viewing specific content (Member)', 'mycred' ),
+				'description'   => __( 'Award %_plural% for viewing specific content. (Member)', 'mycred' ),
+				'documentation' => 'http://codex.mycred.me/hooks/viewing-content-specific-member/',
+				'callback'      => array( 'myCRED_Hook_View_Contents_specific' )
+			);
+
+			// View Specific Content (Author)
+			$installed['view_contents_specific_author'] = array(
+				'title'         => __( '%plural% for viewing specific content (Author)', 'mycred' ),
+				'description'   => __( 'Award %_plural% for viewing specific content. (Author)', 'mycred' ),
+				'documentation' => 'http://codex.mycred.me/hooks/viewing-content-specific-author/',
+				'callback'      => array( 'myCRED_Hook_View_Contents_specific_author' )
+			);
+
 			$installed = apply_filters( 'mycred_setup_hooks', $installed, $this->mycred_type );
 
 			$option_id = apply_filters( 'mycred_option_id', 'mycred_pref_hooks' );
@@ -240,6 +256,7 @@ if ( ! class_exists( 'myCRED_Hooks_Module' ) ) :
 				)
 			);
 			wp_enqueue_script( 'mycred-widgets' );
+			wp_enqueue_script( 'mycred-specific-content-script' );
 
 			if ( wp_is_mobile() )
 				wp_enqueue_script( 'jquery-touch-punch' );

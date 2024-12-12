@@ -53,7 +53,7 @@ if ( ! function_exists( 'mycred_render_my_badges' ) ) :
                     
                 if ( $badge->level_image !== false )
                     echo wp_kses_post( $badge->get_image( $level ) );
-
+               
             }
             else {
 
@@ -130,17 +130,18 @@ if ( ! function_exists( 'mycred_render_badges' ) ) :
                 $row = str_replace( '%badge_title%',   $badge->title,                                  $row );
                 $row = str_replace( '%requirements%',  mycred_display_badge_requirements( $badge_id ), $row );
                 $row = str_replace( '%count%',         $badge->earnedby,                               $row );
-                $row = str_replace( '%default_image%', $badge->get_image( 'main' ),                    $row );
                 
-                if( mycred_user_has_badge( get_current_user_id(), $badge_id) ) {
+                if( mycred_user_has_badge( get_current_user_id(), $badge_id ) ) {
                     $user_id = get_current_user_id();
                     $badge   = mycred_get_badge( $badge_id );
                     $level   = $badge->get_users_current_level( $user_id );
-                    $row     = str_replace( '%main_image%',    $badge->get_image( $level ), $row );
+                    $row     = str_replace( '%main_image%', $badge->get_image( $level ), $row );
                 }
                 else {
-                    $row = str_replace( '%main_image%',    '', $row );
+                    $row = str_replace( '%main_image%', '%default_image%', $row );
                 }
+
+                $row = str_replace( '%default_image%', $badge->get_image( 'main' ),                    $row );
 
                 $output .= apply_filters( 'mycred_badges_badge', $row, $badge );
 

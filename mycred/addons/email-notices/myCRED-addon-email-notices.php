@@ -827,7 +827,11 @@ if ( ! class_exists( 'myCRED_Email_Notice_Module' ) ) :
 				<div><?php esc_html_e( 'The log entry', 'mycred' ); ?></div>
 			</div>
 		</div>
-		
+		<div class="row">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+				<div><?php printf( esc_html__( 'You can also use %s.', 'mycred' ), '<a href="http://codex.mycred.me/category/template-tags/temp-user/" target="_blank">' . esc_html__( 'user related template tags', 'mycred' ) . '</a>' ); ?></div>
+			</div>
+		</div>
 	</div>
 </div>
 <div class="row">
@@ -870,13 +874,19 @@ if ( ! class_exists( 'myCRED_Email_Notice_Module' ) ) :
 		</div>
 	</div>
 </div>
-<hr> 
-   <div class="row">
-			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-				<div><?php printf( esc_html__( 'You can also use %s.', 'mycred' ), '<a href="http://codex.mycred.me/category/template-tags/temp-user/" target="_blank">' . esc_html__( 'user related template tags', 'mycred' ) . '</a>' ); ?></div>
+<div class="row">
+	<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+		<h3><?php esc_html_e( 'Coupon Related', 'mycred' ); ?></h3>
+		<div class="row">
+			<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+				<strong>%coupon%</strong>
 			</div>
+			<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+				<div><?php esc_html_e( 'Coupon code', 'mycred' ); ?></div>
+			</div>
+		</div>
 	</div>
-</hr>
+</div>
 <?php
 
 		}

@@ -469,26 +469,29 @@ jQuery(function($){
 		 */
 		public function sanitize_extra_settings( $new_data, $data, $core ) {
 
-			$new_data['stats']['color_positive'] = sanitize_text_field( $data['stats']['color_positive'] );
-			$new_data['stats']['color_negative'] = sanitize_text_field( $data['stats']['color_negative'] );
+            $data = isset( $data['stats'] ) ? $data['stats'] : array();
 
-			$colors                       = mycred_get_type_color();
-			$colors[ $core->mycred_type ] = array(
-				'positive' => $new_data['stats']['color_positive'],
-				'negative' => $new_data['stats']['color_negative']
-			);
+            $new_data['stats']['color_positive'] = sanitize_text_field( $data['color_positive'] );
+            $new_data['stats']['color_negative'] = sanitize_text_field( $data['color_negative'] );
 
-			mycred_update_option( 'mycred-point-colors', $colors );
+            $colors                       = mycred_get_type_color();
+            $colors[ $core->mycred_type ] = array(
+                'positive' => $new_data['stats']['color_positive'],
+                'negative' => $new_data['stats']['color_negative']
+            );
 
-			if ( $core->mycred_type == MYCRED_DEFAULT_TYPE_KEY ) {
+            mycred_update_option( 'mycred-point-colors', $colors );
 
-				$new_data['stats']['animate'] = ( array_key_exists( 'animate', $data['stats'] ) ? 1 : 0 );
-				$new_data['stats']['bezier']  = ( array_key_exists( 'bezier', $data['stats'] ) ? 1 : 0 );
-				$new_data['stats']['caching'] = sanitize_text_field( $data['stats']['caching'] );
+            if ( $core->mycred_type == MYCRED_DEFAULT_TYPE_KEY ) {
 
-			}
 
-			return $new_data;
+                $new_data['stats']['animate'] = ( array_key_exists( 'animate', $data ) ? 1 : 0 );
+                $new_data['stats']['bezier']  = ( array_key_exists( 'bezier', $data ) ? 1 : 0 );
+                $new_data['stats']['caching'] = sanitize_text_field( $data['caching'] );
+
+            }
+
+            return $new_data;
 
 		}
 

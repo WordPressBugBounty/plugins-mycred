@@ -27,18 +27,17 @@ if ( ! function_exists( 'mycred_render_shortcode_exchange' ) ) :
 		if ( ! mycred_point_type_exists( $from ) || ! mycred_point_type_exists( $to ) ) return __( 'Point type not found.', 'mycred' );
 
 		$user_id     = get_current_user_id();
-
 		$mycred_from = mycred( $from );
 		if ( $mycred_from->exclude_user( $user_id ) )
-			return sprintf( __( 'You are excluded from using %s.', 'mycred' ), $mycred_from->plural() );
+			return sprintf( apply_filters( 'excluded_from_msg', __( 'You are excluded from using %s.', 'mycred' ) ), $mycred_from->plural() );
 
 		$balance     = $mycred_from->get_users_balance( $user_id, $from );
 		if ( $balance < $mycred_from->number( $min ) )
-			return __( 'Your balance is too low to use this feature.', 'mycred' );
+			return apply_filters( 'check_balance_msg', __( 'Your balance is too low to use this feature', 'mycred' ) );
 
 		$mycred_to   = mycred( $to );
 		if ( $mycred_to->exclude_user( $user_id ) )
-			return sprintf( __( 'You are excluded from using %s.', 'mycred' ), $mycred_to->plural() );
+			return sprintf( apply_filters( 'excluded_to_msg', __( 'You are excluded from using %s.', 'mycred' ) ) , $mycred_to->plural() );
 
 		global $mycred_exchange;
 
@@ -123,7 +122,7 @@ if ( ! function_exists( 'mycred_catch_exchange_requests' ) ) :
 		if ( ! array_key_exists( $from, $types ) || ! array_key_exists( $to, $types ) ) {
 			$mycred_exchange = array(
 				'success' => false,
-				'message' => __( 'Point types not found.', 'mycred' )
+				'message' => apply_filters( 'check_point_type_message', __( 'Point types not found.', 'mycred') )
 			);
 			return;
 		}
@@ -135,7 +134,7 @@ if ( ! function_exists( 'mycred_catch_exchange_requests' ) ) :
 		if ( $mycred_from->exclude_user( $user_id ) ) {
 			$mycred_exchange = array(
 				'success' => false,
-				'message' => sprintf( __( 'You are excluded from using %s.', 'mycred' ), $mycred_from->plural() )
+				'message' => sprintf( apply_filters( 'check_from_exclusion_message', __( 'You are excluded from using %s.', 'mycred' ) ), $mycred_from->plural() )
 			);
 			return;
 		}
@@ -145,7 +144,7 @@ if ( ! function_exists( 'mycred_catch_exchange_requests' ) ) :
 		if ( $balance < $mycred_from->number( $min ) ) {
 			$mycred_exchange = array(
 				'success' => false,
-				'message' => __( 'Your balance is too low to use this feature.', 'mycred' )
+				'message' => apply_filters( 'check_balance_message', __( 'Your balance is too low to use this feature', 'mycred' ) )
 			);
 			return;
 		}
@@ -155,7 +154,7 @@ if ( ! function_exists( 'mycred_catch_exchange_requests' ) ) :
 		if ( $mycred_to->exclude_user( $user_id ) ) {
 			$mycred_exchange = array(
 				'success' => false,
-				'message' => sprintf( __( 'You are excluded from using %s.', 'mycred' ), $mycred_to->plural() )
+				'message' => sprintf( apply_filters( 'check_to_exclusion_message', __( 'You are excluded from using' . '%s.', 'mycred' ) ), $mycred_to->plural() )
 			);
 			return;
 		}
@@ -168,7 +167,7 @@ if ( ! function_exists( 'mycred_catch_exchange_requests' ) ) :
 		if ( $amount < $min ) {
 			$mycred_exchange = array(
 				'success' => false,
-				'message' => sprintf( __( 'You must exchange at least %s!', 'mycred' ), $mycred_from->format_creds( $min ) )
+				'message' => sprintf( apply_filters( 'You must exchange at least', __( 'You must exchange at least %s!', 'mycred' ) ), $mycred_from->format_creds( $min ) )
 			);
 			return;
 		}
@@ -177,7 +176,7 @@ if ( ! function_exists( 'mycred_catch_exchange_requests' ) ) :
 		if ( $amount > $balance ) {
 			$mycred_exchange = array(
 				'success' => false,
-				'message' => __( 'Insufficient Funds. Please try a lower amount.', 'mycred' )
+				'message' => apply_filters( 'enough_point_message', __( 'Insufficient Funds. Please try a lower amount.', 'mycred' ) )
 			);
 			return;
 		}
@@ -210,7 +209,7 @@ if ( ! function_exists( 'mycred_catch_exchange_requests' ) ) :
 
 			$mycred_exchange = array(
 				'success' => true,
-				'message' => sprintf( __( 'You have successfully exchanged %s into %s.', 'mycred' ), $mycred_from->format_creds( $amount ), $mycred_to->format_creds( $exchanged ) )
+				'message' => sprintf( apply_filters( 'successfully_exchange_message', __( 'You have successfully exchanged %s into %s.', 'mycred' ) ) , $mycred_from->format_creds( $amount ), $mycred_to->format_creds( $exchanged ) )
 			);
 
 		}

@@ -112,6 +112,7 @@ if ( ! class_exists( 'myCRED_Hook_View_Contents' ) ) :
 				// No payout for viewing our own content
 				if ( ! $this->core->exclude_user( $post->post_author ) ) {
 
+					
 					$data['cui'] = $user_id;
 
 					// Limit

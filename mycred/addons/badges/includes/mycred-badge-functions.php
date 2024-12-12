@@ -593,6 +593,10 @@ if ( ! function_exists( 'mycred_get_users_badges' ) ) :
 			$badge_ids = array();
 			$query     = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key LIKE %s AND meta_key NOT LIKE '%_issued_on' AND meta_key NOT LIKE '%_ids'", $user_id, mycred_get_meta_key( MYCRED_BADGE_KEY ) . '%' ) );
 
+	    if(is_multisite()) {
+			$query     = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key LIKE '%mycred_badge%' AND meta_key NOT LIKE '%_issued_on' AND meta_key NOT LIKE '%_ids'", $user_id, mycred_get_meta_key( MYCRED_BADGE_KEY ) . '%' ) );	
+		}
+			
 			if ( ! empty( $query ) ) {
 
 				foreach ( $query as $badge ) {

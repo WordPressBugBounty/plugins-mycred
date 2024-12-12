@@ -213,25 +213,29 @@ if ( ! class_exists( 'myCRED_BuddyPress_Module' ) ) :
 			global $bp;
 
 			$user_id = bp_displayed_user_id();
-		
+
+			if ( ! is_user_logged_in() && ! bp_is_user() ) {
+				return;
+			}
+
 			// User is excluded
 			if ( empty( $user_id ) || $this->core->exclude_user( $user_id ) || $this->buddypress['history_location'] == '' ) return;
 
-			// If visibility is not set for visitors
-			$current_user_id = $bp->loggedin_user->id; 
 
-			if ( ! $current_user_id || ( ! $bp->loggedin_user->is_site_admin && ! $this->buddypress['visibility']['history'] ) ) return;
+			// If visibility is not set for visitors
+			if ( ! is_user_logged_in() && ! $this->buddypress['visibility']['history'] ) return;
 
 			// Admins always see the token history
 			if ( ! $this->core->user_is_point_editor() && $this->buddypress['history_location'] != 'top' ) return;
 
 			// Show admins
-			if ( $this->core->user_is_point_editor() ) {
+			if ( $this->core->user_is_point_editor() )
 				$show = true;
-			}
-			else {
+			else
 				$show = $this->buddypress['visibility']['history'];
-			}
+
+            // An issue where logged-in users could directly access page URLs in other people's MyCred history.
+			if (!$show && !bp_is_my_profile()) return;
 
 			// Top Level Nav Item
 			$me       = str_replace( '%label%', $this->point_types[ $this->selected_type ], $this->buddypress['history_menu_title']['me'] );
@@ -295,9 +299,13 @@ if ( ! class_exists( 'myCRED_BuddyPress_Module' ) ) :
 		 * @version 1.0.2
 		 */
 		public function my_history() {
-
+			
+		   if($this->buddypress['visibility']['history'] == true) {
+			
 			add_action( 'bp_template_title',         array( $this, 'my_history_title' ) );
 			add_action( 'bp_template_content',       array( $this, 'my_history_screen' ) );
+		    }
+
 			add_filter( 'mycred_log_paginate_class', array( $this, 'paginate_class' ) );
 
 			bp_core_load_template( apply_filters( 'bp_core_template_plugin', 'members/single/plugins' ) );

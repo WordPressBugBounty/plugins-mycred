@@ -447,6 +447,7 @@ wpWidgets = {
 					$( 'div.widget-content', widget ).html( r );
 					wpWidgets.appendTitle( widget );
 					$document.trigger( 'widget-updated', [ widget ] );
+					$document.trigger( 'specific-content-select2' );
 
 					if ( sidebarId === 'wp_inactive_widgets' ) {
 						$( '#inactive-widgets-control-remove' ).prop( 'disabled' , ! $( '#wp_inactive_widgets .widget' ).length );

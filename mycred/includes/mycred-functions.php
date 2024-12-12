@@ -2054,7 +2054,7 @@ endif;
  * @version 1.4.1
  */
 if ( ! function_exists( 'mycred_install_log' ) ) :
-	function mycred_install_log( $decimals = NULL, $force = false ) {
+	function mycred_install_log( $decimals = NULL, $force = false, $blog_id = 0 ) {
 
 		if ( ! MYCRED_ENABLE_LOGGING ) return true;
 		$mycred = mycred();
@@ -2120,9 +2120,18 @@ if ( ! function_exists( 'mycred_install_log' ) ) :
 			INDEX 		  ctype (ctype),
 			INDEX 		  time (time)";  
 
-		// Insert table
+
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		dbDelta( "CREATE TABLE IF NOT EXISTS {$mycred->log_table} ( " . $sql . " ) $collate;" );
+
+		// Insert table
+		if( $blog_id === 0 ) 
+			dbDelta( "CREATE TABLE IF NOT EXISTS {$mycred->log_table} ( " . $sql . " ) $collate;" );	
+		
+		// Insert table on multisite
+		if ( $blog_id != 0 ) {
+			$mycred_blog_id_table = $wpdb->prefix.'mycred_log';
+			dbDelta( "CREATE TABLE IF NOT EXISTS {$mycred_blog_id_table} ( " . $sql . " ) $collate;" );
+		}
 
 		mycred_update_option( 'mycred_version_db', myCRED_DB_VERSION );
 

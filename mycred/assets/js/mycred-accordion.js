@@ -19,5 +19,33 @@ jQuery(function($) {
 		window.open( $url, '_blank');
 	});
 
+	$(document).on( 'click', '.mycred-activate-network-sites', function(){
+		
+		var id = $(this).attr('data-id'),
+		closest_button = $(this).closest('.mycred-activate-network-sites'),
+		closest_loader = $(this).closest('.mycred').find('.mycred-loader'),
+		_this = $(this).closest('.mycred').find('.dashicons'),
+		installed = $(this).closest('.mycred').find('.info').empty();
+		$.ajax({
+            url: ajaxurl,
+            data: {
+                action: 'mycred_active_network_site',
+                id: id,
+            },
+            type: 'POST',
+            beforeSend: function() {
+                $(closest_button).css("display", "none");
+                $(closest_loader).css("display","inherit");
+            },
+            success:function(response) {
+                $(closest_loader).hide();
+                $(_this).removeClass('dashicons-minus');
+                $(_this).addClass('dashicons-yes').css('color', '#008000');
+                $(installed).append( 'Installed' );
+            }
+        })
+	});
+
 });
+
 

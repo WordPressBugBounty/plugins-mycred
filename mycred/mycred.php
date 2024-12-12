@@ -3,7 +3,7 @@
  * Plugin Name: myCred
  * Plugin URI: https://mycred.me
  * Description: An adaptive points management system for WordPress powered websites.
- * Version: 2.7.6.2
+ * Version: 2.8
  * Tags: point, credit, loyalty program, engagement, reward, woocommerce rewards
  * Author: myCred
  * Author URI: https://mycred.me
@@ -20,7 +20,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 	final class myCRED_Core {
 
 		// Plugin Version
-		public $version             = '2.7.6.2';
+		public $version             = '2.8';
 
 		// Instnace
 		protected static $_instance = NULL;
@@ -54,14 +54,14 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 		 * @since 1.7
 		 * @version 1.0
 		 */
-		public function __clone() { _doing_it_wrong( __FUNCTION__, 'Cheatin&#8217; huh?', '2.7.6.2' ); }
+		public function __clone() { _doing_it_wrong( __FUNCTION__, 'Cheatin&#8217; huh?', '2.8' ); }
 
 		/**
 		 * Not allowed
 		 * @since 1.7
 		 * @version 1.0
 		 */
-		public function __wakeup() { _doing_it_wrong( __FUNCTION__, 'Cheatin&#8217; huh?', '2.7.6.2' ); }
+		public function __wakeup() { _doing_it_wrong( __FUNCTION__, 'Cheatin&#8217; huh?', '2.8' ); }
 
 		/**
 		 * Get
@@ -82,7 +82,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 			if ( ! defined( $name ) )
 				define( $name, $value );
 			elseif ( ! $definable && defined( $name ) )
-				_doing_it_wrong( 'myCRED_Core->define()', 'Could not define: ' . esc_html( $name ) . ' as it is already defined somewhere else!', '2.6' );
+				_doing_it_wrong( 'myCRED_Core->define()', 'Could not define: ' . esc_html( $name ) . ' as it is already defined somewhere else!', '2.8' );
 		}
 
 		/**
@@ -94,7 +94,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 			if ( file_exists( $required_file ) )
 				require_once $required_file;
 			else
-				_doing_it_wrong( 'myCRED_Core->file()', 'Requested file ' . esc_html( $required_file ) . ' not found.', '2.6' );
+				_doing_it_wrong( 'myCRED_Core->file()', 'Requested file ' . esc_html( $required_file ) . ' not found.', '2.8' );
 		}
 
 		/**
@@ -320,6 +320,8 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 			$this->file( myCRED_HOOKS_DIR . 'mycred-hook-site-visits.php' );
 			$this->file( myCRED_HOOKS_DIR . 'mycred-hook-view-content.php' );
 			$this->file( myCRED_HOOKS_DIR . 'mycred-hook-watching-video.php' );
+			$this->file( myCRED_HOOKS_DIR . 'mycred-hook-view-content-specific-author.php' );
+			$this->file( myCRED_HOOKS_DIR . 'mycred-hook-view-content-specific.php' );
 
 			// Supported plugins
 			$this->file( myCRED_PLUGINS_DIR . 'mycred-hook-affiliatewp.php' );
@@ -630,7 +632,6 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 
 		}
 
-		
 		/**
 		 * Register Assets
 		 * @since 1.7
@@ -659,6 +660,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 			wp_register_script( 'mycred-edit-balance',   plugins_url( 'assets/js/mycred-edit-balance.js', myCRED_THIS ),  array( 'jquery', 'jquery-ui-core', 'jquery-ui-dialog', 'jquery-effects-core', 'jquery-effects-slide', 'jquery-numerator' ), $this->version );
 			wp_register_script( 'mycred-edit-log',       plugins_url( 'assets/js/mycred-edit-log.js', myCRED_THIS ),      array( 'jquery', 'jquery-ui-core', 'jquery-ui-dialog', 'jquery-effects-core', 'jquery-effects-slide', 'common' ), $this->version );
 			wp_register_script( 'mycred-select2-script', plugins_url( 'assets/js/select2.js', myCRED_THIS ),              array( 'jquery' ), $this->version, true );
+			wp_register_script( 'mycred-specific-content-script', plugins_url( 'assets/js/script.js', myCRED_THIS ), array( 'jquery' ), $this->version, true );
 
 			if( is_plugin_active('mycred-toolkit/mycred-toolkit.php') || is_plugin_active('mycred-toolkit-pro/mycred-toolkit-pro.php') ) {
 				wp_register_script('mycred-toolkit-script', plugins_url('includes/toolkit/build/admin.bundle.js', myCRED_THIS), array('wp-element'), '1.0.0',true );

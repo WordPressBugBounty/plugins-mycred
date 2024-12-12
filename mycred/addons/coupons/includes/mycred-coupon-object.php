@@ -98,7 +98,6 @@ if ( ! class_exists( 'myCRED_Coupon' ) ) :
 			// If we provide the coupon code
 			if ( ! is_numeric( $coupon_id ) ) {
 
-				$coupon_id = 0;
 				$coupon    = mycred_get_coupon_post( $coupon_id );
 				if ( $coupon !== NULL && $coupon->post_type == MYCRED_COUPON_KEY ) {
 					$coupon_id   = $coupon->ID;

@@ -470,6 +470,29 @@ if ( ! class_exists( 'myCRED_Email' ) ) :
                     }
 
                 }
+				
+				 // Coupons
+                $args = array(
+				    'post_type' => 'mycred_coupon',
+				    'posts_per_page' => -1 
+				);
+
+				$mycred_coupons = get_posts($args);
+
+				if ( class_exists( 'myCRED_Coupons_Module' ) ) {
+
+					if ($mycred_coupons && is_array( $event ) &&  array_key_exists( 'ref_id', $event )) {
+					    foreach ($mycred_coupons as $coupon) {
+					        
+					        $title = $coupon->post_title;
+
+					        $content = str_replace('%coupon%',$title,$content);
+					        
+					       
+					    }
+					}
+
+				}
 
 				$content = str_replace( '%amount%',        $mycred->format_creds( $event['amount'] ), $content );
 				$content = str_replace( '%new_balance%',   $mycred->format_creds( $event['new'] ), $content );

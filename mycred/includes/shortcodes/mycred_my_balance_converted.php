@@ -12,16 +12,23 @@ if ( ! function_exists( 'mycred_render_shortcode_my_balance_converted' ) ) :
 	function mycred_render_shortcode_my_balance_converted( $atts, $content = '' ) {
 
 		extract( shortcode_atts( array(
-			'ctype'   	=>	MYCRED_DEFAULT_TYPE_KEY,
-			'rate'    	=>	1,
-			'prefix'  	=>	'',
-			'suffix' 	=>	'',
-			'decimal' 	=>	1,
-			'timeframe'	=>	''
+			'ctype'   	   => MYCRED_DEFAULT_TYPE_KEY,
+			'rate'    	   => 1,
+			'prefix'  	   => '',
+			'suffix' 	   => '',
+			'decimal' 	   => 1,
+			'timeframe'	   => '',
+			'decimal_sep'  => '.',
+			'thousand_sep' => ''
 		), $atts, MYCRED_SLUG . '_my_balance_converted' ) );
 
-		$output = '';
+		// Validate decimal_sep
+		$allowed_decimal_separators = array( '.', ',' );
+		if ( ! in_array( $decimal_sep, $allowed_decimal_separators, true ) ) {
+			$decimal_sep = '.'; // Fallback to default
+		}
 
+		$output = '';
 		$timeframe_balance = '';
 
 		// Not logged in
@@ -42,7 +49,7 @@ if ( ! function_exists( 'mycred_render_shortcode_my_balance_converted' ) ) :
 		// Check for exclusion
 		if ( empty( $account->balance ) || ! array_key_exists( $ctype, $account->balance ) || $account->balance[ $ctype ] === false ) return;
 
-		if( empty( $timeframe ) )
+		if ( empty( $timeframe ) )
 			$balance = $account->balance[ $ctype ];
 		else
 			$timeframe_balance = mycred_my_bc_get_balance( $user_id, $timeframe, $ctype );
@@ -52,18 +59,20 @@ if ( ! function_exists( 'mycred_render_shortcode_my_balance_converted' ) ) :
 		if ( ! empty( $prefix ) )
 			$output .= '<span class="mycred-my-balance-converted-prefix">'.esc_attr( $prefix ).'</span>';
 
-		if( floatval( $rate ) == 0 ) $rate = 1;
+		if ( floatval( $rate ) == 0 ) $rate = 1;
 
 		$converted_balance = floatval( empty( $timeframe ) ? $balance->current : $timeframe_balance ) * floatval( $rate );
 
-		$output .= number_format( $converted_balance, intval( $decimal ), '.', '' );
+		$formatted_balance = number_format( $converted_balance, intval( $decimal ), $decimal_sep, $thousand_sep );
+
+		$output .= apply_filters( 'mycred_my_balance_converted', $formatted_balance, $converted_balance, $atts );
 
 		if ( ! empty( $suffix ) )
 			$output .= '<span class="mycred-my-balance-converted-suffix">'.esc_attr( $suffix ).'</span>';
 
 		$output .= '</div>';
 
-		return $output;
+		return apply_filters( 'mycred_my_balance_converted_output', $output, $atts );
 
 	}
 endif;
@@ -122,8 +131,6 @@ function mycred_my_bc_get_balance( $user_id, $timeframe, $ctype )
 
 		$end_day = DateTime::createFromFormat('Y-m-d H:i:s', (new DateTime())->setTimestamp($end_day)->format('Y-m-d 23:59:59'))->getTimestamp();
 	}
-
-	
 
 	$balance = $wpdb->get_var( 
 		$wpdb->prepare(
