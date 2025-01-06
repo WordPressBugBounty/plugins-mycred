@@ -17,7 +17,10 @@ define( 'myCRED_GATE_AFFILIATE_DIR', myCRED_GATE_DIR . 'affiliate/' );
 define( 'myCRED_GATE_BLOCKS_DIR', 	 myCRED_GATE_CART_DIR . 'block-compatibility/' );
 
 
-$get_addons_data = new myCRED_Addons_Module();
+if ( class_exists( 'myCRED_Addons_Module' ) ) {
+    $get_addons_data = new myCRED_Addons_Module();
+}
+
 /**
  * Supported Carts
  */

@@ -48,6 +48,7 @@ if ( ! class_exists( 'myCRED_Setup' ) ) :
 
 			// Add hooks settings
 			$option_id = apply_filters( 'mycred_option_id', 'mycred_pref_hooks' );
+			
 			add_option( $option_id, array(
 				'installed'  => array(),
 				'active'     => array(),

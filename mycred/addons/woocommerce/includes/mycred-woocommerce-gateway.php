@@ -302,7 +302,7 @@ if ( ! function_exists( 'mycred_init_woo_gateway' ) ) :
 				// Make sure we are still logged in
 				if ( ! is_user_logged_in() ) {
 					wc_add_notice( $this->mycred->template_tags_general( __( 'You must be logged in to pay with %_plural%', 'mycred' ) ), 'error' );
-					return;
+					return array();
 				}
 
 				$user_id = apply_filters('mycred_woo_gateway_user_id', get_current_user_id(), $order_id);
@@ -310,7 +310,7 @@ if ( ! function_exists( 'mycred_init_woo_gateway' ) ) :
 				// Make sure we have not been excluded
 				if ( $this->mycred->exclude_user( $user_id ) ) {
 					wc_add_notice( $this->mycred->template_tags_general( __( 'You can not use this gateway. Please try a different payment option.', 'mycred' ) ), 'error' );
-					return;
+					return array();
 				}
 
 				// Grab Order
@@ -328,15 +328,15 @@ if ( ! function_exists( 'mycred_init_woo_gateway' ) ) :
 				// Check funds
 				if ( $this->mycred->get_users_balance( $user_id, $this->mycred_type ) < $cost ) {
 					$message = apply_filters( 'mycred_woo_error_insufficient_funds', __( 'Insufficient funds.', 'mycred' ) );
-					wc_add_notice( $message, 'error' );
-					return;
+					throw new \Exception( $message );
+                    return array();
 				}
 
 				// Let others decline a store order
 				$decline     = apply_filters( 'mycred_decline_store_purchase', false, $order, $this );
 				if ( $decline !== false ) {
-					wc_add_notice( $decline, 'error' );
-					return;
+					throw new \Exception( $decline );
+                    return array();
 				}
 
 				// Charge

@@ -32,7 +32,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 				'menu_pos'    => 30,
 				'main_menu'   => true
 			), $type );
-
+			
 		}
 
 		/**
@@ -43,54 +43,22 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 		 */
 		public function module_admin_init() {
 
+			add_action( 'admin_enqueue_scripts', array( $this, 'mycred_addons_scripts' ) );
+
 			// Handle actions
-			if ( isset( $_GET['addon_action'] ) && isset( $_GET['addon_id'] ) && isset( $_GET['_token'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_token'] ) ), 'mycred-activate-deactivate-addon' ) && $this->core->user_is_point_admin() ) {
-
-				$addon_id = sanitize_text_field( wp_unslash( $_GET['addon_id'] ) );
-				$action   = sanitize_text_field( wp_unslash( $_GET['addon_action'] ) );
-
-				$this->get();
-				if ( array_key_exists( $addon_id, $this->installed ) ) {
-
-					// Activation
-					if ( $action == 'activate' ) {
-						// Add addon id to the active array
-						$this->active[] = $addon_id;
-						$result         = 1;
-					}
-
-					// Deactivation
-					elseif ( $action == 'deactivate' ) {
-						// Remove addon id from the active array
-						$index = array_search( $addon_id, $this->active );
-						if ( $index !== false ) {
-							unset( $this->active[ $index ] );
-							$result = 0;
-						}
-
-						// Run deactivation now before the file is no longer included
-						do_action( 'mycred_addon_deactivation_' . $addon_id );
-					}
-
-					$new_settings = array(
-						'installed' => $this->installed,
-						'active'    => $this->active
-					);
-
-					mycred_update_option( 'mycred_pref_addons', $new_settings );
-
-					$url = add_query_arg( array( 'page' => MYCRED_SLUG . '-addons', 'activated' => $result, $addon_id => $action ), admin_url( 'admin.php' ) );
-
-					wp_safe_redirect( $url );
-					exit;
-
-				}
-
-			}
 
 			$this->all_activate_deactivate();
+
 		}
 
+		public function mycred_addons_scripts() {
+
+			wp_register_script('mycred-builtin-addons-script', plugins_url('addons/build/admin.bundle.js', myCRED_THIS), array('wp-element'), '1.0.0',true );
+			wp_localize_script('mycred-builtin-addons-script', 'mycredAddonsData', [
+				'upgraded' => apply_filters('mycred_plan_check', true ) ,
+			]);
+
+		}
 
 		public function all_activate_deactivate() {
 
@@ -134,12 +102,14 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 		 */
 		public function run_addons() {
 
+			$installed = $this->get();
+
 			// Make sure each active add-on still exists. If not delete.
 			if ( ! empty( $this->active ) ) {
 				$active = array_unique( $this->active );
 				$_active = array();
 				foreach ( $active as $pos => $active_id ) {
-					if ( array_key_exists( $active_id, $this->installed ) ) {
+					if ( array_key_exists( $active_id, $installed ) ) {
 						$_active[] = $active_id;
 					}
 				}
@@ -147,7 +117,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			}
 
 			// Load addons
-			foreach ( $this->installed as $key => $data ) {
+			foreach ( $installed as $key => $data ) {
 				if ( $this->is_active( $key ) ) {
 
 					if ( apply_filters( 'mycred_run_addon', true, $key, $data, $this ) === false || apply_filters( 'mycred_run_addon_' . $key, true, $data, $this ) === false ) continue;
@@ -204,7 +174,6 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 		/**
 		 * Get Addons
 		 * @since 0.1
-     * @since 2.5.0 Added `badge-plus`
 		 * @version 1.7.3
 		 */
 		public function get( $save = false ) {
@@ -369,6 +338,58 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
                 'requires'    => array()
             );
 
+			// badge plus Add-on
+			$installed['badge-plus'] = array(
+				'name'        => 'Badge Plus',
+				'description' => __( 'Allows you to create visual tokens and reward users with digital badges when they earn points.', 'mycred' ),
+				'addon_url'   => 'https://codex.mycred.me/chapter-iii/freebies/mycred-badge-plus',
+				'version'     => '1.0.0',
+				'author'      => 'myCred',
+				'author_url'  => 'https://www.mycred.me',
+				'pro_url'     => 'https://mycred.me/store/mycred-badge-plus/',
+				'screenshot'  => plugins_url( 'assets/images/mycred-badge-plus.png', myCRED_THIS ),
+				'requires'    => array()
+			);
+
+			// rank plus Add-on
+			$installed['rank-plus'] = array(
+				'name'        => 'Rank Plus',
+				'description' => __( 'Allows the admin to add new rank types that will be awarded to their website users as rewards. This add-on is an enhanced version of the built-in Ranks add-on.', 'mycred' ),
+				'addon_url'   => 'https://codex.mycred.me/chapter-iii/freebies/mycred-rank-plus',
+				'version'     => '1.0.1',
+				'author'      => 'myCred',
+				'author_url'  => 'https://www.mycred.me',
+				'pro_url'     => 'https://mycred.me/store/mycred-rank-plus/',
+				'screenshot'  => plugins_url( 'assets/images/mycred-rank-plus.png', myCRED_THIS ),
+				'requires'    => array()
+			);
+
+			// badge editor Add-on
+			$installed['badge-editor'] = array(
+				'name'        => 'Badge Editor',
+				'description' => __( 'Allows you to design, edit and download professional-looking digital badge images from the plugin’s back-end dashboard.', 'mycred' ),
+				'addon_url'   => 'https://codex.mycred.me/chapter-iii/freebies/mycred-badge-editor',
+				'version'     => '1.0',
+				'author'      => 'myCred',
+				'author_url'  => 'https://www.mycred.me',
+				'pro_url'     => 'https://mycred.me/store/mycred-badge-editor/',
+				'screenshot'  => plugins_url( 'assets/images/mycred-badge-editor.jpg', myCRED_THIS ),
+				'requires'    => array()
+			);
+
+			// birthdays Add-on
+			$installed['birthday'] = array(
+				'name'        => 'Birthday',
+				'description' => __( 'Gives you access to the myCred Birthday hook which you can setup to reward / deduct points from your users on their birthday!', 'mycred' ),
+				'addon_url'   => 'https://codex.mycred.me/hooks/birthdays/',
+				'version'     => '1.0',
+				'author'      => 'myCred',
+				'author_url'  => 'https://www.mycred.me',
+				'pro_url'     => 'https://mycred.me/store/mycred-birthdays/',
+				'screenshot'  => plugins_url( 'assets/images/myCred-Birthdays.png', myCRED_THIS ),
+				'requires'    => array()
+			);
+
 			$installed = apply_filters( 'mycred_setup_addons', $installed );
 
 			if ( $save === true && $this->core->user_is_point_admin() ) {
@@ -392,245 +413,14 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 		 */
 		public function admin_page() {
 
+			wp_enqueue_script('wp-element');
+			wp_enqueue_script( 'mycred-builtin-addons-script' );
+
+			echo '<div id="mycred-builtin-addons" style="margin-left:-20px"></div>';
+
 			// Security
 			if ( ! $this->core->user_is_point_admin() ) wp_die( 'Access Denied' );
-
-			$installed = $this->get( true ); 
-		?>
-
-			<style type="text/css">
-				#myCRED-wrap > h1 { margin-bottom: 15px; }
-				.theme-browser .theme:focus, .theme-browser .theme:hover { cursor: default !important; }
-				.theme-browser .mycred-addons-element:hover .more-details { opacity: 1; }
-				.theme-browser .mycred-addons-element:hover a.more-details, .theme-browser .mycred-addons-element:hover a.more-details:hover { text-decoration: none; }
-			</style>
-
-			<script type="text/javascript">
-			jQuery(document).ready(function(jQuery){
-
-			   	jQuery("#mycred-addons-checkbox").change(function(){
 			
-					var check = jQuery("#mycred-addons-checkbox").is(":checked");
-			
-					if ( check == true ) {
-
-						window.location.href = jQuery('.mycred-addon-switch').attr("data-activation-url");
-
-					}
-					else {
-
-						window.location.href = jQuery('.mycred-addon-switch').attr("data-deactivation-url");
-
-					}
-			
-			   	});
-			
-			});
-			</script>
-			
-			<?php 
-			
-			$activate_url = get_mycred_all_addon_activation_url();
-			$deactivate_url = get_mycred_all_addon_deactivation_url();
-			$free_addons_url = get_mycred_addon_page_url('free_addons');
-			$premium_addons_url = get_mycred_addon_page_url('premium_addons');
-			
-			?>
-<div class="wrap" id="myCRED-wrap">
-	<div class="mycred-addon-outer">	
-		<div class="myCRED-addon-heading">
-			<h1><?php esc_html_e( 'Add-ons', 'mycred' ); if ( MYCRED_DEFAULT_LABEL === 'myCRED' ) : ?><a href="http://codex.mycred.me/chapter-iii/" class="mycred-ui-info-btn" target="_blank"><?php esc_html_e( '', 'mycred' ); ?><p>Documentation</p></a><?php endif; ?></h1>
-		</div>
-		<div class="mycred-addons-main-nav">
-			<div class="mycred-addons-nav-tab-wrapper">
-				<ul class="subsubsub">
-					<li>
-						<a href="<?php echo esc_url( admin_url('admin.php?page=mycred-addons') ); ?>" class="mycred-addons-nav-tab <?php echo !isset( $_GET['mycred_addons'] ) ? 'current' : ''; ?>">Built-in Addons</a>|
-					</li>
-					<li>
-						<a href="<?php echo esc_url( $free_addons_url ); ?>" class="mycred-addons-nav-tab <?php echo ( isset( $_GET['mycred_addons'] ) && $_GET['mycred_addons'] == 'free_addons' ) ? 'current' : ''; ?>">Free Addons</a>|
-					</li>
-					<li>
-						<a href="<?php echo esc_url( $premium_addons_url ); ?>" class="<?php echo ( isset( $_GET['mycred_addons'] ) && $_GET['mycred_addons'] == 'premium_addons' ) ? 'current' : ''; ?>">Premium Addons</a>
-					</li>
-				</ul>
-			</div>
-			<?php if( !isset( $_GET['mycred_addons'] ) ):?>
-			<div class="mycred-addon-switch mycred-toggle-wrapper" data-activation-url="<?php echo esc_url( $activate_url ); ?>" data-deactivation-url="<?php echo esc_attr( $deactivate_url ); ?>">
-				<label for="mycred-addons-checkbox"><?php esc_html_e( 'Activate/Deactivate All Add-ons', 'mycred' ); ?></label>
-				<label for="mycred-addons-checkbox" class="mycred-toggle mycred-addons-switch">
-				  	<input type="checkbox" name="mycred-addons-checkbox" id="mycred-addons-checkbox" <?php echo $this->check_all_addons() ? 'checked' : ''; ?> >
-				  	<span class="slider round"></span>
-				</label>
-			</div>
-			<?php endif;?>
-		</div>
-	</div>
-			<?php
-
-			// Messages
-			if ( isset( $_GET['activated'] ) ) {
-
-				if ( $_GET['activated'] == 1 )
-					echo '<div id="message" class="updated"><p>' . esc_html__( 'Add-on Activated', 'mycred' ) . '</p></div>';
-
-				elseif ( $_GET['activated'] == 0 )
-					echo '<div id="message" class="error"><p>' . esc_html__( 'Add-on Deactivated', 'mycred' ) . '</p></div>';
-
-			} 
-			do_action( 'mycred_addon_page_before', $installed );
-			?>
-
-	<div class="theme-browser">
-		<div class="mycred-addons-page">
-<?php
-
-if ( isset( $_GET['mycred_addons'] ) ) 
-{
-	if ( $_GET['mycred_addons'] == 'free_addons' ) 
-	{
-
-		require_once( ABSPATH . 'wp-admin/includes/plugin-install.php' );
-			/** Prepare our query */
-	    $call_api = 
-	    	plugins_api( 
-	    		'query_plugins', 
-	    		array( 
-	    			'author' => 'mycred', 
-	    			'per_page' => '100'
-	    		) 
-	    	);
-	 
-	    /** Check for Errors & Display the results */
-	    if ( is_wp_error( $call_api ) ) {
-	 
-	      echo wp_kses_post( '<pre>' . print_r( $call_api->get_error_message(), true ) . '</pre>' );
-	 
-	    } 
-	    else {
-
-	 		$mycred_plugins = $call_api->plugins;
-	 			
-	 	}
-
-		foreach ( $mycred_plugins as $key => $data ) {
-			
-			if ( $data['slug'] == 'mycred' ) continue; 
-			if ( $data['slug'] == 'mycred-blocks' ) continue;
-
-			if ( $data['icons'] != '' ) : ?>
-			<div class="mycred-addons-element inactive" tabindex="0" aria-describedby="free-action free-name">
-				<div class="mycred-free-addons-title">
-					<h2 class="mycred-addons-name" ><?php echo esc_html( $data['name'] ); ?></h2>
-				</div>
-				<div class="mycred-addons-images"> <?php
-
-					if ( ! empty( $data['icons']['2x'] ) ) {
-						$img = $data['icons']['2x'];
-					}else{
-						$img = $data['icons']['1x'];
-					} ?>
-
-					<img src="<?php echo esc_url( $img ); ?>" alt="">
-
-				</div>
-
-				<div class="mycred-addons-container">
-
-					<a href="https://wordpress.org/plugins/<?php echo esc_html( $data['slug'] ); ?>" title="View on Wordpress" target="_blank" class="mycred-action">View</a>
-
-				</div>
-
-			</div>
-			
-			<?php endif; 
-		}
-	}
-	
-	if ( $_GET['mycred_addons'] == 'premium_addons' ) {
-
-		$premium_addons = array();
-
-		$request_args = array(
-			'body' => array(
-				'site'        => get_bloginfo( 'url' ),
-				'api-key'     => md5( get_bloginfo( 'url' ) )
-			),
-			'timeout' => 12
-		);
-
-		// Pass license url
-		$response = wp_remote_post( 'https://license.mycred.me/wp-json/license/get-premium-addons', $request_args );
-
-		if ( is_wp_error( $response ) ) return;
-
-		$addons = json_decode( $response['body'] )->data;
-							
-		foreach ( $addons as $key => $value ) { ?>
-
-			<div class="mycred-addons-element inactive" tabindex="0" aria-describedby="premium-action premium-name">
-										
-				<div class="mycred-premium-addons-title">
-					<h2 class="mycred-addons-name" id="badges-name"><?php echo esc_html( $value->title ); ?></h2>
-				</div>
-				<div class="mycred-addons-images">
-					<img src="<?php echo ! empty( $value->image ) ? esc_url( $value->image ) : '' ; ?>" width="256px" alt="">
-				</div>
-				<div class="mycred-addons-container">
-					<a href="<?php echo esc_url( $value->url ); ?>" title="Install" target="_blank" class="mycred-action">View</a>
-
-				</div>
-
-			</div>
-
-			<?php
-			
-		}
-	}
-}
-else
-{
-
-	// Loop though installed
-	if ( ! empty( $installed ) ) {
-
-		foreach ( $installed as $key => $data ) {
-
-			$aria_action = $key . '-action';
-			$aria_name   = $key . '-name'; ?>
-
-			<div class="mycred-addons-element<?php if ( $this->is_active( $key ) ) echo ' active'; else echo ' inactive'; ?>" tabindex="0" aria-describedby="<?php echo esc_attr( $aria_action ) . ' ' . esc_attr( $aria_name ); ?>"> <?php 
-
-			if ( $this->is_active( $key ) ) : ?>
-				<h2 class="mycred-addons-name" id="<?php echo esc_attr( $aria_name ); ?>"><?php echo esc_html( $this->core->template_tags_general( $data['name'] ) ); ?></h2><?php 
-			else : ?>
-				<h2 class="mycred-addons-name" id="<?php echo esc_attr( $aria_name ); ?>"><?php echo esc_html( $this->core->template_tags_general( $data['name'] ) ); ?></h2><?php 
-			endif;  
-
-			if ( $data['screenshot'] != '' ) : ?>
-
-				<div class="mycred-addons-images">
-					<img src="<?php echo esc_url( $data['screenshot'] ); ?>" alt="" />
-				</div><?php 
-			else : ?>
-				<div class="theme-screenshot blank"></div><?php 
-			endif; ?>
-				
-				<a class="more-details" id="<?php echo esc_attr( $aria_action ); ?>" href="<?php echo esc_url( $data['addon_url'] ); ?>" target="_blank"><?php esc_html_e( 'Documentation', 'mycred' ); ?></a>
-				<div class="mycred-addons-container">
-
-						<?php echo wp_kses_post( $this->activate_deactivate( $key ) ); ?>
-				</div>
-			</div><?php
-		}
-	}	
-
-}?>
-		</div>
-	</div>
-</div>
-<?php
-
 		}
 
 		/**

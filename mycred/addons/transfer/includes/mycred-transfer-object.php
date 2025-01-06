@@ -309,14 +309,16 @@ if ( ! class_exists( 'myCRED_Transfer' ) ) :
 
 			global $mycred_do_transfer;
 
-			extract( shortcode_atts( array(
-				'sender_id'   => get_current_user_id(),
-				'reference'   => 'transfer',
-				'minimum'     => 0,
-				'recipient'   => 0,
-				'amount'      => '',
-				'point_types' => implode( ',', $this->settings['types'] )
-			), $request ) );
+			extract(shortcode_atts(array(
+			    'sender_id'   => get_current_user_id(),
+			    'reference'   => 'transfer',
+			    'minimum'     => 0,
+			    'recipient'   => 0,
+			    'amount'      => '',
+			    'point_types' => isset($this->settings['types']) && is_array($this->settings['types']) 
+			        ? implode(',', $this->settings['types']) 
+			        : ''
+			), $request));
 
 			$sender_id                = absint( $sender_id );
 			$this->transfer_id        = $this->generate_new_transfer_id( $sender_id );
@@ -332,7 +334,15 @@ if ( ! class_exists( 'myCRED_Transfer' ) ) :
 			$this->recipient_id       = $recipient_id;
 
 			$transferable             = array();
-			$requested_types          = ( ! empty( $point_types ) ) ? explode( ',', $point_types ) : $this->settings['types'];
+			$requested_types = ( ! empty( $point_types ) ) 
+			    ? explode( ',', $point_types ) 
+			    : ( isset( $this->settings['types'] ) && is_array( $this->settings['types'] ) 
+			        ? $this->settings['types'] 
+			        : array() );
+			if ( ! is_array( $requested_types ) ) {
+			    $requested_types = array();
+			}
+
 			$usable_types             = mycred_get_usable_types( $sender_id );
 
 			// Make sure we have "usable types". These are types we are not excluded from
@@ -1086,7 +1096,7 @@ if ( ! class_exists( 'myCRED_Transfer' ) ) :
 			// Multiple amounts to pick from
 			elseif ( is_array( $this->transfer_amount ) && count( $this->transfer_amount ) > 1 ) {
 
-				$field .= '<select name="mycred_new_transfer[amount]" class="form-control">';
+				$field .= '<select name="mycred_new_transfer[amount]" class="form-control transfer-amount-field">';
 
 				foreach ( $this->transfer_amount as $amount )
 					$field .= '<option value="' . esc_attr( $amount ) . '">' . esc_html( $amount ) . '</option>';
@@ -1132,7 +1142,7 @@ if ( ! class_exists( 'myCRED_Transfer' ) ) :
 				$field  = '<div class="form-group select-point-type-wrapper">';
 
 				if ( $this->args['balance_label'] != '' ) $field .= '<label>' . esc_html( $this->args['balance_label'] ) . '</label>';
-				$field .= '<select name="mycred_new_transfer[ctype]" class="form-control">';
+				$field .= '<select name="mycred_new_transfer[ctype]" class="form-control transfer-ctype-field">';
 
 				$this->shortcode_attr['types'] = [];
 

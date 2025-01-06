@@ -3,7 +3,7 @@ Contributors: mycred,wpexpertsio
 Tags: badges, gamification, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 6.7
-Stable tag: 2.8
+Stable tag: 2.9
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -295,6 +295,9 @@ You can directly contact our [support.](https://objectsws.atlassian.net/serviced
 
 == Upgrade Notice ==
 
+= 2.9 =
+New features and improvements.
+
 = 2.8 =
 New features and improvements.
 
@@ -446,6 +449,16 @@ New features and Bug fixes.
 The banking module have been replaced by Central deposite module, and interest related functionality has been removed. If you are using simple interest or compound interest related functionality, you will fine the respective functionalities missing after the update.
 
 == Changelog ==
+
+= 2.9 =
+- **NEW** - Added compatibility for buddyboss theme.
+- **TWEAK** - Updated the user interface for built-in addons to enhance user experience.
+- **TWEAK** - Available Hooks now displayed in a single column for easier access.
+- **TWEAK** - Merged myCred Elementor addon into the myCred core.
+- **TWEAK** - Merged myCred Badge Plus addon into the built-in addons.
+- **TWEAK** - Merged myCred Rank Plus addon into the built-in addons.
+- **TWEAK** - Merged myCred Badge Editor addon into the built-in addons.
+- **TWEAK** - Merged myCred Birthday addon into the built-in addons.
 
 = 2.8 =
 - **NEW** - Introduced a new Hook: "Points for Viewing Specific Content (Members)".

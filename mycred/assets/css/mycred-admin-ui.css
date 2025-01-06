@@ -70,7 +70,7 @@
 
 #myCRED-wrap #available-widgets #widget-list {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     flex-wrap: wrap;
     justify-content: space-between;
 }
@@ -83,6 +83,7 @@
 
 #myCRED-wrap #widgets-left #available-widgets .widget {
     float: none !important;
+    width:100% !important;
 }
 
 .mycred-ui-wrap, 
@@ -1097,6 +1098,7 @@ a.mycred-action {
 #available-widgets .widget .widget-description {
     color: #bababa;
     text-align: left;
+    min-height:25px !important;
 }
 
 .sidebar-name h2 {
@@ -2344,6 +2346,9 @@ button.mycred-btn-disabled-pro span {
     padding: 30px;
     border-radius: 10px;
     box-shadow: 2px 2px 10px 0px rgba(#000000, 0.4);
+}
+.checkbox label {
+    cursor: pointer; 
 }
 .myCred_tool_loader {
     margin: 0 auto;

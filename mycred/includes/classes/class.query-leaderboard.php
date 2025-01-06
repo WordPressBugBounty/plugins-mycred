@@ -74,7 +74,7 @@ if ( ! class_exists( 'myCRED_Query_Leaderboard' ) ) :
 				'order'        => 'DESC',
 				'total'        => 0,
 				'exclude_zero' => 1,
-				'forced'       => 0,
+				'forced'       => 1,
 				'exclude'	   => ''
 			);
 

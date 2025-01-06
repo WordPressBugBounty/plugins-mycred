@@ -115,7 +115,7 @@ jQuery(document).ready(function() {
     $selector = jQuery('.bulk-ranks');
     $selector.select2();
 
- function myCred_tools_bulk_assign(loop, awarded_user_count, remaining_user) {
+    function myCred_tools_bulk_assign(loop, awarded_user_count, remaining_user) {
     var $confirm;
 
     if (loop === undefined) loop = 0;
@@ -133,13 +133,14 @@ jQuery(document).ready(function() {
         if ($logEntryChecked && !$logEntryText) {
             alert('Log entry is required.');
             jQuery('.popup').hide().attr("aria-hidden", "true");
-            return false;  // Stop the process if log entry is required but missing
+            return false; // Stop the process if log entry is required but missing
         }
 
-        if ($pointsToAward < 0)
+        if ($pointsToAward < 0) {
             $confirm = confirm(mycredTools.revokeConfirmText);
-        else
+        } else {
             $confirm = confirm(mycredTools.awardConfirmText);
+        }
 
         if (!$confirm) {
             jQuery('.popup').hide().attr("aria-hidden", "true");
@@ -158,27 +159,33 @@ jQuery(document).ready(function() {
 
     // Only assign to selected users if 'Assign to all users' is NOT checked
     if (jQuery('#bulk-reward-all-users').is(":not(:checked)")) {
-        var selectedUsers = jQuery('#bulk-users').val();  // Get selected users
+        var selectedUsers = jQuery('#bulk-users').val(); // Get selected users
+
+        // Calculate and display the count of selected users
+        var selectedUserCount = selectedUsers ? selectedUsers.length : 0;
+        jQuery('#myCred_users').html('Users : ' + selectedUserCount);
+
+        // Calculate remaining users (if applicable logic exists)
+        var remainingUsers = remaining_user - selectedUserCount;
+        jQuery('#myCred_user_remaining').html('User Remaining : ' + (remainingUsers > 0 ? remainingUsers : 0));
 
         // If there are selected users, assign to them
-        if (selectedUsers.length > 0) {
-            $users = JSON.stringify(selectedUsers);  // Only assign points to selected users
+        if (selectedUserCount > 0) {
+            $users = JSON.stringify(selectedUsers);
         } else {
             alert('No users selected for point assignment.');
-            return false;  // Stop the process if no users are selected
+            return false; // Stop the process if no users are selected
         }
     } else {
         // Logic to handle if all users should receive the points
         $users = JSON.stringify(jQuery('[name="bulk_users"]').val());
     }
 
-    //Ranks 
+    // Ranks
     var $rankToAward = jQuery('.bulk-ranks').find(':selected').val();
 
-    //Badges
+    // Badges
     var $badgesToAward = JSON.stringify(jQuery('[name="bulk_badges"]').val());
-
-    
 
     jQuery.ajax({
         url: ajaxurl,
@@ -192,17 +199,16 @@ jQuery(document).ready(function() {
             log_entry: $logEntry,
             log_entry_text: $logEntryText,
             award_to_all_users: $awardToAllUsers,
-            users: $users,  // Selected users or all users
+            users: $users, // Selected users or all users
             user_roles: $user_roles,
-            //Ranks
+            // Ranks
             rank_to_award: $rankToAward,
-            //Badges
+            // Badges
             badges_to_award: $badgesToAward,
             loop: loop
         },
         success: function(response) {
-         
-            if (Array.isArray(selectedUsers) && selectedUsers.length > 0) {           
+            if (Array.isArray(selectedUsers) && selectedUsers.length > 0) {
                 alert(mycredTools.successfullyAwarded);
                 mycredToolsResetForm();
                 jQuery('.popup').hide().attr("aria-hidden", "true");
@@ -220,6 +226,7 @@ jQuery(document).ready(function() {
             remaining_user = response.user_count;
             remaining_user -= awarded_user_count;
 
+            // Update user count and remaining users in the popup
             jQuery('#myCred_users').html('Users : ' + awarded_user_count);
             jQuery('#myCred_user_remaining').html('User Remaining : ' + remaining_user);
 
@@ -235,6 +242,20 @@ jQuery(document).ready(function() {
     });
 }
 
+// Dynamically update the user count in the popup when selection changes
+jQuery(document).ready(function () {
+    jQuery('#bulk-users').on('change', function () {
+        var selectedUsers = jQuery(this).val();
+        var selectedUserCount = selectedUsers ? selectedUsers.length : 0;
+        var remainingUsers = 100 - selectedUserCount; // Example logic for remaining users
+
+        // Update the user count and remaining users in the popup
+        jQuery('#myCred_users').html('Users : ' + selectedUserCount);
+        jQuery('#myCred_user_remaining').html('User Remaining : ' + (remainingUsers > 0 ? remainingUsers : 0));
+    });
+});
+
+
 
     //Bulk Assign AJAX
     jQuery(document).on('click', '.tools-bulk-assign-award-btn', function(e) {
@@ -242,8 +263,6 @@ jQuery(document).ready(function() {
         e.preventDefault();
         jQuery('.popup').show().attr("aria-hidden", "false");
         jQuery("#closePopup").focus();
-        jQuery( '#myCred_users' ).html( 'Users : 0' );
-        jQuery( '#myCred_user_remaining' ).html( 'User Remaining : 0' );
         myCred_tools_bulk_assign();
         
     });  

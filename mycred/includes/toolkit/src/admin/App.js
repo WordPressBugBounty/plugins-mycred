@@ -649,7 +649,9 @@ const App = () => {
                   </Typography>
 
                   <Typography variant="body2" mb={2}>
-                    {addOn.description}
+                    {addOn.description.length > 100 
+                      ? `${addOn.description.slice(0, 100)}...` 
+                      : addOn.description}
                   </Typography>
                 </>
               )}

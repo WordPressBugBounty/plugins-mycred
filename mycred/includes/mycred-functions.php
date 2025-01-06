@@ -3466,6 +3466,38 @@ endif;
 if ( ! function_exists( 'mycred_plugin_activation' ) ) :
 	function mycred_plugin_activation() {
 
+		$all_addons = array(
+            'badges',
+            'buy-creds',
+            'cash-creds',
+            'banking',
+            'coupons',
+            'email-notices',
+            'gateway',
+            'notifications',
+            'ranks',
+            'sell-content',
+            'stats',
+            'transfer',
+            'woocommerce',
+            'badge-plus',
+            'rank-plus',
+            'badge-editor',
+            'birthday'
+        );
+
+        update_option( 'mycred_core_addons', $all_addons );
+
+        foreach ( $all_addons as $addOnSlug ) {
+
+	        $addOnPath = myCRED_ADDONS_DIR . $addOnSlug . '/' . $addOnSlug . '.php';
+
+	        if (file_exists($addOnPath)) {
+	            require_once $addOnPath; 
+	        } 
+        
+        }
+
 		// Load Installer
 		require_once myCRED_INCLUDES_DIR . 'mycred-install.php';
 		$installer = mycred_installer();

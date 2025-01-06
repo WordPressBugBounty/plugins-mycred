@@ -3,7 +3,7 @@
  * Plugin Name: myCred
  * Plugin URI: https://mycred.me
  * Description: An adaptive points management system for WordPress powered websites.
- * Version: 2.8
+ * Version: 2.9
  * Tags: point, credit, loyalty program, engagement, reward, woocommerce rewards
  * Author: myCred
  * Author URI: https://mycred.me
@@ -20,7 +20,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 	final class myCRED_Core {
 
 		// Plugin Version
-		public $version             = '2.8';
+		public $version             = '2.9';
 
 		// Instnace
 		protected static $_instance = NULL;
@@ -54,14 +54,14 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 		 * @since 1.7
 		 * @version 1.0
 		 */
-		public function __clone() { _doing_it_wrong( __FUNCTION__, 'Cheatin&#8217; huh?', '2.8' ); }
+		public function __clone() { _doing_it_wrong( __FUNCTION__, 'Cheatin&#8217; huh?', '2.9' ); }
 
 		/**
 		 * Not allowed
 		 * @since 1.7
 		 * @version 1.0
 		 */
-		public function __wakeup() { _doing_it_wrong( __FUNCTION__, 'Cheatin&#8217; huh?', '2.8' ); }
+		public function __wakeup() { _doing_it_wrong( __FUNCTION__, 'Cheatin&#8217; huh?', '2.9' ); }
 
 		/**
 		 * Get
@@ -82,7 +82,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 			if ( ! defined( $name ) )
 				define( $name, $value );
 			elseif ( ! $definable && defined( $name ) )
-				_doing_it_wrong( 'myCRED_Core->define()', 'Could not define: ' . esc_html( $name ) . ' as it is already defined somewhere else!', '2.8' );
+				_doing_it_wrong( 'myCRED_Core->define()', 'Could not define: ' . esc_html( $name ) . ' as it is already defined somewhere else!', '2.9' );
 		}
 
 		/**
@@ -94,7 +94,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 			if ( file_exists( $required_file ) )
 				require_once $required_file;
 			else
-				_doing_it_wrong( 'myCRED_Core->file()', 'Requested file ' . esc_html( $required_file ) . ' not found.', '2.8' );
+				_doing_it_wrong( 'myCRED_Core->file()', 'Requested file ' . esc_html( $required_file ) . ' not found.', '2.9' );
 		}
 
 		/**
@@ -133,6 +133,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 			// Plugin Related
 			add_filter( 'plugin_action_links_mycred/mycred.php', array( $this, 'plugin_links' ), 10, 4 );
 			add_filter( 'plugin_row_meta',                       array( $this, 'plugin_description_links' ), 10, 2 );
+			add_action( 'init',                                  array( $this, 'load_plugin_textdomain' ) );
 
 		}
 
@@ -177,6 +178,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 			$this->define( 'myCRED_CLASSES_DIR',          myCRED_INCLUDES_DIR . 'classes/', false );
 			$this->define( 'myCRED_IMPORTERS_DIR',        myCRED_INCLUDES_DIR . 'importers/', false );
 			$this->define( 'myCRED_BLOCKS_DIR',        	  myCRED_INCLUDES_DIR . 'mycred-blocks/', false );
+			$this->define( 'myCRED_ELEMENTOR_DIR',        myCRED_INCLUDES_DIR . 'mycred-elementor/', false );
 			$this->define( 'myCRED_SHORTCODES_DIR',       myCRED_INCLUDES_DIR . 'shortcodes/', false );
 			$this->define( 'myCRED_WIDGETS_DIR',          myCRED_INCLUDES_DIR . 'widgets/', false );
 			$this->define( 'myCRED_HOOKS_DIR',            myCRED_INCLUDES_DIR . 'hooks/', false );
@@ -283,7 +285,9 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 
 					// Mycred Blocks
 					$this->file( myCRED_BLOCKS_DIR . 'mycred-blocks.php' );
-
+					
+					$this->file( myCRED_ELEMENTOR_DIR . 'mycred-elementor.php' );
+					
 					//Uninstall Settings
 					$this->file( myCRED_INCLUDES_DIR . 'mycred-uninstall.php' );
 
@@ -320,8 +324,8 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 			$this->file( myCRED_HOOKS_DIR . 'mycred-hook-site-visits.php' );
 			$this->file( myCRED_HOOKS_DIR . 'mycred-hook-view-content.php' );
 			$this->file( myCRED_HOOKS_DIR . 'mycred-hook-watching-video.php' );
-			$this->file( myCRED_HOOKS_DIR . 'mycred-hook-view-content-specific-author.php' );
 			$this->file( myCRED_HOOKS_DIR . 'mycred-hook-view-content-specific.php' );
+			$this->file( myCRED_HOOKS_DIR . 'mycred-hook-view-content-specific-author.php' );
 
 			// Supported plugins
 			$this->file( myCRED_PLUGINS_DIR . 'mycred-hook-affiliatewp.php' );
@@ -574,9 +578,6 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 			// Lets begin
 			$this->post_init_globals();
 
-			// Textdomain
-			$this->load_plugin_textdomain();
-
 			// Register Assets
 			$this->register_assets();
 
@@ -594,8 +595,74 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 			add_action( 'admin_bar_menu',        array( $this, 'adjust_toolbar' ) );
 
 			add_filter( 'admin_body_class', 	 array( $this, 'add_mycred_admin_body_class' ) );
+
+			add_action( 'rest_api_init' , array( $this, 'rest_api_mycred_core_addons' ) );
 			
+		}
+
+		public function rest_api_mycred_core_addons() {
+
+			register_rest_route('mycred/v1', '/enable-core-addon', array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'mycred_enable_core_addon' ),
+				'permission_callback' => '__return_true',
+			));
+
+			register_rest_route('mycred/v1', '/get-core-addons', array(
+				'methods' 			  => 'GET',
+				'callback' 			  => array( $this, 'get_core_addons_callback' ),
+				'permission_callback' => '__return_true',
+			));
+
+		}
+
+		public function get_core_addons_callback($request) {
+
+			$enabled_addons = get_option( 'mycred_pref_addons', array() );
+
+			$addons = ! empty( $enabled_addons['active'] ) ? $enabled_addons['active'] : array();
+
+			return rest_ensure_response( $addons );
+
+		}
+
+		public function mycred_enable_core_addon($request) {
+
+			$params = $request->get_json_params();
+
+	        $addOnSlug = isset( $params['addOnSlug'] ) ? sanitize_text_field( $params['addOnSlug'] ) : '';
+	        $addOnTitle = isset( $params['addOnTitle'] ) ? sanitize_text_field( $params['addOnTitle'] ) : '';
+	        
+	        // Get current enabled add-ons
+			$addons_prefs  = get_option( 'mycred_pref_addons', array() );
+
+	        // Toggle the enabled state
+			if ( ! empty( $addons_prefs['active'] ) && in_array( $addOnSlug, $addons_prefs['active'] ) ) {
+
+	            // Disable the add-on
+				$addons_prefs['active'] = array_diff( $addons_prefs['active'], array( $addOnSlug ) );
+				$message = sprintf( 'Add-on "%s" has been disabled successfully.', $addOnTitle );
+				$toggle = false;
 			
+			} 
+			else {
+	        
+	            // Enable the add-on
+				$addons_prefs['active'][] = $addOnSlug;
+				$message = sprintf( 'Add-on "%s" has been enabled successfully.', $addOnTitle );
+				$toggle = true;
+			
+			}
+
+	        // Update the Addons Prefs
+			update_option( 'mycred_pref_addons', $addons_prefs );
+
+			return rest_ensure_response(array(
+				'status' => 'success',
+				'message' => $message,
+				'enabled_addon' => $addOnSlug,
+				'toggle' => $toggle
+			));
 
 		}
 
@@ -617,21 +684,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 
 		}
 
-		/**
-		 * Load Plugin Textdomain
-		 * @since 1.7
-		 * @version 1.0
-		 */
-		public function load_plugin_textdomain() {
-
-			// Load Translation
-			$locale = apply_filters( 'plugin_locale', get_locale(), 'mycred' );
-
-			load_textdomain( 'mycred', WP_LANG_DIR . '/mycred/mycred-' . $locale . '.mo' );
-			load_plugin_textdomain( 'mycred', false, dirname( plugin_basename( __FILE__ ) ) . '/lang/' );
-
-		}
-
+		
 		/**
 		 * Register Assets
 		 * @since 1.7
@@ -650,6 +703,9 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 			//Badge, Rank Social Share Sheets
 			wp_register_style( 'mycred-social-share-icons', plugins_url( 'assets/css/mycred-social-icons.css', myCRED_THIS ),        array(), $this->version, 'all' );
 			wp_register_style( 'mycred-social-share-style', plugins_url( 'assets/css/mycred-social-share.css', myCRED_THIS ),        array(), $this->version, 'all' );
+
+			// BuddyBoss Style Sheet
+			wp_register_style( 'mycred-buddyboss-style', plugins_url( 'assets/css/mycred-buddyboss.css', myCRED_THIS ),        array(), $this->version, 'all' );
 
 			// Scripts
 			wp_register_script( 'mycred-send-points',    plugins_url( 'assets/js/send.js', myCRED_THIS ),                 array( 'jquery' ), $this->version, true );
@@ -742,6 +798,10 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 
 			wp_enqueue_style( 'mycred-social-share-icons' );
 			wp_enqueue_style( 'mycred-social-share-style' );
+
+			if( 'BuddyBoss Theme' === wp_get_theme()->name ) {
+				wp_enqueue_style( 'mycred-buddyboss-style' );
+			}
 
 			// Let others play
 			do_action( 'mycred_front_enqueue' );
@@ -1175,6 +1235,22 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 			return $links;
 
 		}
+
+		/**
+		 * Load Plugin Textdomain
+		 * @since 1.7
+		 * @version 1.0
+		 */
+		public function load_plugin_textdomain() {
+
+			// Load Translation
+			$locale = apply_filters( 'plugin_locale', get_locale(), 'mycred' );
+
+			load_textdomain( 'mycred', WP_LANG_DIR . '/mycred/mycred-' . $locale . '.mo' );
+			load_plugin_textdomain( 'mycred', false, dirname( plugin_basename( __FILE__ ) ) . '/lang/' );
+
+		}
+
 
 		/**
 		 * After Plugin Loaded

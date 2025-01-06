@@ -509,7 +509,7 @@ if ( ! class_exists( 'myCRED_Transfer_Module' ) ) :
 		 */
 		public function sanitize_extra_settings( $new_data, $data, $general ) {
 
-			$new_data['transfers']['types']                = $data['transfers']['types'];
+			$new_data['transfers']['types'] = isset($data['transfers']['types']) ? $data['transfers']['types'] : null;
 			$new_data['transfers']['reload']               = isset($data['transfers']['reload']) ? absint( $data['transfers']['reload'] ) : '';
 			$new_data['transfers']['message']              = absint( $data['transfers']['message'] );
 			$new_data['transfers']['autofill']             = sanitize_text_field( $data['transfers']['autofill'] );

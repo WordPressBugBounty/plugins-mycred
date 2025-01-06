@@ -282,7 +282,7 @@ if ( ! class_exists( 'myCRED_Query_Log' ) ) :
 				'order'         => 'DESC',
 				'ids'           => false,  // depreciated as of 1.7.5
 				'fields'        => 'all',  // in favor for fields
-				'cache_results' => true,
+				'cache_results' => false,
 				'paged'         => $this->get_pagenum()
 			);
 			$this->args      = apply_filters( 'mycred_query_log_args', wp_parse_args( $args, $defaults ), $defaults );

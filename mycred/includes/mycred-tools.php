@@ -521,7 +521,7 @@ class myCRED_Tools {
 		
 		if( isset( $_GET['action'] ) &&  $_GET['action'] == 'mycred-tools-select-user' )
 		{
-			$search = isset($_GET['search'] ) ? sanitize_key( $_GET['search'] ) : '';
+			$search = isset( $_GET['search'] ) ? sanitize_text_field( $_GET['search'] ) : '';
 
 			$results = mycred_get_users_by_name_email( $search, 'user_email' );
 
