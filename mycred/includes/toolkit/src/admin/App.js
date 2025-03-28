@@ -130,7 +130,7 @@ const App = () => {
   const fetchAddOns = async () => {
     try {
       setLoading(true);
-      const siteUrl = `${window.location.origin}/wp-json/mycred-toolkit/v1/get-addons`;
+      const siteUrl = `${window.mycredAddonsData.root}mycred-toolkit/v1/get-addons`;
 
       const response = await fetch(siteUrl, {
         method: "GET",
@@ -157,7 +157,7 @@ const App = () => {
   const checkProaddonsfile = async () => {
     try {
         setLoading(true);
-        const siteUrl = `${window.location.origin}/wp-json/mycred-toolkit/v1/check-addons-files`;
+        const siteUrl = `${window.mycredAddonsData.root}mycred-toolkit/v1/check-addons-files`;
 
         // Filter the 'pro' type add-ons from addonsData
         const proAddOns = addonsData.filter((addon) => addon.type === "pro");
@@ -223,7 +223,7 @@ const App = () => {
 
     setLoading(true);
     try {
-      const siteUrl = `${window.location.origin}/wp-json/mycred-toolkit/v1/enable-addon`;
+      const siteUrl = `${window.mycredAddonsData.root}mycred-toolkit/v1/enable-addon`;
 
       const response = await fetch(siteUrl, {
         method: "POST",
