@@ -36,7 +36,6 @@ import { styled } from "@mui/material/styles";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import "@fontsource/figtree"; 
 import "@fontsource/figtree/700.css";
-
 import addOnsData from "./addons.json";
 
 

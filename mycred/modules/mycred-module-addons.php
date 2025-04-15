@@ -56,6 +56,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			wp_register_script('mycred-builtin-addons-script', plugins_url('addons/build/admin.bundle.js', myCRED_THIS), array('wp-element'), '1.0.0',true );
 			wp_localize_script('mycred-builtin-addons-script', 'mycredAddonsData', [
 				'upgraded' => apply_filters('mycred_plan_check', true ) ,
+				'root' => esc_url_raw( rest_url() ),
 			]);
 
 		}

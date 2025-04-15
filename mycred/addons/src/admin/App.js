@@ -117,7 +117,7 @@ const App = () => {
   const fetchAddOns = async () => {
     try {
       setLoading(true);
-      const siteUrl = `${window.location.origin}/wp-json/mycred/v1/get-core-addons`;
+      const siteUrl = `${window.mycredAddonsData.root}mycred/v1/get-core-addons`;
 
       const response = await fetch(siteUrl, {
         method: "GET",
@@ -150,7 +150,7 @@ const App = () => {
 
   setLoading(true);
   try {
-    const siteUrl = `${window.location.origin}/wp-json/mycred/v1/enable-core-addon`;
+    const siteUrl = `${window.mycredAddonsData.root}mycred/v1/enable-core-addon`;
 
     const response = await fetch(siteUrl, {
       method: "POST",
@@ -173,7 +173,7 @@ const App = () => {
   } finally {
     setLoading(false);
   }
-};
+  };
 
 
   const handleSearchData = (event) => {

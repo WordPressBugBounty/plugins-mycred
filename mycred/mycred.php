@@ -3,7 +3,7 @@
  * Plugin Name: myCred
  * Plugin URI: https://mycred.me
  * Description: An adaptive points management system for WordPress powered websites.
- * Version: 2.9.3
+ * Version: 2.9.4
  * Tags: point, credit, loyalty program, engagement, reward, woocommerce rewards
  * Author: myCred
  * Author URI: https://mycred.me
@@ -20,7 +20,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 	final class myCRED_Core {
 
 		// Plugin Version
-		public $version             = '2.9.3';
+		public $version             = '2.9.4';
 
 		// Instnace
 		protected static $_instance = NULL;
@@ -717,10 +717,8 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 			wp_register_script( 'mycred-edit-log',       plugins_url( 'assets/js/mycred-edit-log.js', myCRED_THIS ),      array( 'jquery', 'jquery-ui-core', 'jquery-ui-dialog', 'jquery-effects-core', 'jquery-effects-slide', 'common' ), $this->version );
 			wp_register_script( 'mycred-select2-script', plugins_url( 'assets/js/select2.js', myCRED_THIS ),              array( 'jquery' ), $this->version, true );
 			wp_register_script( 'mycred-specific-content-script', plugins_url( 'assets/js/script.js', myCRED_THIS ), array( 'jquery' ), $this->version, true );
-
-			if( is_plugin_active('mycred-toolkit/mycred-toolkit.php') || is_plugin_active('mycred-toolkit-pro/mycred-toolkit-pro.php') ) {
-				wp_register_script('mycred-toolkit-script', plugins_url('includes/toolkit/build/admin.bundle.js', myCRED_THIS), array('wp-element'), '1.0.0',true );
-			}
+			wp_register_script('mycred-toolkit-script', plugins_url('includes/toolkit/build/admin.bundle.js', myCRED_THIS), array('wp-element'), '1.0.0',true );
+			
 
 			do_action( 'mycred_register_assets' );
 
