@@ -129,8 +129,8 @@ if ( ! class_exists( 'myCRED_Settings' ) ) :
 					)
 				),
 				'name'        => array(
-					'singular'    => __( 'Point', 'mycred' ),
-					'plural'      => __( 'Points', 'mycred' )
+					'singular'    =>  'Point',
+					'plural'      =>  'Points'
 				),
 				'before'      => '',
 				'after'       => '',

@@ -24,8 +24,8 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 					'active'        => array()
 				),
 				'labels'      => array(
-					'menu'        => __( 'Add-ons', 'mycred' ),
-					'page_title'  => __( 'Add-ons', 'mycred' )
+					'menu'        => 'Add-ons',
+					'page_title'  => 'Add-ons'
 				),
 				'screen_id'   => MYCRED_SLUG . '-addons',
 				'accordion'   => true,
@@ -184,7 +184,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			// Badges Add-on
 			$installed['badges'] = array(
 				'name'        => 'Badges',
-				'description' => __( 'Give your users badges based on their interaction with your website.', 'mycred' ),
+				'description' => 'Give your users badges based on their interaction with your website.',
 				'addon_url'   => 'http://codex.mycred.me/chapter-iii/badges/',
 				'version'     => '1.3',
 				'author'      => 'myCred',
@@ -196,7 +196,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			// buyCRED Add-on
 			$installed['buy-creds'] = array(
 				'name'        => 'buyCRED',
-				'description' => __( 'The <strong>buy</strong>CRED Add-on allows your users to buy points using PayPal, Skrill (Moneybookers) or NETbilling. <strong>buy</strong>CRED can also let your users buy points for other members.', 'mycred' ),
+				'description' => 'The <strong>buy</strong>CRED Add-on allows your users to buy points using PayPal, Skrill (Moneybookers) or NETbilling. <strong>buy</strong>CRED can also let your users buy points for other members.',
 				'addon_url'   => 'http://codex.mycred.me/chapter-iii/buycred/',
 				'version'     => '1.5',
 				'author'      => 'myCred',
@@ -208,7 +208,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			// cashCRED Add-on
 			$installed['cash-creds'] = array(	
 				'name'        => 'cashCRED',
-				'description' => __( '', 'mycred' ),
+				'description' => 'cashCred allows your users to convert their Points into Cash and the possibility to withdraw their points through different payment gateways.',
 				'addon_url'   => 'https://codex.mycred.me/chapter-iii/cashcred/',
 				'version'     => '1.0',
 				'author'      => 'Gabriel S Merovingi',
@@ -220,7 +220,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			// Central Deposit Add-on
 			$installed['banking'] = array(
 				'name'        => 'Central Deposit',
-				'description' => __( 'Setup recurring payouts or offer / charge interest on user account balances.', 'mycred' ),
+				'description' => 'Setup recurring payouts or offer / charge interest on user account balances.',
 				'addon_url'   => 'https://codex.mycred.me/chapter-iii/central-deposit-add-on/',
 				'version'     => '2.0',
 				'author'      => 'myCred',
@@ -232,7 +232,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			// Coupons Add-on
 			$installed['coupons'] = array(
 				'name'        => 'Coupons',
-				'description' => __( 'The coupons add-on allows you to create coupons that users can use to add points to their accounts.', 'mycred' ),
+				'description' => 'The coupons add-on allows you to create coupons that users can use to add points to their accounts.',
 				'addon_url'   => 'http://codex.mycred.me/chapter-iii/coupons/',
 				'version'     => '1.4',
 				'author'      => 'myCred',
@@ -244,7 +244,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			// Email Notices Add-on
 			$installed['email-notices'] = array(
 				'name'        => 'Email Notifications',
-				'description' => __( 'Create email notices for any type of myCRED instance.', 'mycred' ),
+				'description' => 'Create email notices for any type of myCRED instance.',
 				'addon_url'   => 'http://codex.mycred.me/chapter-iii/email-notice/',
 				'version'     => '1.4',
 				'author'      => 'myCred',
@@ -256,7 +256,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			// Gateway Add-on
 			$installed['gateway'] = array(
 				'name'        => 'Gateway',
-				'description' => __( 'Let your users pay using their <strong>my</strong>CRED points balance. Supported Carts: WooCommerce, MarketPress and WP E-Commerce. Supported Event Bookings: Event Espresso and Events Manager (free & pro).', 'mycred' ),
+				'description' => 'Let your users pay using their <strong>my</strong>CRED points balance. Supported Carts: WooCommerce, MarketPress and WP E-Commerce. Supported Event Bookings: Event Espresso and Events Manager (free & pro).',
 				'addon_url'   => 'http://codex.mycred.me/chapter-iii/gateway/',
 				'version'     => '1.4',
 				'author'      => 'myCred',
@@ -268,7 +268,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			// Notifications Add-on
 			$installed['notifications'] = array(
 				'name'        => 'Notifications',
-				'description' => __( 'Create pop-up notifications for when users gain or loose points.', 'mycred' ),
+				'description' => 'Create pop-up notifications for when users gain or loose points.',
 				'addon_url'   => 'http://codex.mycred.me/chapter-iii/notifications/',
 				'version'     => '1.1.2',
 				'author'      => 'myCred',
@@ -281,7 +281,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			// Ranks Add-on
 			$installed['ranks'] = array(
 				'name'        => 'Ranks',
-				'description' => __( 'Create ranks for users reaching a certain number of %_plural% with the option to add logos for each rank.', 'mycred' ),
+				'description' => 'Create ranks for users reaching a certain number of %_plural% with the option to add logos for each rank.',
 				'addon_url'   => 'http://codex.mycred.me/chapter-iii/ranks/',
 				'version'     => '1.6',
 				'author'      => 'myCred',
@@ -293,7 +293,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			// Sell Content Add-on
 			$installed['sell-content'] = array(
 				'name'        => 'Sell Content',
-				'description' => __( 'This add-on allows you to sell posts, pages or any public post types on your website. You can either sell the entire content or using our shortcode, sell parts of your content allowing you to offer "teasers".', 'mycred' ),
+				'description' => 'This add-on allows you to sell posts, pages or any public post types on your website. You can either sell the entire content or using our shortcode, sell parts of your content allowing you to offer "teasers".',
 				'addon_url'   => 'http://codex.mycred.me/chapter-iii/sell-content/',
 				'version'     => '2.0.1',
 				'author'      => 'myCred',
@@ -305,7 +305,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			// Statistics Add-on
 			$installed['stats'] = array(
 				'name'        => 'Statistics',
-				'description' => __( 'Gives you access to your myCRED Statistics based on your users gains and loses.', 'mycred' ),
+				'description' => 'Gives you access to your myCRED Statistics based on your users gains and loses.',
 				'addon_url'   => 'http://codex.mycred.me/chapter-iii/statistics/',
 				'version'     => '2.0',
 				'author'      => 'myCred',
@@ -316,7 +316,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			// Transfer Add-on
 			$installed['transfer'] = array(
 				'name'        => 'Transfers',
-				'description' => __( 'Allow your users to send or "donate" points to other members by either using the mycred_transfer shortcode or the myCRED Transfer widget.', 'mycred' ),
+				'description' => 'Allow your users to send or "donate" points to other members by either using the mycred_transfer shortcode or the myCRED Transfer widget.',
 				'addon_url'   => 'http://codex.mycred.me/chapter-iii/transfers/',
 				'version'     => '1.6',
 				'author'      => 'myCred',
@@ -329,7 +329,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			//WooCommerce Add-on
             $installed['woocommerce'] = array(
                 'name'        => 'WooCommerce',
-                'description' => __( 'Allow your users to send or "donate" points to other members by either using the mycred_transfer shortcode or the myCRED Transfer widget.', 'mycred' ),
+                'description' => 'Allow your users to send or "donate" points to other members by either using the mycred_transfer shortcode or the myCRED Transfer widget.',
                 'addon_url'   => 'http://codex.mycred.me',
                 'version'     => '1.0',
                 'author'      => 'myCred',
@@ -342,7 +342,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			// badge plus Add-on
 			$installed['badge-plus'] = array(
 				'name'        => 'Badge Plus',
-				'description' => __( 'Allows you to create visual tokens and reward users with digital badges when they earn points.', 'mycred' ),
+				'description' => 'Allows you to create visual tokens and reward users with digital badges when they earn points.',
 				'addon_url'   => 'https://codex.mycred.me/chapter-iii/freebies/mycred-badge-plus',
 				'version'     => '1.0.0',
 				'author'      => 'myCred',
@@ -355,7 +355,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			// rank plus Add-on
 			$installed['rank-plus'] = array(
 				'name'        => 'Rank Plus',
-				'description' => __( 'Allows the admin to add new rank types that will be awarded to their website users as rewards. This add-on is an enhanced version of the built-in Ranks add-on.', 'mycred' ),
+				'description' => 'Allows the admin to add new rank types that will be awarded to their website users as rewards. This add-on is an enhanced version of the built-in Ranks add-on.',
 				'addon_url'   => 'https://codex.mycred.me/chapter-iii/freebies/mycred-rank-plus',
 				'version'     => '1.0.1',
 				'author'      => 'myCred',
@@ -368,7 +368,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			// badge editor Add-on
 			$installed['badge-editor'] = array(
 				'name'        => 'Badge Editor',
-				'description' => __( 'Allows you to design, edit and download professional-looking digital badge images from the plugin’s back-end dashboard.', 'mycred' ),
+				'description' => 'Allows you to design, edit and download professional-looking digital badge images from the plugin’s back-end dashboard.',
 				'addon_url'   => 'https://codex.mycred.me/chapter-iii/freebies/mycred-badge-editor',
 				'version'     => '1.0',
 				'author'      => 'myCred',
@@ -381,7 +381,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			// birthdays Add-on
 			$installed['birthday'] = array(
 				'name'        => 'Birthday',
-				'description' => __( 'Gives you access to the myCred Birthday hook which you can setup to reward / deduct points from your users on their birthday!', 'mycred' ),
+				'description' => 'Gives you access to the myCred Birthday hook which you can setup to reward / deduct points from your users on their birthday!',
 				'addon_url'   => 'https://codex.mycred.me/hooks/birthdays/',
 				'version'     => '1.0',
 				'author'      => 'myCred',
