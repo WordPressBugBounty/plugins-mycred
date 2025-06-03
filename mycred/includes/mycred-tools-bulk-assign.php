@@ -16,6 +16,52 @@ class myCRED_Tools_Bulk_Assign extends myCRED_Tools
     public function __construct()
     {
         add_action( 'wp_ajax_mycred-tools-assign-award', array( $this, 'tools_assign_award' ) );
+        add_action('wp_ajax_mycred_get_user_count_by_roles', array( $this,'mycred_get_user_count_by_roles_callback'));
+        add_action('wp_ajax_mycred_get_total_user_count', array( $this,'mycred_get_total_user_count_callback'));
+    }
+
+    public function mycred_get_total_user_count_callback() {
+        
+        // Check if user has permission - adjust capability as needed
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+            wp_die();
+        }
+
+        // Count all users in WordPress
+        $user_count = count_users();
+
+        // Total users count is in 'total_users' key
+        $total_users = isset($user_count['total_users']) ? intval($user_count['total_users']) : 0;
+
+        wp_send_json(array('user_count' => $total_users));
+        wp_die();
+    }
+
+    public function mycred_get_user_count_by_roles_callback() {
+
+        if ( ! current_user_can('manage_options') ) {
+            wp_send_json_error('Unauthorized');
+            wp_die();
+        }
+
+        $roles = isset($_POST['roles']) ? json_decode(stripslashes($_POST['roles']), true) : array();
+
+        if (empty($roles) || !is_array($roles)) {
+            wp_send_json(array('user_count' => 0));
+            wp_die();
+        }
+
+        $user_query = new WP_User_Query(array(
+            'role__in' => $roles,
+            'fields' => 'ID'
+        ));
+
+        $count = $user_query->get_total();
+
+        wp_send_json(array('user_count' => $count));
+        wp_die();
+
     }
 
     public function get_header()

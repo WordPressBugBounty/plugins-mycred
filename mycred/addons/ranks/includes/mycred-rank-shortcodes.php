@@ -144,14 +144,14 @@ if ( ! function_exists( 'mycred_render_users_of_rank' ) ) :
 		if ( $rank_id === NULL )
 			return '<strong>ERROR</strong> Rank ID is required!';
 
-		// User is not logged in
-		if ( ! is_user_logged_in() && $login != '' )
-			return $mycred->template_tags_general( $login );
-
 		if ( ! mycred_point_type_exists( $ctype ) )
 			$ctype = MYCRED_DEFAULT_TYPE_KEY;
 
 		$mycred       = mycred( $ctype );
+
+		// User is not logged in
+		if ( ! is_user_logged_in() && $login != '' )
+			return $mycred->template_tags_general( $login );
 
 		$output       = '';
 

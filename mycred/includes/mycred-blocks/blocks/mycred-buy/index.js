@@ -16,7 +16,7 @@
             gateway: {
                 type: 'string'
             },
-            type: {
+            ctype: {
                 type: 'string'
             },
             amount: {
@@ -38,7 +38,7 @@
         edit: function (props) {
             var link_title = props.attributes.link_title;
             var gateway = props.attributes.gateway;
-            var type = props.attributes.type;
+            var ctype = props.attributes.ctype;
             var amount = props.attributes.amount;
             var gift_to = props.attributes.balance_el;
 
@@ -56,7 +56,7 @@
             }
 
             function setType(value) {
-                props.setAttributes({type: value});
+                props.setAttributes({ctype: value});
             }
             function setAmount(value) {
                 props.setAttributes({amount: value});
@@ -104,7 +104,7 @@
                         el(SelectControl, {
                             label: __('Point Type', 'mycred'),
                             help: __('The point type you want to show.', 'mycred'),
-                            value: type,
+                            value: ctype,
                             onChange: setType,
                             options
                         }),

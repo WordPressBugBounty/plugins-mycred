@@ -124,23 +124,23 @@ if ( ! class_exists( 'myCRED_buyCRED_Module' ) ) :
 		 */
 		public function get() {
 
-			$installed = mycred_get_buycred_gateways();
+		    $installed = mycred_get_buycred_gateways();
 
-			// Untill all custom gateways have been updated, make sure all gateways have an external setting
-			if ( ! empty( $installed ) ) {
-				foreach ( $installed as $id => $settings ) {
+		    // Ensure all gateways have 'external' and 'custom_rate' keys
+		    if ( ! empty( $installed ) ) {
+		        foreach ( $installed as $id => $settings ) {
 
-					if ( ! array_key_exists( 'external', $settings ) )
-						$installed[ $id ]['external'] = true;
+		            if ( ! array_key_exists( 'external', $settings ) )
+		                $installed[ $id ]['external'] = true;
 
-					if ( ! array_key_exists( 'custom_rate', $settings ) )
-						$installed[ $id ]['custom_rate'] = false;
+		            if ( ! array_key_exists( 'custom_rate', $settings ) )
+		                $installed[ $id ]['custom_rate'] = false;
+		        }
+		    }
 
-				}
-			}
+		 
 
-			return $installed;
-
+		    return $installed;
 		}
 
 		/**
@@ -460,19 +460,19 @@ if ( ! class_exists( 'myCRED_buyCRED_Module' ) ) :
 				<h3><?php esc_html_e( 'Checkout', 'mycred' ); ?></h3>
 
 				<div class="form-group">
-
 					<div class="row">
 						<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 text-center">
 							<label for="<?php echo esc_attr( $this->field_id( 'checkout-full' ) ); ?>">
 								<img src="<?php echo esc_url( plugins_url( 'assets/images/checkout-full.png', MYCRED_PURCHASE ) ); ?>" alt="" style="max-width: 100%; height: auto;" />
-								<input type="radio" name="<?php echo esc_attr( $this->field_name( 'checkout' ) ); ?>"<?php checked( $settings['checkout'], 'page' ); ?> id="<?php echo esc_attr( $this->field_id( 'checkout-full' ) ); ?>" value="page" /> Full Page
+								
 							</label>
+							<input type="radio" name="<?php echo esc_attr( $this->field_name( 'checkout' ) ); ?>"<?php checked( $settings['checkout'], 'page' ); ?> id="<?php echo esc_attr( $this->field_id( 'checkout-full' ) ); ?>" value="page" /> Full Page
 						</div>
 						<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 text-center">
 							<label for="<?php echo esc_attr( $this->field_id( 'checkout-popup' ) ); ?>">
 								<img src="<?php echo esc_url( plugins_url( 'assets/images/checkout-popup.png', MYCRED_PURCHASE ) ); ?>" alt="" style="max-width: 100%; height: auto;" />
-								<input type="radio" name="<?php echo esc_attr( $this->field_name( 'checkout' ) ); ?>"<?php checked( $settings['checkout'], 'popup' ); ?> id="<?php echo esc_attr( $this->field_id( 'checkout-popup' ) ); ?>" value="popup" /> Popup
 							</label>
+							<input type="radio" name="<?php echo esc_attr( $this->field_name( 'checkout' ) ); ?>"<?php checked( $settings['checkout'], 'popup' ); ?> id="<?php echo esc_attr( $this->field_id( 'checkout-popup' ) ); ?>" value="popup" /> Popup
 						</div>
 					</div>
 

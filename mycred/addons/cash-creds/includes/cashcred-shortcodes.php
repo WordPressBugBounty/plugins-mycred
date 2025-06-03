@@ -71,7 +71,7 @@ if ( ! function_exists( 'mycred_render_cashcred' ) ) :
 			<?php cashcred_display_message(); ?>
 
 			
-			<?php if( count( $pending_withdrawal ) > 0 ){ ?>
+			<?php if( count( $pending_withdrawal ) > 0 ) { ?>
 			<h4><?php esc_html_e('You have pending withdrawal','mycred'); ?></h4>
 			<table>
 				<thead class="cashcred-table-heading">
@@ -92,7 +92,7 @@ if ( ! function_exists( 'mycred_render_cashcred' ) ) :
 						<th>
 							<?php 
 							// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-							apply_filters('mycred_change_gateway_text','Gateway'); 
+							echo apply_filters('mycred_change_gateway_text','Gateway'); 
 							?>	
 						</th>
 
@@ -272,7 +272,7 @@ if ( ! function_exists( 'mycred_render_cashcred' ) ) :
 						<th>
 							<?php 
 							// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-							apply_filters( 'mycred_change_gateway_text', 'Gateway' ); 
+							echo apply_filters( 'mycred_change_gateway_text', 'Gateway' ); 
 							?>	
 						</th>
 						<th>Date</th>
@@ -358,7 +358,7 @@ if ( ! function_exists( 'mycred_render_cashcred' ) ) :
 						<th>
 							<?php 
 							// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-							apply_filters( 'mycred_change_gateway_text', 'Gateway' ); 
+							echo apply_filters( 'mycred_change_gateway_text', 'Gateway' ); 
 							?>			
 						</th>
 						<th><?php esc_html_e( 'Date', 'mycred' ) ?></th>

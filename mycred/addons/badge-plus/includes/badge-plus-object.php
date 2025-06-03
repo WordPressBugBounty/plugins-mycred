@@ -1,6 +1,7 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+
 /**
  * myCRED_Badge class
  * @see http://codex.mycred.me/classes/mycred_badge/
@@ -165,53 +166,43 @@ if ( ! class_exists( 'myCRED_Badge_plus' ) ) :
 		 */
 		public function assign( $user_id = false, $badge_id = 0 ) {
 
-			if ( $user_id === false || absint( $user_id ) === 0 ) return false;
+		    if ( $user_id === false || absint( $user_id ) === 0 ) return false;
 
-			$new_badge     = $badge_id;
+		    $new_badge = $badge_id;
+		    $this->user_id = $user_id;
 
-			// Need to update counter with new assignments
-			if ( $this->user_has_badge( $user_id, $badge_id ) ) {
+		    // Always increase earned count (whether first or multiple times)
+		    $count = mycred_get_post_meta( $badge_id, 'earned-users-with-badge-plus', true );
+		    $this->earned = (int) $count + 1;
+		    mycred_update_post_meta( $badge_id, 'earned-users-with-badge-plus', $this->earned );
 
-				$count = mycred_get_post_meta( $badge_id, 'earned-users-with-badge-plus', true );
-				$this->earned = $count + 1;
-				mycred_update_post_meta( $badge_id, 'earned-users-with-badge-plus', $this->earned );
-				
-			} else {
+		    $execute = apply_filters( 'mycred_badge_plus_assign', true, $user_id, $new_badge, $this );
 
-				$this->user_id = $user_id;
-				$this->earned = 1;
-				mycred_update_post_meta( $badge_id, 'earned-users-with-badge-plus', $this->earned );
-			}
+		    if ( $execute ) {
 
-			$execute = apply_filters( 'mycred_badge_plus_assign', true, $user_id, $new_badge, $this );
+		        mycred_update_user_meta( $user_id, $this->user_meta_key, '', $badge_id );
 
-			if ( $execute ) {
+		        $badge_ids = mycred_get_user_meta( $user_id, 'mycred_badge_plus_ids', '', true );
 
-				mycred_update_user_meta( $user_id, $this->user_meta_key, '',  $badge_id);
-				
+		        if ( empty( $badge_ids ) ) {
+		            $badge_ids = array();
+		        }
 
-				$badge_ids = mycred_get_user_meta( $user_id, 'mycred_badge_plus_ids', '', true );
+		        if ( empty( $badge_ids[$this->post_id] ) ) {
+		            $badge_ids[$this->post_id] = array();
+		        }
 
-				if ( empty( $badge_ids ) ) {
-					$badge_ids = array( );
-					
-				}
+		        $badge_ids[$this->post_id][] = time(); // multiple timestamps show multiple earns
 
-				if ( empty( $badge_ids[$this->post_id] ) ) {
-					$badge_ids[$this->post_id] = array();
-				}
-				$badge_ids[$this->post_id][] =  time(); 
+		        mycred_update_user_meta( $user_id, 'mycred_badge_plus_ids', '', $badge_ids );
 
-				mycred_update_user_meta( $user_id, 'mycred_badge_plus_ids', '', $badge_ids );
-				
-				$this->payout_reward( $new_badge );
-				
-				do_action( 'mycred_after_badge_plus_assign', $user_id, $this->post_id, $new_badge );
+		        // ✅ Always payout reward
+		        $this->payout_reward( $new_badge );
 
-			}
+		        do_action( 'mycred_after_badge_plus_assign', $user_id, $this->post_id, $new_badge );
+		    }
 
-			return true;
-
+		    return true;
 		}
 
 		/**
@@ -221,7 +212,9 @@ if ( ! class_exists( 'myCRED_Badge_plus' ) ) :
 		 */
 		public function get_level_reward( $level_id = false ) {
 
+
 			if ( $level_id === false || empty( $level_id ) ) return false;
+
 
 			return $award = array( 
 				'amount' => mycred_get_post_meta( $level_id, 'mycred_points_badge_plus' ,true ), 
@@ -245,12 +238,16 @@ if ( ! class_exists( 'myCRED_Badge_plus' ) ) :
 
 				$reward = $this->get_level_reward( $new_level );
 
-				if ( $reward !== false && ( $reward['log'] == '' || $reward['amount'] == 0 ) ) return false;
+				if ( $reward === false || $reward['log'] == '' || $reward['amount'] == 0 ) {
+				    return false; // nothing to give
+				}
+
 
 				$mycred = mycred( $reward['type'] );
 
 
 				$exec = apply_filters( 'customize_mycred_badge_condition', true, $this->post_id, $this->user_id, $reward['type']);
+
 
 				if( $exec ) {
 

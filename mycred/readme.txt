@@ -3,7 +3,7 @@ Contributors: mycred,wpexpertsio
 Tags: badges, gamification, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 6.8
-Stable tag: 2.9.4.2
+Stable tag: 2.9.4.3
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -295,6 +295,17 @@ You can directly contact our [support.](https://objectsws.atlassian.net/serviced
 
 == Upgrade Notice ==
 
+= 2.9.4.3 =
+Buycred settings UI issues fixed.
+Bucred limit is not working as per the setting.
+Fixed warnings in mycred_buy shortcode.
+Gutenberg buy block payment gateway setting fixed.
+CashCred shortcode "Gateway" column name not showing.
+CashCred Withdrawal Request Backend UI issue.
+Transfer shortcode and block not showing current balance.
+Badge Plus errors and warnings.
+Code improvement and optimization.
+
 = 2.9.4.2 =
 Code improvement.
 
@@ -467,6 +478,17 @@ New features and Bug fixes.
 The banking module have been replaced by Central deposite module, and interest related functionality has been removed. If you are using simple interest or compound interest related functionality, you will fine the respective functionalities missing after the update.
 
 == Changelog ==
+
+= 2.9.4.3 =
+- **FIX** - Buycred settings UI issues fixed.
+- **FIX** - Bucred limit is not working as per the setting.
+- **FIX** - Fixed warnings in mycred_buy shortcode.
+- **FIX** - Gutenberg buy block payment gateway setting fixed.
+- **FIX** - CashCred shortcode "Gateway" column name not showing.
+- **FIX** - CashCred Withdrawal Request Backend UI issue.
+- **FIX** - Transfer shortcode and block not showing current balance.
+- **FIX** - Badge Plus errors and warnings.
+- **TWEAK** - Code improvement and optimization.
 
 = 2.9.4.2 =
 - **TWEAK** - Code improvement.

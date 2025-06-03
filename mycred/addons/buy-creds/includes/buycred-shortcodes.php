@@ -57,8 +57,16 @@ if ( ! function_exists( 'mycred_render_buy_points' ) ) :
 		if ( $settings['gifting']['members'] && absint( $gift_to ) !== 0 )
 			$recipient_id = absint( $gift_to );
 
-		if ( $recipient_id !== $buyer_id )
-			$args['gift_to'] = $recipient_id;
+		$recipient = get_userdata($recipient_id);
+
+		if( $recipient ) {
+			if ( $recipient_id !== $buyer_id )
+				$args['gift_to'] = $recipient_id;
+		} else {
+			return 'No Recipient Exist';
+		}
+
+		
 
 		// Allow user related template tags to be used in the button label
 		$button_label       = $mycred->template_tags_general( $button_label );
@@ -143,7 +151,7 @@ if ( ! function_exists( 'mycred_render_buy_form_points' ) ) :
 			if( !empty( $type_keys ) && empty( $atts['ctype'] ) )
 				break;
 		}
-			
+
 		// Make sure we have a gateway we can use
 		if ( ( ! empty( $gateway ) && ! mycred_buycred_gateway_is_usable( $gateway ) ) || ( empty( $gateway ) && empty( $buycred_instance->active ) ) )
 			return 'No gateway available.';
@@ -207,141 +215,141 @@ if ( ! function_exists( 'mycred_render_buy_form_points' ) ) :
 
 		}
 
-?>
-<div class="row">
-	<div class="col-xs-12">
-		<form method="post" class="form<?php if ( $inline == 1 ) echo esc_attr( '-inline' ); ?> <?php echo esc_attr( implode( ' ', $classes ) ); ?>" action="">
-			<input type="hidden" name="token" value="<?php echo esc_attr( wp_create_nonce( 'mycred-buy-creds' ) ); ?>" />
+		?>
+		<div class="row">
+			<div class="col-xs-12">
+				<form method="post" class="form<?php if ( $inline == 1 ) echo esc_attr( '-inline' ); ?> <?php echo esc_attr( implode( ' ', $classes ) ); ?>" action="">
+					<input type="hidden" name="token" value="<?php echo esc_attr( wp_create_nonce( 'mycred-buy-creds' ) ); ?>" />
+					<?php
+					if( count( $point_types ) > 1 ){ ?>
+						<select name="ctype" class="mycred-change-pointtypes">
+							<?php foreach ( $point_types as $key => $value ) :?>
+								<option value="<?php echo esc_attr( $value[0] ); ?>"><?php echo esc_html( $value[1] ); ?></option><?php endforeach;?>
+								</select><?php 
+							}else{ ?>
+								<input type="hidden" name="ctype" value="<?php echo esc_attr( $point_types[0][0] ); ?>" /><?php 
+							} 
+
+							if( ! empty( $e_rate ) ) { 
+								$e_rate = mycred_encode_values( $e_rate );
+								?>
+								<input type="hidden" name="er_random" value="<?php echo esc_attr( $e_rate ); ?>" />
+							<?php } ?>			
+							<div class="form-group">
+								<label class="mycred-point-type"><?php echo esc_html( $point_types[0][1] ); ?></label>
+								<?php
+
+								// No amount given - user must nominate the amount
+								if ( count( $amounts ) == 0 ) {
+
+									?>
+									<input type="text" name="amount" class="form-control" placeholder="<?php echo esc_attr( $mycred->format_creds( $minimum ) ); ?>" min="<?php echo esc_attr( $minimum );?>" value="" />
+									<?php
+
+								}
+
+								// One amount - this is the amount a user must buy
+								elseif ( count( $amounts ) == 1 ) {
+
+									?>
+									<p class="form-control-static"><?php echo esc_html( $mycred->format_creds( $amounts[0] ) ); ?></p>
+									<input type="hidden" name="amount" value="<?php echo esc_attr( $amounts[0] ); ?>" />
+									<?php
+
+								}
+
+								// Multiple amounts - user selects the amount from a dropdown menu
+								else {
+
+									?>
+									<select name="amount" class="form-control">
+										<?php
+
+										foreach ( $amounts as $amount ) {
+
+											echo '<option value="' . esc_attr( $amount ) . '"';
+
+											// If we enforce a maximum and the nominated amount is higher than we can buy,
+											// disable the option
+											if ( $remaining !== true && $remaining < $amount ) echo ' disabled="disabled"';
+
+											echo '>' . esc_html( $mycred->format_creds( $amount ) ) . '</option>';
+
+										}
+
+										?>
+									</select>
+									<?php
+
+								}
+
+								// A recipient is set
+								if ( $gifting ) {
+
+									$user = get_userdata( $recipient_id );
+
+									?>
+									<div class="form-group">
+										<label for="gift_to"><?php esc_html_e( 'Recipient', 'mycred' ); ?></label>
+										<p class="form-control-static"><?php echo esc_html( $user->display_name ); ?></p>
+										<input type="hidden" name="<?php if ( $gift_to == 'author' ) echo 'post_id'; else echo 'gift_to'; ?>" value="<?php echo absint( $recipient_id ); ?>" />
+									</div>
+									<?php
+
+								}
+
+								// The payment gateway needs to be selected
+								if ( empty( $gateway ) && count( $buycred_instance->active ) > 1 ) {
+
+									?>
+									<div class="form-group">
+										<label for="gateway"><?php esc_html_e( 'Pay Using', 'mycred' ); ?></label>
+										<select name="mycred_buy" class="form-control">
+											<?php
+
+											$active_gateways = apply_filters( 'mycred_buycred_sort_gateways', $buycred_instance->active, $atts );
+											foreach ( $active_gateways as $gateway_id => $info )
+												echo '<option value="' . esc_attr( $gateway_id ) . '">' . esc_html( $info['title'] ) . '</option>';
+
+											?>
+										</select>
+									</div>
+									<?php
+
+								}
+
+								// The gateway is set or we just have one gateway enabled
+								else {
+
+									// If no gateway is set, use the first active gateway
+									if (  empty( $gateway ) && count( $buycred_instance->active ) > 0 )
+										$gateway = array_keys( $buycred_instance->active )[0];
+
+									?>
+									<input type="hidden" name="mycred_buy" value="<?php echo esc_attr( $gateway ); ?>" />
+									<?php
+
+								}
+
+								?>
+							</div>
+
+							<div class="form-group">
+								<button class="button btn btn-block btn-lg" ><?php echo esc_html( $button_label ); ?></button>
+							</div>
+
+						</form>
+					</div>
+				</div>
 				<?php
-				if( count( $point_types ) > 1 ){ ?>
-					<select name="ctype" class="mycred-change-pointtypes">
-						<?php foreach ( $point_types as $key => $value ) :?>
-							<option value="<?php echo esc_attr( $value[0] ); ?>"><?php echo esc_html( $value[1] ); ?></option><?php endforeach;?>
-					</select><?php 
-				}else{ ?>
-					<input type="hidden" name="ctype" value="<?php echo esc_attr( $point_types[0][0] ); ?>" /><?php 
-				} 
 
-				if( ! empty( $e_rate ) ) { 
-					$e_rate = mycred_encode_values( $e_rate );
-				?>
-			<input type="hidden" name="er_random" value="<?php echo esc_attr( $e_rate ); ?>" />
-			<?php } ?>			
-			<div class="form-group">
-				<label class="mycred-point-type"><?php echo esc_html( $point_types[0][1] ); ?></label>
-<?php
+				$content = ob_get_contents();
+				ob_end_clean();
 
-		// No amount given - user must nominate the amount
-		if ( count( $amounts ) == 0 ) {
+				return $content;
 
-?>
-				<input type="text" name="amount" class="form-control" placeholder="<?php echo esc_attr( $mycred->format_creds( $minimum ) ); ?>" min="<?php echo esc_attr( $minimum );?>" value="" />
-<?php
-
-		}
-
-		// One amount - this is the amount a user must buy
-		elseif ( count( $amounts ) == 1 ) {
-
-?>
-				<p class="form-control-static"><?php echo esc_html( $mycred->format_creds( $amounts[0] ) ); ?></p>
-				<input type="hidden" name="amount" value="<?php echo esc_attr( $amounts[0] ); ?>" />
-<?php
-
-		}
-
-		// Multiple amounts - user selects the amount from a dropdown menu
-		else {
-
-?>
-				<select name="amount" class="form-control">
-<?php
-
-				foreach ( $amounts as $amount ) {
-
-					echo '<option value="' . esc_attr( $amount ) . '"';
-
-					// If we enforce a maximum and the nominated amount is higher than we can buy,
-					// disable the option
-					if ( $remaining !== true && $remaining < $amount ) echo ' disabled="disabled"';
-
-					echo '>' . esc_html( $mycred->format_creds( $amount ) ) . '</option>';
-
-				}
-
-?>
-				</select>
-<?php
-
-		}
-
-		// A recipient is set
-		if ( $gifting ) {
-
-			$user = get_userdata( $recipient_id );
-
-?>
-				<div class="form-group">
-					<label for="gift_to"><?php esc_html_e( 'Recipient', 'mycred' ); ?></label>
-					<p class="form-control-static"><?php echo esc_html( $user->display_name ); ?></p>
-					<input type="hidden" name="<?php if ( $gift_to == 'author' ) echo 'post_id'; else echo 'gift_to'; ?>" value="<?php echo absint( $recipient_id ); ?>" />
-				</div>
-<?php
-
-		}
-
-		// The payment gateway needs to be selected
-		if ( empty( $gateway ) && count( $buycred_instance->active ) > 1 ) {
-
-?>
-				<div class="form-group">
-					<label for="gateway"><?php esc_html_e( 'Pay Using', 'mycred' ); ?></label>
-					<select name="mycred_buy" class="form-control">
-<?php
-
-			$active_gateways = apply_filters( 'mycred_buycred_sort_gateways', $buycred_instance->active, $atts );
-			foreach ( $active_gateways as $gateway_id => $info )
-				echo '<option value="' . esc_attr( $gateway_id ) . '">' . esc_html( $info['title'] ) . '</option>';
-
-?>
-					</select>
-				</div>
-<?php
-
-		}
-
-		// The gateway is set or we just have one gateway enabled
-		else {
-
-			// If no gateway is set, use the first active gateway
-			if (  empty( $gateway ) && count( $buycred_instance->active ) > 0 )
-				$gateway = array_keys( $buycred_instance->active )[0];
-
-?>
-				<input type="hidden" name="mycred_buy" value="<?php echo esc_attr( $gateway ); ?>" />
-<?php
-
-		}
-
-?>
-				</div>
-
-				<div class="form-group">
-					<button class="button btn btn-block btn-lg" ><?php echo esc_html( $button_label ); ?></button>
-				</div>
-
-		</form>
-	</div>
-</div>
-<?php
-
-		$content = ob_get_contents();
-		ob_end_clean();
-
-		return $content;
-
-	}
-endif;
+			}
+		endif;
 
 /**
  * Shortcode: mycred_buy_pending
@@ -370,95 +378,95 @@ if ( ! function_exists( 'mycred_render_pending_purchases' ) ) :
 
 		ob_start();
 
-?>
-<div id="pending-buycred-payments-<?php echo esc_attr( $ctype ); ?>">
-	<table class="table">
-		<thead>
-			<tr>
-				<th class="column-transaction-id"><?php esc_html_e( 'Transaction ID', 'mycred' ); ?></th>
-				<th class="column-gateway"><?php esc_html_e( 'Gateway', 'mycred' ); ?></th>
-				<th class="column-amount"><?php esc_html_e( 'Amount', 'mycred' ); ?></th>
-				<th class="column-cost"><?php esc_html_e( 'Cost', 'mycred' ); ?></th>
-				<?php if ( $ctype == '' ) : ?><th class="column-ctype"><?php esc_html_e( 'Point Type', 'mycred' ); ?></th><?php endif; ?>
-				<th class="column-actions"><?php esc_html_e( 'Actions', 'mycred' ); ?></th>
-			</tr>
-		</thead>
-		<tbody>
-<?php
+		?>
+		<div id="pending-buycred-payments-<?php echo esc_attr( $ctype ); ?>">
+			<table class="table">
+				<thead>
+					<tr>
+						<th class="column-transaction-id"><?php esc_html_e( 'Transaction ID', 'mycred' ); ?></th>
+						<th class="column-gateway"><?php esc_html_e( 'Gateway', 'mycred' ); ?></th>
+						<th class="column-amount"><?php esc_html_e( 'Amount', 'mycred' ); ?></th>
+						<th class="column-cost"><?php esc_html_e( 'Cost', 'mycred' ); ?></th>
+						<?php if ( $ctype == '' ) : ?><th class="column-ctype"><?php esc_html_e( 'Point Type', 'mycred' ); ?></th><?php endif; ?>
+						<th class="column-actions"><?php esc_html_e( 'Actions', 'mycred' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php
 
-		if ( ! empty( $pending ) ) {
+					if ( ! empty( $pending ) ) {
 
-			// Showing all point types
-			if ( $ctype == '' ) {
+						// Showing all point types
+						if ( $ctype == '' ) {
 
-				foreach ( $pending as $point_type => $entries ) {
+							foreach ( $pending as $point_type => $entries ) {
 
-					if ( empty( $entries ) ) continue;
+								if ( empty( $entries ) ) continue;
 
-					foreach ( $entries as $entry ) {
+								foreach ( $entries as $entry ) {
 
-?>
-			<tr>
-				<td class="column-transaction-id"><?php echo esc_html( $entry->public_id ); ?></td>
-				<td class="column-gateway"><?php echo esc_html( $buycred->adjust_column_content( 'gateway', $entry->payment_id ) ); ?></td>
-				<td class="column-amount"><?php echo esc_html( $buycred->adjust_column_content( 'amount', $entry->payment_id ) ); ?></td>
-				<td class="column-cost"><?php echo esc_html( $buycred->adjust_column_content( 'cost', $entry->payment_id ) ); ?></td>
-				<td class="column-ctype"><?php echo esc_html( mycred_get_point_type_name( $entry->point_type, false ) ); ?></td>
-				<td class="column-actions">
-					<?php if( $entry->gateway_id != 'bank' ):?>
-						<a class="mycred-buycred-action-button" href="<?php echo esc_url( $entry->pay_now_url ); ?>"><?php echo esc_html( $pay_now ); ?></a> &bull; 
-					<?php endif; ?>
-					<a href="<?php echo esc_url( $entry->cancel_url ); ?>"><?php echo esc_html( $cancel ); ?></a>
-				</td>
-			</tr>
-<?php
- 
+									?>
+									<tr>
+										<td class="column-transaction-id"><?php echo esc_html( $entry->public_id ); ?></td>
+										<td class="column-gateway"><?php echo esc_html( $buycred->adjust_column_content( 'gateway', $entry->payment_id ) ); ?></td>
+										<td class="column-amount"><?php echo esc_html( $buycred->adjust_column_content( 'amount', $entry->payment_id ) ); ?></td>
+										<td class="column-cost"><?php echo esc_html( $buycred->adjust_column_content( 'cost', $entry->payment_id ) ); ?></td>
+										<td class="column-ctype"><?php echo esc_html( mycred_get_point_type_name( $entry->point_type, false ) ); ?></td>
+										<td class="column-actions">
+											<?php if( $entry->gateway_id != 'bank' ):?>
+												<a class="mycred-buycred-action-button" href="<?php echo esc_url( $entry->pay_now_url ); ?>"><?php echo esc_html( $pay_now ); ?></a> &bull; 
+											<?php endif; ?>
+											<a href="<?php echo esc_url( $entry->cancel_url ); ?>"><?php echo esc_html( $cancel ); ?></a>
+										</td>
+									</tr>
+									<?php
+
+								}
+
+							}
+
+						}
+
+						// Showing a particular point type
+						else {
+
+							foreach ( $pending as $entry ) {
+
+								?>
+								<tr>
+									<td class="column-transaction-id"><?php echo esc_html( $entry->public_id ); ?></td>
+									<td class="column-gateway"><?php echo esc_html( $buycred->adjust_column_content( 'gateway', $entry->payment_id ) ); ?></td>
+									<td class="column-amount"><?php echo esc_html( $buycred->adjust_column_content( 'amount', $entry->payment_id ) ); ?></td>
+									<td class="column-cost"><?php echo esc_html( $buycred->adjust_column_content( 'cost', $entry->payment_id ) ); ?></td>
+									<td class="column-actions">
+										<?php if( $entry->gateway_id != 'bank' ):?>
+											<a class="mycred-buycred-action-button" href="<?php echo esc_url( $entry->pay_now_url ); ?>"><?php echo esc_html( $pay_now ); ?></a> &bull; 
+										<?php endif; ?>
+										<a href="<?php echo esc_url( $entry->cancel_url ); ?>"><?php echo esc_html( $cancel ); ?></a>
+									</td>
+								</tr>
+								<?php
+
+							}
+
+						}
+
+					}
+					else {
+
+						?>
+						<tr>
+							<td colspan="<?php if ( $ctype == '' ) echo '6'; else echo '5'; ?>"><?php esc_html_e( 'No pending payments found', 'mycred' ); ?></td>
+						</tr>
+						<?php
+
 					}
 
-				}
-
-			}
-
-			// Showing a particular point type
-			else {
-
-				foreach ( $pending as $entry ) {
-
-?>
-			<tr>
-				<td class="column-transaction-id"><?php echo esc_html( $entry->public_id ); ?></td>
-				<td class="column-gateway"><?php echo esc_html( $buycred->adjust_column_content( 'gateway', $entry->payment_id ) ); ?></td>
-				<td class="column-amount"><?php echo esc_html( $buycred->adjust_column_content( 'amount', $entry->payment_id ) ); ?></td>
-				<td class="column-cost"><?php echo esc_html( $buycred->adjust_column_content( 'cost', $entry->payment_id ) ); ?></td>
-				<td class="column-actions">
-					<?php if( $entry->gateway_id != 'bank' ):?>
-						<a class="mycred-buycred-action-button" href="<?php echo esc_url( $entry->pay_now_url ); ?>"><?php echo esc_html( $pay_now ); ?></a> &bull; 
-					<?php endif; ?>
-					<a href="<?php echo esc_url( $entry->cancel_url ); ?>"><?php echo esc_html( $cancel ); ?></a>
-				</td>
-			</tr>
-<?php
-
-				}
-
-			}
-
-		}
-		else {
-
-?>
-			<tr>
-				<td colspan="<?php if ( $ctype == '' ) echo '6'; else echo '5'; ?>"><?php esc_html_e( 'No pending payments found', 'mycred' ); ?></td>
-			</tr>
-<?php
-
-		}
-
-?>
-		</tbody>
-	</table>
-</div>
-<?php
+					?>
+				</tbody>
+			</table>
+		</div>
+		<?php
 
 		$output = ob_get_contents();
 		ob_end_clean();

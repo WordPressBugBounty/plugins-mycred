@@ -72,9 +72,28 @@ if ( ! class_exists( 'myCRED_Birthdays' ) ) :
 
 			$this->define_constants();
 
+			add_action( 'um_registration_complete', [ $this, 'normalize_birth_date' ], 10, 3 );
 			add_filter( 'mycred_setup_hooks',    array( $this, 'register_hook' ) );
 			add_action( 'mycred_all_references', array( $this, 'add_badge_support' ) );
 			add_action( 'mycred_load_hooks',     array( $this, 'load_hooks' ) );
+
+		}
+
+		public function normalize_birth_date( $user_id, $submitted_data, $form_data ) {
+
+		    // Get the birthdate field key via a filter
+		    $birth_date_key = apply_filters( 'mycred_um_birthdate_field_key', 'birth_date' );
+
+		    if ( isset( $submitted_data[ $birth_date_key ] ) ) {
+		        $raw_date = $submitted_data[ $birth_date_key ];
+		        $raw_date = str_replace( '/', '-', $raw_date );
+		        $timestamp = strtotime( $raw_date );
+
+		        if ( $timestamp ) {
+		            $normalized_date = date( 'Y-m-d', $timestamp );
+		            update_user_meta( $user_id, $birth_date_key, $normalized_date );
+		        }
+		    }
 
 		}
 

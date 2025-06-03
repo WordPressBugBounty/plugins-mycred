@@ -557,15 +557,18 @@ class parseCSV {
 	 * @return  Processed value
 	 */
 	function _enclose_value ($value = null) {
-		if ( $value !== null && $value != '' ) {
-			$delimiter = preg_quote($this->delimiter, '/');
-			$enclosure = preg_quote($this->enclosure, '/');
-			if ( preg_match("/".$delimiter."|".$enclosure."|\n|\r/i", $value) || ($value[0] == ' ' || substr($value, -1) == ' ') ) {
-				$value = str_replace($this->enclosure, $this->enclosure.$this->enclosure, $value);
-				$value = $this->enclosure.$value.$this->enclosure;
-			}
-		}
-		return $value;
+	    if ( $value !== null && $value !== '' ) {
+	        $value = (string) $value;
+
+	        $delimiter = preg_quote($this->delimiter, '/');
+	        $enclosure = preg_quote($this->enclosure, '/');
+
+	        if ( preg_match("/".$delimiter."|".$enclosure."|\n|\r/i", $value) || ($value[0] == ' ' || substr($value, -1) == ' ') ) {
+	            $value = str_replace($this->enclosure, $this->enclosure.$this->enclosure, $value);
+	            $value = $this->enclosure.$value.$this->enclosure;
+	        }
+	    }
+	    return $value;
 	}
 	
 	/**

@@ -107,11 +107,11 @@ const App = () => {
 
   function contains(data, value) {
     if (Array.isArray(data)) {
-        return data.includes(value); // Check if the array includes the value
+        return data.includes(value);
     } else if (data && typeof data === "object") {
-        return Object.values(data).includes(value); // Check if the object values include the value
+        return Object.values(data).includes(value);
     }
-    return false; // Return false for other data types
+    return false;
 }
 
   const fetchAddOns = async () => {
@@ -122,6 +122,7 @@ const App = () => {
       const response = await fetch(siteUrl, {
         method: "GET",
         headers: {
+          'X-WP-Nonce': window.mycredAddonsData.nonce,
           "Content-Type": "application/json",
         },
       });
@@ -155,6 +156,7 @@ const App = () => {
     const response = await fetch(siteUrl, {
       method: "POST",
       headers: {
+        'X-WP-Nonce': window.mycredAddonsData.nonce,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

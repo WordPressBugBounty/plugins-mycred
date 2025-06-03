@@ -76,7 +76,12 @@ if ( ! class_exists( 'myCRED_Badge_Module' ) ) :
          * @version 1.0
          */
         public function mycred_switch_all_to_open_badge() {
-
+            if ( ! isset( $_POST['mycred_nonce'] ) || ! wp_verify_nonce( $_POST['mycred_nonce'], 'mycred_badge_nonce' ) ) {
+                wp_die( 'Invalid nonce', '', array( 'response' => 403 ) );
+            }
+            if (!current_user_can('manage_options')) {
+                wp_die();
+            }
             $args = array(
                 'post_type' => 'mycred_badge'
             );
@@ -130,11 +135,11 @@ if ( ! class_exists( 'myCRED_Badge_Module' ) ) :
 
             $setting = mycred_get_option( 'mycred_pref_core' );
             if ( isset( $setting['open_badge'] ) && $setting['open_badge']['is_enabled'] == 1 ) {
-                
+
                 $this->open_badge = $setting['open_badge']['is_enabled'];
                 $this->mycred_open_badge_init();
                 add_action( 'mycred_open_badges_html', array( $this, 'mycred_badge_button_html' ), 10 );
-            
+
             }
 
             // Insert into BuddyPress
@@ -168,9 +173,9 @@ if ( ! class_exists( 'myCRED_Badge_Module' ) ) :
 
             <div class="form-group">
                 <button class="button button-large large button-primary" id="switch-all-to-open-badge"><span class="dashicons dashicons-update mycred-switch-all-badges-icon"></span> Switch All Badges to Open Badge.</button>
-            </div> <?php
+                </div> <?php
 
-        }
+            }
 
         /**
          * Enqueue Front End Script
@@ -191,7 +196,21 @@ if ( ! class_exists( 'myCRED_Badge_Module' ) ) :
          */
         public function enqueue_admin_scripts() {
 
-            wp_enqueue_script( 'mycred-badge-admin', plugins_url( 'assets/js/admin.js', myCRED_BADGE ), '', myCRED_BADGE_VERSION );
+            wp_enqueue_script(
+                'mycred-badge-admin',
+                plugins_url( 'assets/js/admin.js', myCRED_BADGE ),
+                array( 'jquery' ),
+                myCRED_BADGE_VERSION,
+                true
+            );
+
+            wp_localize_script(
+                'mycred-badge-admin',
+                'mycred_badge_localize_data',
+                array(
+                    'nonce' => wp_create_nonce( 'mycred_badge_nonce' )
+                )
+            );
         }
 
         /**
@@ -327,7 +346,7 @@ if ( ! class_exists( 'myCRED_Badge_Module' ) ) :
                 && ( isset( $mycred_current_account->badges ) )
             ) return;
 
-            $earned       = array();
+                $earned       = array();
             $users_badges = mycred_get_users_badges( $mycred_current_account->user_id, true );
 
             if ( ! empty( $users_badges ) ) {
@@ -364,7 +383,7 @@ if ( ! class_exists( 'myCRED_Badge_Module' ) ) :
                 && ( isset( $mycred_account->badges ) )
             ) return;
 
-            $earned       = array();
+                $earned       = array();
             $users_badges = mycred_get_users_badges( $mycred_account->user_id );
 
             if ( ! empty( $users_badges ) ) {
@@ -442,7 +461,7 @@ if ( ! class_exists( 'myCRED_Badge_Module' ) ) :
                     mycred_update_user_meta( $user_meta->user_id, MYCRED_BADGE_KEY . '_ids', '', $badge_ids );
                     
                 }
-            
+
             }
 
         }
@@ -744,25 +763,25 @@ if ( ! class_exists( 'myCRED_Badge_Module' ) ) :
                 echo '<style type="text/css">
 #misc-publishing-actions #visibility, #misc-publishing-actions .misc-pub-post-status { display: none; }
 #save-action #save-post { margin-bottom: 12px; }
-</style>';
+                </style>';
 
             }
 
             elseif ( $screen->id == 'edit-' . MYCRED_BADGE_KEY ) {
 
                 echo '<style type="text/css">
-th#badge-default-image { width: 120px; }
-th#badge-earned-image { width: 120px; }
-th#badge-reqs { width: 35%; }
-th#badge-users { width: 10%; }
-.column-badge-default-image img { max-width: 100px; height: auto; }
-.mycred-badge-requirement-list { margin: 6px 0 0 0; padding: 6px 0 0 18px; border-top: 1px dashed #aeaeae; }
-.mycred-badge-requirement-list li { margin: 0 0 0 0; padding: 0 0 0 0; font-size: 12px; line-height: 16px; list-style-type: circle; }
-.mycred-badge-requirement-list li span { float: right; }
-.column-badge-reqs strong { display: block; }
-.column-badge-reqs span { color: #aeaeae; }
-.mycred-badge-requirement-list.open_badge { border: 0px; }
-</style>';
+                th#badge-default-image { width: 120px; }
+                th#badge-earned-image { width: 120px; }
+                th#badge-reqs { width: 35%; }
+                th#badge-users { width: 10%; }
+                .column-badge-default-image img { max-width: 100px; height: auto; }
+                .mycred-badge-requirement-list { margin: 6px 0 0 0; padding: 6px 0 0 18px; border-top: 1px dashed #aeaeae; }
+                .mycred-badge-requirement-list li { margin: 0 0 0 0; padding: 0 0 0 0; font-size: 12px; line-height: 16px; list-style-type: circle; }
+                .mycred-badge-requirement-list li span { float: right; }
+                .column-badge-reqs strong { display: block; }
+                .column-badge-reqs span { color: #aeaeae; }
+                .mycred-badge-requirement-list.open_badge { border: 0px; }
+                </style>';
 
             }
 
@@ -1023,7 +1042,7 @@ th#badge-users { width: 10%; }
 
 
         public function metabox_badge_layout( $post ) {
-            
+
             $mycred_layout = mycred_get_post_meta( $post->ID, 'mycred_layout_check', true );
             require_once MYCRED_BADGE_TEMPLATES_DIR . 'mycred-metabox-badge-layout.php';
 
@@ -1076,7 +1095,7 @@ th#badge-users { width: 10%; }
             $open_badge  = false;
 
             if ( $this->open_badge  == 1 ) {
-                    
+
                 $open_badge = ( mycred_get_post_meta( $post->ID, 'open_badge', true ) == 1 ) ? true : false;
 
             }
@@ -1392,7 +1411,7 @@ th#badge-users { width: 10%; }
             if ( ! empty( $_POST['mycred_badge']['levels'] ) ) {
 
                 $level_row = 0;
-            
+
                 // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
                 foreach( $_POST['mycred_badge']['levels'] as $level_id => $level_setup ){
 
@@ -1544,7 +1563,7 @@ th#badge-users { width: 10%; }
                     
                     <div class="row">
                         <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                            
+
                             <div class="form-group">
                                 <div class="checkbox" style="padding-top: 4px;">
                                     <label for="<?php echo esc_attr( $this->field_id( 'show_level_description' ) ); ?>">
@@ -1595,30 +1614,30 @@ th#badge-users { width: 10%; }
                             <div class="form-group">
                                 <label for="<?php echo esc_attr( $this->field_id( 'buddypress' ) ); ?>">BuddyPress</label>
                                 <?php if ( $buddypress ) : ?>
-                                <select name="<?php echo esc_attr( $this->field_name( 'buddypress' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'buddypress' ) ); ?>" class="form-control">
-                                    <?php
+                                    <select name="<?php echo esc_attr( $this->field_name( 'buddypress' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'buddypress' ) ); ?>" class="form-control">
+                                        <?php
 
-                                    $buddypress_options = array(
-                                        ''        => __( 'Do not show', 'mycred' ),
-                                        'header'  => __( 'Include in Profile Header', 'mycred' ),
-                                        'profile' => __( 'Include under the "Profile" tab', 'mycred' ),
-                                        'both'    => __( 'Include under the "Profile" tab and Profile Header', 'mycred' )
-                                    );
+                                        $buddypress_options = array(
+                                            ''        => __( 'Do not show', 'mycred' ),
+                                            'header'  => __( 'Include in Profile Header', 'mycred' ),
+                                            'profile' => __( 'Include under the "Profile" tab', 'mycred' ),
+                                            'both'    => __( 'Include under the "Profile" tab and Profile Header', 'mycred' )
+                                        );
 
-                                    foreach ( $buddypress_options as $location => $description ) {
-                                        echo '<option value="' . esc_attr( $location ) . '"';
-                                        if ( isset( $settings['buddypress'] ) && $settings['buddypress'] == $location ) echo ' selected="selected"';
-                                        echo '>' . esc_html( $description ) . '</option>';
-                                    }
+                                        foreach ( $buddypress_options as $location => $description ) {
+                                            echo '<option value="' . esc_attr( $location ) . '"';
+                                            if ( isset( $settings['buddypress'] ) && $settings['buddypress'] == $location ) echo ' selected="selected"';
+                                            echo '>' . esc_html( $description ) . '</option>';
+                                        }
 
-                                    ?>
+                                        ?>
 
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <div class="checkbox">
-                                    <label for="<?php echo esc_attr( $this->field_id( 'show_all_bp' ) ); ?>"><input type="checkbox" name="<?php echo esc_attr( $this->field_name( 'show_all_bp' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'show_all_bp' ) ); ?>" <?php checked( $settings['show_all_bp'], 1 ); ?> value="1" /> <?php esc_html_e( 'Show all badges, including badges users have not yet earned.', 'mycred' ); ?></label>
+                                    </select>
                                 </div>
+                                <div class="form-group">
+                                    <div class="checkbox">
+                                        <label for="<?php echo esc_attr( $this->field_id( 'show_all_bp' ) ); ?>"><input type="checkbox" name="<?php echo esc_attr( $this->field_name( 'show_all_bp' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'show_all_bp' ) ); ?>" <?php checked( $settings['show_all_bp'], 1 ); ?> value="1" /> <?php esc_html_e( 'Show all badges, including badges users have not yet earned.', 'mycred' ); ?></label>
+                                    </div>
                                 <?php else : ?>
                                     <input type="hidden" name="<?php echo esc_attr( $this->field_name( 'buddypress' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'buddypress' ) ); ?>" value="" />
                                     <p><span class="description"><?php esc_html_e( 'Not installed', 'mycred' ); ?></span></p>
@@ -1629,30 +1648,30 @@ th#badge-users { width: 10%; }
                             <div class="form-group">
                                 <label for="<?php echo esc_attr( $this->field_id( 'bbpress' ) ); ?>">bbPress</label>
                                 <?php if ( $bbpress ) : ?>
-                                <select name="<?php echo esc_attr( $this->field_name( 'bbpress' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'bbpress' ) ); ?>" class="form-control">
-                                    <?php
+                                    <select name="<?php echo esc_attr( $this->field_name( 'bbpress' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'bbpress' ) ); ?>" class="form-control">
+                                        <?php
 
-                                    $bbpress_options = array(
-                                        ''        => __( 'Do not show', 'mycred' ),
-                                        'profile' => __( 'Include in Profile', 'mycred' ),
-                                        'reply'   => __( 'Include in Forum Replies', 'mycred' ),
-                                        'both'    => __( 'Include in Profile and Forum Replies', 'mycred' )
-                                    );
+                                        $bbpress_options = array(
+                                            ''        => __( 'Do not show', 'mycred' ),
+                                            'profile' => __( 'Include in Profile', 'mycred' ),
+                                            'reply'   => __( 'Include in Forum Replies', 'mycred' ),
+                                            'both'    => __( 'Include in Profile and Forum Replies', 'mycred' )
+                                        );
 
-                                    foreach ( $bbpress_options as $location => $description ) {
-                                        echo '<option value="' . esc_attr( $location ) . '"';
-                                        if ( isset( $settings['bbpress'] ) && $settings['bbpress'] == $location ) echo ' selected="selected"';
-                                        echo '>' . esc_html( $description ) . '</option>';
-                                    }
+                                        foreach ( $bbpress_options as $location => $description ) {
+                                            echo '<option value="' . esc_attr( $location ) . '"';
+                                            if ( isset( $settings['bbpress'] ) && $settings['bbpress'] == $location ) echo ' selected="selected"';
+                                            echo '>' . esc_html( $description ) . '</option>';
+                                        }
 
-                                    ?>
+                                        ?>
 
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <div class="checkbox">
-                                    <label for="<?php echo esc_attr( $this->field_id( 'show_all_bb' ) ); ?>"><input type="checkbox" name="<?php echo esc_attr( $this->field_name( 'show_all_bb' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'show_all_bb' ) ); ?>" <?php checked( $settings['show_all_bb'], 1 ); ?> value="1" /> <?php esc_html_e( 'Show all badges, including badges users have not yet earned.', 'mycred' ); ?></label>
+                                    </select>
                                 </div>
+                                <div class="form-group">
+                                    <div class="checkbox">
+                                        <label for="<?php echo esc_attr( $this->field_id( 'show_all_bb' ) ); ?>"><input type="checkbox" name="<?php echo esc_attr( $this->field_name( 'show_all_bb' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'show_all_bb' ) ); ?>" <?php checked( $settings['show_all_bb'], 1 ); ?> value="1" /> <?php esc_html_e( 'Show all badges, including badges users have not yet earned.', 'mycred' ); ?></label>
+                                    </div>
                                 <?php else : ?>
                                     <input type="hidden" name="<?php echo esc_attr( $this->field_name( 'bbpress' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'bbpress' ) ); ?>" value="" />
                                     <p><span class="description"><?php esc_html_e( 'Not installed', 'mycred' ); ?></span></p>
@@ -1686,7 +1705,7 @@ th#badge-users { width: 10%; }
 
             $new_data['badges']['buddypress']  = ( isset( $data['badges']['buddypress'] ) ) ? sanitize_text_field( $data['badges']['buddypress'] ) : '';
             $new_data['badges']['bbpress']     = ( isset( $data['badges']['bbpress'] ) ) ? sanitize_text_field( $data['badges']['bbpress'] ) : '';
-        
+
             //Specific Badge Page Setup @since 2.1
             $new_data['badges']['show_level_description'] = ( isset( $data['badges']['show_level_description'] ) ) ? intval( $data['badges']['show_level_description'] ) : 0;
             $new_data['badges']['show_congo_text'] = ( isset( $data['badges']['show_congo_text'] ) ) ? intval( $data['badges']['show_congo_text'] ) : 0;
@@ -1718,83 +1737,83 @@ th#badge-users { width: 10%; }
                 .badge-wrapper { min-height: 230px; }
                 .badge-wrapper-center { display: inline-flex; justify-content: center; align-items: center; 
                     float: left; margin-right: 5px; }
-                .badge-wrapper select { width: 100%; }
-                .badge-image-wrap { text-align: center; }
-                .badge-image-wrap .badge-image { display: block; width: 100%; height: 100px; line-height: 100px; }
-                .badge-image-wrap .badge-image.empty { content: "<?php esc_html_e( 'No image set', 'mycred' ); ?>"; }
-                .badge-image-wrap .badge-image img { width: auto; height: auto; max-height: 100px; }
-            </style>
-            <table class="form-table">
-                <tr>
-                    <th scope="row"><?php esc_html_e( 'Badges', 'mycred' ); ?></th>
-                    <td>
-                        <fieldset id="mycred-badge-list" class="badge-list">
-                            <legend class="screen-reader-text"><span><?php esc_html_e( 'Badges', 'mycred' ); ?></span></legend>
-                            <?php
+                    .badge-wrapper select { width: 100%; }
+                    .badge-image-wrap { text-align: center; }
+                    .badge-image-wrap .badge-image { display: block; width: 100%; height: 100px; line-height: 100px; }
+                    .badge-image-wrap .badge-image.empty { content: "<?php esc_html_e( 'No image set', 'mycred' ); ?>"; }
+                    .badge-image-wrap .badge-image img { width: auto; height: auto; max-height: 100px; }
+                </style>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row"><?php esc_html_e( 'Badges', 'mycred' ); ?></th>
+                        <td>
+                            <fieldset id="mycred-badge-list" class="badge-list">
+                                <legend class="screen-reader-text"><span><?php esc_html_e( 'Badges', 'mycred' ); ?></span></legend>
+                                <?php
 
-                            if ( ! empty( $all_badges ) ) {
-                                foreach ( $all_badges as $badge_id ) {
+                                if ( ! empty( $all_badges ) ) {
+                                    foreach ( $all_badges as $badge_id ) {
 
-                                    $badge_id     = absint( $badge_id );
-                                    $badge        = mycred_get_badge( $badge_id );
+                                        $badge_id     = absint( $badge_id );
+                                        $badge        = mycred_get_badge( $badge_id );
 
-                                    if ( empty( $badge ) ) continue;
+                                        if ( empty( $badge ) ) continue;
 
-                                    $earned       = 0;
-                                    $earned_level = 0;
-                                    $badge_image  = $badge->main_image;
-                                    $level_select = '';
+                                        $earned       = 0;
+                                        $earned_level = 0;
+                                        $badge_image  = $badge->main_image;
+                                        $level_select = '';
 
-                                    if ( array_key_exists( $badge_id, $users_badges ) ) {
-                                        $earned       = 1;
-                                        $earned_level = $users_badges[ $badge_id ];
-                                        $badge_image  = $badge->get_image( $earned_level );
-                                    }
+                                        if ( array_key_exists( $badge_id, $users_badges ) ) {
+                                            $earned       = 1;
+                                            $earned_level = $users_badges[ $badge_id ];
+                                            $badge_image  = $badge->get_image( $earned_level );
+                                        }
 
-                                    if ( mycred_is_admin() ) {
-                                        
-                                        $level_select = '<input type="hidden" name="mycred_badge_manual[badges][' . $badge_id . '][level]" value="0" /><select disabled="disabled"><option>Level 1</option></select>';
-                                        if ( count( $badge->levels ) > 1 ) {
+                                        if ( mycred_is_admin() ) {
 
-                                            $level_select  = '<select name="mycred_badge_manual[badges][' . $badge_id . '][level]">';
-                                            $level_select .= '<option value=""';
-                                            if ( ! $earned ) $level_select .= ' selected="selected"';
-                                            $level_select .= '>' . __( 'Select a level', 'mycred' ) . '</option>';
+                                            $level_select = '<input type="hidden" name="mycred_badge_manual[badges][' . $badge_id . '][level]" value="0" /><select disabled="disabled"><option>Level 1</option></select>';
+                                            if ( count( $badge->levels ) > 1 ) {
 
-                                            foreach ( $badge->levels as $level_id => $level ) {
-                                                $level_select .= '<option value="' . $level_id . '"';
-                                                if ( $earned && $earned_level == $level_id ) $level_select .= ' selected="selected"';
-                                                $level_select .= '>' . ( ( $level['label'] != '' ) ? $level['label'] : sprintf( '%s %d', __( 'Level', 'mycred' ), ( $level_id + 1 ) ) ) . '</option>';
+                                                $level_select  = '<select name="mycred_badge_manual[badges][' . $badge_id . '][level]">';
+                                                $level_select .= '<option value=""';
+                                                if ( ! $earned ) $level_select .= ' selected="selected"';
+                                                $level_select .= '>' . __( 'Select a level', 'mycred' ) . '</option>';
+
+                                                foreach ( $badge->levels as $level_id => $level ) {
+                                                    $level_select .= '<option value="' . $level_id . '"';
+                                                    if ( $earned && $earned_level == $level_id ) $level_select .= ' selected="selected"';
+                                                    $level_select .= '>' . ( ( $level['label'] != '' ) ? $level['label'] : sprintf( '%s %d', __( 'Level', 'mycred' ), ( $level_id + 1 ) ) ) . '</option>';
+                                                }
+
+                                                $level_select .= '</select>';
+
                                             }
 
-                                            $level_select .= '</select>';
+                                        }
+                                        else {
+
+                                            if ( ! empty( $badge->levels[ $earned_level ]['label'] ) ) {
+                                                $level_select = $badge->levels[ $earned_level ]['label'];
+                                            }
 
                                         }
 
-                                    }
-                                    else {
+                                        ?>
+                                        <div class="badge-wrapper<?php if ( ! mycred_is_admin() ) echo ' badge-wrapper-center'; ?> color-option<?php if ( $earned === 1 ) echo ' selected'; ?>" id="mycred-badge<?php echo esc_attr( $badge_id ); ?>-wrapper">
+                                            <div>
+                                                <?php if ( mycred_is_admin() ):?>
+                                                    <label for="mycred-badge<?php echo esc_attr( $badge_id ); ?>"><input type="checkbox" name="mycred_badge_manual[badges][<?php echo esc_attr( $badge_id ); ?>][has]" class="toggle-badge" id="mycred-badge<?php echo esc_attr( $badge_id ); ?>" <?php checked( $earned, 1 );?> value="1" /> <?php esc_html_e( 'Earned', 'mycred' ); ?></label>
+                                                <?php endif; ?>
+                                                <div class="badge-image-wrap">
 
-                                        if ( ! empty( $badge->levels[ $earned_level ]['label'] ) ) {
-                                            $level_select = $badge->levels[ $earned_level ]['label'];
-                                        }
+                                                    <div class="badge-image<?php if ( $badge_image == '' ) echo ' empty'; ?>"><?php echo wp_kses_post( $badge_image ); ?></div>
 
-                                    }
+                                                    <h4><?php echo esc_html( $badge->title ); ?></h4>
+                                                </div>
+                                                <div class="badge-actions" style="min-height: 32px;">
 
-                                    ?>
-                                    <div class="badge-wrapper<?php if ( ! mycred_is_admin() ) echo ' badge-wrapper-center'; ?> color-option<?php if ( $earned === 1 ) echo ' selected'; ?>" id="mycred-badge<?php echo esc_attr( $badge_id ); ?>-wrapper">
-                                        <div>
-                                            <?php if ( mycred_is_admin() ):?>
-                                            <label for="mycred-badge<?php echo esc_attr( $badge_id ); ?>"><input type="checkbox" name="mycred_badge_manual[badges][<?php echo esc_attr( $badge_id ); ?>][has]" class="toggle-badge" id="mycred-badge<?php echo esc_attr( $badge_id ); ?>" <?php checked( $earned, 1 );?> value="1" /> <?php esc_html_e( 'Earned', 'mycred' ); ?></label>
-                                            <?php endif; ?>
-                                            <div class="badge-image-wrap">
-
-                                                <div class="badge-image<?php if ( $badge_image == '' ) echo ' empty'; ?>"><?php echo wp_kses_post( $badge_image ); ?></div>
-
-                                                <h4><?php echo esc_html( $badge->title ); ?></h4>
-                                            </div>
-                                            <div class="badge-actions" style="min-height: 32px;">
-
-                                                <?php 
+                                                    <?php 
 
                                                     $allowed_html = array(
                                                         'input' => array(
@@ -1814,46 +1833,46 @@ th#badge-users { width: 10%; }
 
                                                     echo wp_kses( $level_select, $allowed_html ); 
 
-                                                ?>
+                                                    ?>
 
-                                            </div>
+                                                </div>
 
-                                            <?php if ( $badge->open_badge && array_key_exists( $badge_id, $users_badges ) ):?>
-                                            <div class="badge-image-wrap">
-                                                <a href="<?php echo esc_url( $badge->get_earned_image( $user_id ) ); ?> " class="button button-primary button-large mycred-open-badge-download" download>Download</a>
+                                                <?php if ( $badge->open_badge && array_key_exists( $badge_id, $users_badges ) ):?>
+                                                    <div class="badge-image-wrap">
+                                                        <a href="<?php echo esc_url( $badge->get_earned_image( $user_id ) ); ?> " class="button button-primary button-large mycred-open-badge-download" download>Download</a>
+                                                    </div>
+                                                <?php endif; ?>
                                             </div>
-                                            <?php endif; ?>
                                         </div>
-                                    </div>
-                                    <?php
+                                        <?php
 
+                                    }
                                 }
-                            }
 
-                            ?>
-                        </fieldset>
-                        <input type="hidden" name="mycred_badge_manual[token]" value="<?php echo esc_attr( wp_create_nonce( 'mycred-manual-badges' . $user_id ) ); ?>" />
-                    </td>
-                </tr>
-            </table>
-            <script type="text/javascript">
-                jQuery(function($) {
+                                ?>
+                            </fieldset>
+                            <input type="hidden" name="mycred_badge_manual[token]" value="<?php echo esc_attr( wp_create_nonce( 'mycred-manual-badges' . $user_id ) ); ?>" />
+                        </td>
+                    </tr>
+                </table>
+                <script type="text/javascript">
+                    jQuery(function($) {
 
-                    $( '.badge-wrapper label input.toggle-badge' ).click(function(){
+                        $( '.badge-wrapper label input.toggle-badge' ).click(function(){
 
-                        if ( $(this).is( ':checked' ) )
-                            $( '#' + $(this).attr( 'id' ) + '-wrapper' ).addClass( 'selected' );
+                            if ( $(this).is( ':checked' ) )
+                                $( '#' + $(this).attr( 'id' ) + '-wrapper' ).addClass( 'selected' );
 
-                        else
-                            $( '#' + $(this).attr( 'id' ) + '-wrapper' ).removeClass( 'selected' );
+                            else
+                                $( '#' + $(this).attr( 'id' ) + '-wrapper' ).removeClass( 'selected' );
+
+                        });
 
                     });
+                </script>
+                <?php
 
-                });
-            </script>
-            <?php
-
-        }
+            }
 
         /**
          * Save Manual Badges
@@ -1872,7 +1891,7 @@ th#badge-users { width: 10%; }
                     $users_badges = mycred_get_users_badges( $user_id );
 
                     if ( ! empty( $_POST['mycred_badge_manual']['badges'] ) ) {
-                    
+
                         foreach ( mycred_sanitize_array( wp_unslash( $_POST['mycred_badge_manual']['badges'] ) ) as $badge_id => $data ) {
 
                             $badge = mycred_get_badge( $badge_id );
@@ -2039,7 +2058,7 @@ th#badge-users { width: 10%; }
 
             add_action( 'mycred_after_badge_assign', array( $this, 'after_badge_assign' ), 10, 2 );
             add_action( 'rest_api_init',             array( $mycred_Open_Badge, 'register_open_badge_routes' ) );
-        
+
         }
 
         /**
@@ -2053,7 +2072,7 @@ th#badge-users { width: 10%; }
             $badge = mycred_get_badge( $badge_id );
 
             $mycred_Open_Badge->bake_users_image( $user_id, $badge_id, $badge->main_image_url, $badge->title, $this->open_badge );
-        
+
         }
 
         /**
@@ -2066,7 +2085,7 @@ th#badge-users { width: 10%; }
             global $post;
 
             if( is_single() && $post->post_type == MYCRED_BADGE_KEY ) {
-            
+
                 $badge_id = $post->ID;
 
                 $user_id = get_current_user_id();
@@ -2082,7 +2101,7 @@ th#badge-users { width: 10%; }
                 <meta name="twitter:image" content="<?php echo esc_url( $badge_image_url ); ?>">
                 <meta name="twitter:card" content="summary_large_image">
 
-            <?php
+                <?php
             }
 
         }
@@ -2110,33 +2129,33 @@ th#badge-users { width: 10%; }
 
                     $content = '<div class="mycred-badge-page">';
 
-                        $content .= mycred_badge_show_congratulation_msg( $user_id, $badge, $mycred );
-                        
-                        $content .= '<div class="'. $badge->layout .' '. $badge->align .'">';
+                    $content .= mycred_badge_show_congratulation_msg( $user_id, $badge, $mycred );
 
-                            if( $badge->layout != 'mycred_layout_bottom' )
-                                $content .= mycred_badge_show_main_image_with_social_icons( $badge->get_earned_image( $user_id), $badge->user_has_badge( $user_id ) );
+                    $content .= '<div class="'. $badge->layout .' '. $badge->align .'">';
 
-                            $content .= '<div class="mycred_content">';
+                    if( $badge->layout != 'mycred_layout_bottom' )
+                        $content .= mycred_badge_show_main_image_with_social_icons( $badge->get_earned_image( $user_id), $badge->user_has_badge( $user_id ) );
 
-                                $content .= mycred_badge_show_description( $post, $mycred );
-                                $content .= mycred_badge_show_levels( $user_id, $badge, $mycred );
-                                $content .= mycred_badge_show_earners( $badge, $mycred );
+                    $content .= '<div class="mycred_content">';
 
-                            $content .= '</div>';
+                    $content .= mycred_badge_show_description( $post, $mycred );
+                    $content .= mycred_badge_show_levels( $user_id, $badge, $mycred );
+                    $content .= mycred_badge_show_earners( $badge, $mycred );
 
-                            if( $badge->layout == 'mycred_layout_bottom' )
-                                $content .= mycred_badge_show_main_image_with_social_icons( $badge->get_earned_image( $user_id), $badge->user_has_badge( $user_id ) );
+                    $content .= '</div>';
 
-                            $content .= '<div class="mycred-clearfix"></div>';
+                    if( $badge->layout == 'mycred_layout_bottom' )
+                        $content .= mycred_badge_show_main_image_with_social_icons( $badge->get_earned_image( $user_id), $badge->user_has_badge( $user_id ) );
+
+                    $content .= '<div class="mycred-clearfix"></div>';
 
                         //layout
-                        $content .= '</div>';
+                    $content .= '</div>';
                     
                     //mycred-badge-page
                     $content .= '</div>';
 
-                
+
                 }
 
             }
@@ -2152,7 +2171,7 @@ th#badge-users { width: 10%; }
             if ( $pagenow == 'admin.php' && isset( $_GET['page'] ) && $_GET['page'] == 'mycred-addons' && isset( $_GET['badges'] ) && $_GET['badges'] == 'activate' ) {           
 
                 flush_rewrite_rules();  
-            
+
             }
 
         }

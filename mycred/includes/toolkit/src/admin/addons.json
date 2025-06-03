@@ -32,6 +32,116 @@
     "addonUrl": "https://mycred.me/", 
     "type"     : "free"
   },
+   {
+    "title": "Forminator",
+    "description": "Forminator is a plugin for WordPress that allows you to build points based on the Forminator plugin",
+    "slug": "mycred-forminator",
+    "dependency": "forminator/forminator.php",
+    "dependencyName" : "Forminator",
+    "category": "Event/ Booking",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/", 
+    "type"     : "free"
+  },
+  {
+    "title": "Formidable Forms",
+    "description": "Formidable Forms is a plugin for WordPress that allows you to build points based on the Formidable Forms plugin",
+    "slug": "mycred-formidable",
+    "dependency": "formidable/formidable.php",
+    "dependencyName" : "Formidable Forms",
+    "category": "Event/ Booking",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/", 
+    "type"     : "free"
+  },
+  {
+    "title": "MetForm",
+    "description": "MetForm is a plugin for WordPress that allows you to build points based on the MetForm plugin",
+    "slug": "mycred-metform",
+    "dependency": "metform/metform.php",
+    "dependencyName" : "MetForm",
+    "category": "Event/ Booking",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/", 
+    "type"     : "free"
+  },
+  {
+    "title": "Fluent Form",
+    "description": "Fluent Form is a plugin for WordPress that allows you to build points based on the Fluent Form plugin",
+    "slug": "mycred-fluentform",
+    "dependency": "fluentform/fluentform.php",
+    "dependencyName" : "Fluent Form",
+    "category": "Event/ Booking",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/", 
+    "type"     : "free"
+  },
+  {
+    "title": "Everest Form",
+    "description": "Everest Form is a plugin for WordPress that allows you to build points based on the Everest Form plugin",
+    "slug": "mycred-everestform",
+    "dependency": "everest-forms/everest-forms.php",
+    "dependencyName" : "Everest Form",
+    "category": "Event/ Booking",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/", 
+    "type"     : "free"
+  },
+  {
+    "title": "Kali Form",
+    "description": "Kali Form is a plugin for WordPress that allows you to build points based on the Kali Form plugin",
+    "slug": "mycred-kaliform",
+    "dependency": "kali-forms/kali-forms.php",
+    "dependencyName" : "Kali Form",
+    "category": "Event/ Booking",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/", 
+    "type"     : "free"
+  },
+  {
+    "title": "Happy Form",
+    "description": "Happy Form is a plugin for WordPress that allows you to build points based on the Happy Form plugin",
+    "slug": "mycred-happyform",
+    "dependency": "happyforms/happyforms.php",
+    "dependencyName" : "Happy Form",
+    "category": "Event/ Booking",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/", 
+    "type"     : "free"
+  },
+  {
+    "title": "JetFormBuilder",
+    "description": "JetFormBuilder is a plugin for WordPress that allows you to build points based on the JetFormBuilder plugin",
+    "slug": "mycred-jetformbuilder",
+    "dependency": "jetformbuilder/jet-form-builder.php",
+    "dependencyName" : "JetFormBuilder",
+    "category": "Event/ Booking",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/", 
+    "type"     : "free"
+  },
+  {
+    "title": "Form Maker",
+    "description": "Form Maker is a plugin for WordPress that allows you to build points based on the Form Maker plugin",
+    "slug": "mycred-formmaker",
+    "dependency": "form-maker/form-maker.php",
+    "dependencyName" : "Form Maker",
+    "category": "Event/ Booking",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/", 
+    "type"     : "free"
+  },
+  {
+    "title": "Sure Form",
+    "description": "Sure Form is a plugin for WordPress that allows you to build points based on the Sure Form plugin",
+    "slug": "mycred-sureform",
+    "dependency": "sureforms/sureforms.php",
+    "dependencyName" : "Sure Form",
+    "category": "Event/ Booking",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/", 
+    "type"     : "free"
+  },
   {
     "title": "myCred Bookify",
     "description": "myCred Bookify is a plugin for WordPress that enables you to build points based on Bookify plugin.",
@@ -135,8 +245,8 @@
     "title": "BP Group Leaderboards",
     "description": "This add-on allows you to setup leaderboards for your BuddyPress groups that are based on the groups members balances.",
     "slug": "mycred-bp-group-leaderboards",
-    "dependency": "mycred/mycred.php",
-    "dependencyName" : "myCred",
+    "dependency": "buddypress/bp-loader.php",
+    "dependencyName" : "BuddyPress",
     "category": "Community",
     "settingUrl": "wp-admin/admin.php?page=mycred-main",
     "addonUrl": "https://mycred.me/", 
@@ -198,22 +308,11 @@
     "type"     : "free"
   },
   {
-    "title": "Rating Form",
-    "description": "Choose or create a Rating Form, choice of Stars, Hearts, Smileys, This plugin allows you to reward users with points for submitting ratings.",
-    "slug": "mycred-for-rating-form",
-    "dependency": "mycred/mycred.php",
-    "dependencyName" : "myCred",
-    "category": "Event/ Booking",
-    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
-    "addonUrl": "https://mycred.me/store/", 
-    "type"     : "free"
-  },
-  {
     "title": "Total Poll",
     "description": "This plugin allows you to reward users with points for participating in polls. TotalPoll is a WordPress plugin that let you create and integrate polls easily",
     "slug": "mycred-for-totalpoll",
-    "dependency": "mycred/mycred.php",
-    "dependencyName" : "myCred",
+    "dependency": "totalpoll-lite/plugin.php",
+    "dependencyName" : "Total Poll",
     "category": "Event/ Booking",
     "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
     "addonUrl": "https://mycred.me/store/", 
@@ -223,8 +322,8 @@
     "title": "Total Survey",
     "description": "myCred for Total Survey is a WordPress plugin for gamified surveys. Complete the survey to get rewards in the form of points, ranks, or badges.",
     "slug": "mycred-for-totalsurvey",
-    "dependency": "mycred/mycred.php",
-    "dependencyName" : "myCred",
+    "dependency": "totalsurvey/plugin.php",
+    "dependencyName" : "Total Survey",
     "category": "Event/ Booking",
     "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
     "addonUrl": "https://mycred.me/store/", 
@@ -250,6 +349,39 @@
     "category": "Others",
     "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
     "addonUrl": "https://mycred.me/store/", 
+    "type"     : "free"
+  },
+  {
+    "title": "Referral Plus",
+    "description": "Referral Plus is a plugin for WordPress that allows you to build points based on the Points for Referral Hook",
+    "slug": "mycred-referral-plus",
+    "dependency": "mycred/mycred.php",
+    "dependencyName" : "Referral Hook",
+    "category": "Others",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/", 
+    "type"     : "pro"
+  },
+  {
+    "title": "WPForms",
+    "description": "WPForms is a plugin for WordPress that allows you to build points based on the WPForms plugin",
+    "slug": "mycred-wpforms",
+    "dependency": "wpforms-lite/wpforms.php",
+    "dependencyName" : "WPForms",
+    "category": "Event/ Booking",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/", 
+    "type"     : "free"
+  },
+  {
+    "title": "Ninja Forms",
+    "description": "Ninja Forms is a plugin for WordPress that allows you to build points based on the Ninja Forms plugin",
+    "slug": "mycred-ninjaforms",
+    "dependency": "ninja-forms/ninja-forms.php",
+    "dependencyName" : "Ninja Forms",
+    "category": "Event/ Booking",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/", 
     "type"     : "free"
   },
   {
@@ -339,15 +471,82 @@
     "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
     "addonUrl": "https://mycred.me/store/", 
     "type"     : "free"
-  }, {
+  }, 
+  {
+    "title": "MasterStudyLMS",
+    "description": "myCred MasterStudyLMS addon awarding points for course, lesson, and quiz completion.",
+    "slug": "mycred-masterstudylms",
+    "dependency": "masterstudy-lms-learning-management-system/masterstudy-lms-learning-management-system.php",
+    "dependencyName" : "MasterStudyLMS",
+    "category": "Others",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/store/", 
+    "type"     : "free"
+  },
+  {
+    "title": "Sensei LMS",
+    "description": "Sensei LMS addon awarding points for course, lesson, and quiz completion.",
+    "slug": "mycred-senseilms",
+    "dependency": "sensei-lms/sensei-lms.php",
+    "dependencyName" : "Sensei LMS",
+    "category": "Others",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/store/", 
+    "type"     : "free"
+  },
+  {
+    "title": "Academy LMS",
+    "description": "myCred Academy LMS addon awarding points for course, lesson, and quiz completion.",
+    "slug": "mycred-academy-lms",
+    "dependency": "academy/academy.php",
+    "dependencyName" : "AcademyLMS",
+    "category": "Others",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/store/", 
+    "type"     : "free"
+  },
+  {
+    "title": "Masteriyo LMS",
+    "description": "myCred Masteriyo LMS addon awarding points for course, lesson, and quiz completion.",
+    "slug": "mycred-masteriyo-lms",
+    "dependency": "learning-management-system/lms.php",
+    "dependencyName" : "MasteriyoLMS",
+    "category": "Others",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/store/", 
+    "type"     : "free"
+  },
+  {
+    "title": "Gutena Forms – Contact Forms Block",
+    "description": "myCred Gutena Forms addon awards points reward on form submission.",
+    "slug": "mycred-gutena-forms",
+    "dependency": "gutena-forms/gutena-forms.php",
+    "dependencyName" : "Gutena Forms",
+    "category": "Others",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/store/", 
+    "type"     : "free"
+  },
+  {
+    "title": "weForms",
+    "description": "myCred weForms addon awards points reward on form submission.",
+    "slug": "mycred-weforms",
+    "dependency": "weforms/weforms.php",
+    "dependencyName" : "weForms",
+    "category": "Others",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/store/", 
+    "type"     : "free"
+  }, 
+  {
     "title": "Time Based Reward",
     "description": "Time Based Reward addon allows you to set rewards that users can claim after a specified time.",
     "slug": "mycred-time-based-reward",
     "dependency": "mycred/mycred.php",
     "dependencyName" : "myCred",
     "category": "Others",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/edit.php?post_type=time_base_reward",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/mycred-time-based-reward/", 
     "type": "pro"
   },
   {
@@ -357,8 +556,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Nominations", 
     "category": "Community",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/edit.php?post_type=mycred_nominations",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/mycred-nominations/", 
     "type": "pro"
   },
   {
@@ -368,8 +567,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Email Plus",
     "category": "Others",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/edit.php?post_type=mycred_email_notice",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/mycred-email-plus/", 
     "type": "pro"
   },
   {
@@ -379,8 +578,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "ToDo List",
     "category": "Others",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/edit.php?post_type=todo_list",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/mycred-todo-list", 
     "type": "pro"
   },
   {
@@ -390,8 +589,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Anniversary Pro",
     "category": "Community",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/mycred-anniversary-pro/", 
     "type": "pro"
   },
   {
@@ -401,8 +600,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Submission",
     "category": "Others",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/edit.php?post_type=submission",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/submissions-mycred-addon", 
     "type": "pro"
   },
   {
@@ -412,8 +611,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Coupon Plus",
     "category": "ECommerce",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-bulk-coupons-generator",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/mycred-coupons-plus/", 
     "type": "pro"
   },
   {
@@ -423,8 +622,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Birthday Plus",
     "category": "Community",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/mycred-birthday-plus", 
     "type": "pro"
   },
   {
@@ -434,8 +633,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Daily Login Rewards",
     "category": "Others",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/edit.php?post_type=mycred-login-reward",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/mycred-daily-login-rewards/", 
     "type": "pro"
   },
   {
@@ -445,8 +644,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Email Digest",
     "category": "Others",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/edit.php?post_type=mycred_email_digest",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/mycred-email-digest/", 
     "type": "pro"
   },
   {
@@ -457,7 +656,7 @@
     "dependencyName": "Progress Map",
     "category": "Others",
     "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "addonUrl": "https://mycred.me/store/mycred-progress-map/", 
     "type": "pro"
   },
   {
@@ -467,8 +666,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Points Cap",
     "category": "Others",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/mycred-points-cap/", 
     "type": "pro"
   },
   {
@@ -478,8 +677,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Beaver Builder",
     "category": "Pro",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/options-general.php?page=fl-builder-settings",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/third-party-bridges/mycred-beaver-builder-introduction/", 
     "type": "pro"
   },
   {
@@ -489,8 +688,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "2checkout - buyCred Gateway",
     "category": "buyCred Gateways",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-gateways",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/buycred-gateways/2checkout/", 
     "type": "pro"
   },
   {
@@ -500,8 +699,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "BuddyPress Charges",
     "category": "Pro",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-buddypress_charges",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/buddypress-charges/", 
     "type": "pro"
   },
   {
@@ -511,8 +710,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Paystack - buyCred Gateway",
     "category": "buyCred Gateways",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-gateways",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/cashcred-payment-gateways/cashcred-paystack/", 
     "type": "pro"
   },
   {
@@ -522,8 +721,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "cashCred Paypal",
     "category": "cashCred Gateways",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-cashcreds",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/cashcred-payment-gateways/cashcred-paypal/", 
     "type": "pro"
   },
   {
@@ -533,8 +732,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "cashCred Stripe",
     "category": "cashCred Gateways",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-cashcreds",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/cashcred-payment-gateways/cashcred-stripe/", 
     "type": "pro"
   },
   {
@@ -544,29 +743,29 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "CashCred PayStack",
     "category": "cashCred Gateways",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-cashcreds",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/cashcred-payment-gateways/cashcred-paystack/", 
     "type": "pro"
   },
   {
     "title": "WooCommerce Plus",
     "description": "WooCommerce Plus is a addon helps you award WooCommerce reward points to the buyers using the WooCommerce point system.",
     "slug": "mycred-woocommerce-plus",
-    "dependency": "mycred/mycred.php",
-    "dependencyName": "WooCommerce Plus",
+    "dependency": "woocommerce/woocommerce.php",
+    "dependencyName": "WooCommerce Plugin",
     "category": "ECommerce",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-woocommerce",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/mycred-woocommerce-plus/", 
     "type": "pro"
   },
   {
     "title": "SureCart",
     "description": "SureCart is a addon helps you award SureCart reward points to the buyers using the SureCart point system.",
     "slug": "mycred-surecart",
-    "dependency": "mycred/mycred.php",
+    "dependency": "surecart/surecart.php",
     "dependencyName": "SureCart",
     "category": "ECommerce",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
     "addonUrl": "https://mycred.me/store/", 
     "type": "free"
   },
@@ -577,8 +776,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "myCred Level Cred",
     "category": "Others",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-settings",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/level-cred-add-on/", 
     "type": "pro"
   },
   {
@@ -589,7 +788,7 @@
     "dependencyName": "myCred Social Proof",
     "category": "Community",
     "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/mycred-social-proof/", 
     "type": "pro"
   },
   {
@@ -600,7 +799,7 @@
     "dependencyName": "Pacman Arcade Game",
     "category": "Others",
     "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "addonUrl": "https://codex.mycred.me/chapter-iv/games/mycred-pacman/", 
     "type": "pro"
   },
   {
@@ -610,8 +809,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "myCred Spin Wheel",
     "category": "ECommerce",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/edit.php?post_type=mycred_fortunewheels",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/games/fortune-wheel-addon/fortune-wheel/", 
     "type": "pro"
   },
   {
@@ -622,7 +821,7 @@
     "dependencyName": "myCred Reset Points",
     "category": "Others",
     "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/mycred-reset-point-add-on/", 
     "type": "pro"
   },
   {
@@ -633,7 +832,7 @@
     "dependencyName": "SMS Payments - Twilio Transfers",
     "category": "Pro",
     "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/twilio-transfers/", 
     "type": "pro"
   },
   {
@@ -643,8 +842,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Pending Points",
     "category": "Pro",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-settings",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/mycred-pending-points/", 
     "type": "pro"
   },
   {
@@ -655,7 +854,7 @@
     "dependencyName": "Expiration",
     "category": "Pro",
     "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/mycred-expiration-add-on/", 
     "type": "pro"
   },
   {
@@ -665,19 +864,19 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Dokan",
     "category": "Pro",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=dokan#/settings",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/third-party-bridges/mycred-dokan/", 
     "type": "pro"
   },
   {
     "title": "WC Vendors",
     "description": "WCVendors with myCred addon gives you the power to define and calculate commissions for vendors.",
     "slug": "mycred-wc-vendors-addon",
-    "dependency": "mycred/mycred.php",
+    "dependency": "wc-vendors/class-wc-vendors.php",
     "dependencyName": "WC Vendors",
     "category": "Pro",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/post-new.php?post_type=product",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/third-party-bridges/mycred-wcvendors/", 
     "type": "pro"
   },
   {
@@ -687,8 +886,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Social Share",
     "category": "Pro",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=social-shares-settings",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/social-share-add-on/", 
     "type": "pro"
   },
   {
@@ -699,7 +898,7 @@
     "dependencyName": "Progress Bar",
     "category": "Pro",
     "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/progressbar/", 
     "type": "pro"
   },
   {
@@ -709,8 +908,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Video Addon For JW Player",
     "category": "Pro",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/jw-player-add-on/", 
     "type": "pro"
   },
   {
@@ -721,7 +920,7 @@
     "dependencyName": "Rest API",
     "category": "Pro",
     "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/mycred-rest-api/", 
     "type": "pro"
   },
   {
@@ -731,8 +930,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Paymentwall - buyCred Gateway",
     "category": "buyCred Gateways",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-gateways",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/buycred-gateways/paymentwall/", 
     "type": "pro"
   },
   {
@@ -742,8 +941,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Robokassa - buyCred Gateway",
     "category": "buyCred Gateways",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-gateways",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/buycred-gateways/robokassa/", 
     "type": "pro"
   },
   {
@@ -753,8 +952,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Coinbase - buyCred Gateway",
     "category": "buyCred Gateways",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-gateways",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/buycred-gateways/coinbase/", 
     "type": "pro"
   },
   {
@@ -764,8 +963,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Users Ultra",
     "category": "Pro",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/third-party-bridges/users-ultra/", 
     "type": "pro"
   },
   {
@@ -776,7 +975,7 @@
     "dependencyName": "Transfer Plus",
     "category": "Pro",
     "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/transfer-plus/", 
     "type": "pro"
   },
   {
@@ -786,8 +985,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "CoinPayments - buyCred Gateway",
     "category": "buyCred Gateways",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-gateways",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/buycred-gateways/coinpayments/", 
     "type": "pro"
   },
   {
@@ -797,8 +996,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Easy Digital Downloads",
     "category": "Pro",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/edit.php?post_type=download&page=edd-settings&tab=gateways",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/store-gateways/easy-digital-downloads/", 
     "type": "pro"
   },
   {
@@ -808,8 +1007,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "myCred for UserPro",
     "category": "Pro",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/third-party-bridges/userpro/", 
     "type": "pro"
   },
   {
@@ -820,7 +1019,7 @@
     "dependencyName": "myCred for WPBakery Page Builder",
     "category": "Pro",
     "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "addonUrl": "https://codex.mycred.me/chapter-iv/third-party-bridges/visual-composer/", 
     "type": "pro"
   },
   {
@@ -830,8 +1029,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "Stripe - buyCred Gateway",
     "category": "buyCred Gateways",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-gateways",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/buycred-gateways/stripe/", 
     "type": "pro"
   },
   {
@@ -841,8 +1040,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "PayFast - buyCred Gateway",
     "category": "buyCred Gateways",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-gateways",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/buycred-gateways/payfast/", 
     "type": "pro"
   },
   {
@@ -852,8 +1051,8 @@
     "dependency": "mycred/mycred.php",
     "dependencyName": "WePay - buyCred Gateway",
     "category": "buyCred Gateways",
-    "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "settingUrl": "wp-admin/admin.php?page=mycred-gateways",
+    "addonUrl": "https://codex.mycred.me/chapter-iv/buycred-gateways/wepay/", 
     "type": "pro"
   },
   {
@@ -864,7 +1063,7 @@
     "dependencyName": "Video Addon for Vimeo",
     "category": "Pro",
     "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/video-add-on/", 
     "type": "pro"
   },
   {
@@ -875,28 +1074,39 @@
     "dependencyName": "Notifications Plus",
     "category": "Pro",
     "settingUrl": "wp-admin/admin.php?page=mycred-main",
-    "addonUrl": "https://mycred.me/store/", 
+    "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/notifications-plus/", 
     "type": "pro"
   },
   {
     "title": "LifterLMS (Pro)",
-    "description": "LifterLMS (Pro) allows you to purchase courses using points",
+    "description": "LifterLMS (Pro) allows you to purchase courses using points. Users can purchase courses using the payment gateway.",
     "slug": "mycred-lifterlms-pro",
     "dependency": "mycred/mycred.php",
     "dependencyName": "LifterLMS Pro", 
     "category": "LMS",
     "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
-    "addonUrl": "https://mycred.me/store/", 
+    "addonUrl": "https://codex.mycred.me/chapter-iv/third-party-bridges/mycred-lifterlms/", 
     "type"     : "pro"
   },
   {
     "title": "Bookify (Pro)",
-    "description": "Bookify (Pro) allows you to make a booking using points.",
+    "description": "Bookify (Pro) allows you to make a booking using points. Users can make a booking using payment gateway.",
     "slug": "mycred-bookify-pro",
     "dependency": "bookify/bookify.php",
     "dependencyName" : "Bookify",
     "category": "Event/ Booking",
     "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
+    "addonUrl": "https://mycred.me/", 
+    "type"     : "pro"
+  },
+  {
+    "title": "Gravity Forms Booking (Pro)",
+    "description": "Gravity Forms Booking is a plugin for WordPress that allows you to build points based on the Gravity Form Booking plugin",
+    "slug": "mycred-gravity-form-booking-pro",
+    "dependency": "gravityforms/gravityforms.php",
+    "dependencyName" : "Gravity Form Booking",
+    "category": "Event/ Booking",
+    "settingUrl": "wp-admin/admin.php?page=gf_settings",
     "addonUrl": "https://mycred.me/", 
     "type"     : "pro"
   }

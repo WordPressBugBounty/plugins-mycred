@@ -32,6 +32,9 @@ if ( ! class_exists('mycred_buy_block') ) :
 
             $buycred = new \myCRED_buyCRED_Module();
             $gateways = array();
+
+            $gateways['Select Payment Gateway'] = '';
+
             foreach ( $buycred->get() as $gateway_id => $gateway ) {
                 $gateways[$gateway['title']] = $gateway_id;
             }

@@ -424,7 +424,16 @@ if ( ! function_exists( 'mycred_sell_content_get_expiration_length' ) ) :
 		// Invalid post
 		if ( ! isset( $post->ID ) ) return $length;
 
-		$filter = $settings['filters'][ $post->post_type ]['by'];
+		$filter = '';
+		
+		if (
+			isset( $settings['filters'] )
+			&& isset( $post->post_type )
+			&& isset( $settings['filters'][ $post->post_type ] )
+			&& isset( $settings['filters'][ $post->post_type ]['by'] )
+		) {
+			$filter = $settings['filters'][ $post->post_type ]['by'];
+		}
 
 		// Manual mode - expiration settings are found in the post setting
 		if ( $filter === 'manual' ) {

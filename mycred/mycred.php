@@ -3,7 +3,7 @@
  * Plugin Name: myCred
  * Plugin URI: https://mycred.me
  * Description: An adaptive points management system for WordPress powered websites.
- * Version: 2.9.4.2
+ * Version: 2.9.4.3
  * Tags: point, credit, loyalty program, engagement, reward, woocommerce rewards
  * Author: myCred
  * Author URI: https://mycred.me
@@ -20,7 +20,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 	final class myCRED_Core {
 
 		// Plugin Version
-		public $version             = '2.9.4.2';
+		public $version             = '2.9.4.3';
 
 		// Instnace
 		protected static $_instance = NULL;
@@ -261,7 +261,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 
 					$this->file( myCRED_INCLUDES_DIR . 'mycred-walkthrough.php' );
 					$walkthrough = new myCRED_walkthroug();
-				
+					
 				}
 
 				// If myCRED has been setup and is ready to begin
@@ -280,7 +280,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 					$this->file( myCRED_MODULES_DIR . 'mycred-module-export.php' );
 					$this->file( myCRED_MODULES_DIR . 'mycred-module-management.php' );
 					$this->file( myCRED_MODULES_DIR . 'mycred-module-br-social-share.php' );
-                    $this->file( myCRED_MODULES_DIR . 'mycred-module-management.php' );
+					$this->file( myCRED_MODULES_DIR . 'mycred-module-management.php' );
 					$this->file( myCRED_MODULES_DIR . 'mycred-module-caching.php' );
 
 					// Mycred Blocks
@@ -605,15 +605,45 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 			register_rest_route('mycred/v1', '/enable-core-addon', array(
 				'methods'             => 'POST',
 				'callback'            => array( $this, 'mycred_enable_core_addon' ),
-				'permission_callback' => '__return_true',
+				'permission_callback'   => array( $this, 'verify_nonce_and_permissions' )
 			));
 
 			register_rest_route('mycred/v1', '/get-core-addons', array(
 				'methods' 			  => 'GET',
 				'callback' 			  => array( $this, 'get_core_addons_callback' ),
-				'permission_callback' => '__return_true',
+				'permission_callback'   => array( $this, 'verify_nonce_and_permissions' )
 			));
 
+		}
+
+		public function verify_nonce_and_permissions( $request ) {
+			$nonce = $request->get_header( 'X-WP-Nonce' );
+
+			if ( ! $nonce ) {
+				return new WP_Error(
+					'rest_missing_nonce',
+					__( 'Missing nonce.', 'mycred' ),
+					array( 'status' => 403 )
+				);
+			}
+
+			if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+				return new WP_Error(
+					'rest_invalid_nonce',
+					__( 'Invalid nonce.', 'mycred' ),
+					array( 'status' => 403 )
+				);
+			}
+
+			if ( ! current_user_can( 'manage_options' ) ) {
+				return new WP_Error(
+					'rest_forbidden',
+					__( 'You do not have permission to perform this action.', 'mycred' ),
+					array( 'status' => 403 )
+				);
+			}
+
+			return true;
 		}
 
 		public function get_core_addons_callback($request) {
@@ -627,12 +657,17 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 		}
 
 		public function mycred_enable_core_addon($request) {
+			
+			$nonce = $request->get_header('X-WP-Nonce');
+			if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+				return new WP_Error( 'rest_forbidden', __('Invalid nonce.', 'mycred'), array( 'status' => 403 ) );
+			}
 
 			$params = $request->get_json_params();
 
-	        $addOnSlug = isset( $params['addOnSlug'] ) ? sanitize_text_field( $params['addOnSlug'] ) : '';
-	        $addOnTitle = isset( $params['addOnTitle'] ) ? sanitize_text_field( $params['addOnTitle'] ) : '';
-	        
+			$addOnSlug = isset( $params['addOnSlug'] ) ? sanitize_text_field( $params['addOnSlug'] ) : '';
+			$addOnTitle = isset( $params['addOnTitle'] ) ? sanitize_text_field( $params['addOnTitle'] ) : '';
+			
 	        // Get current enabled add-ons
 			$addons_prefs  = get_option( 'mycred_pref_addons', array() );
 
@@ -643,15 +678,15 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 				$addons_prefs['active'] = array_diff( $addons_prefs['active'], array( $addOnSlug ) );
 				$message = sprintf( 'Add-on "%s" has been disabled successfully.', $addOnTitle );
 				$toggle = false;
-			
+				
 			} 
 			else {
-	        
+				
 	            // Enable the add-on
 				$addons_prefs['active'][] = $addOnSlug;
 				$message = sprintf( 'Add-on "%s" has been enabled successfully.', $addOnTitle );
 				$toggle = true;
-			
+				
 			}
 
 	        // Update the Addons Prefs
@@ -928,7 +963,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 				$this->file( ABSPATH . 'wp-admin/includes/class-wp-importer.php' );
 
 			$this->file( myCRED_IMPORTERS_DIR . 'mycred-log-entries.php' );
-	
+			
 			$importer = new myCRED_Importer_Log_Entires();
 			$importer->load();
 
@@ -1112,7 +1147,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 					) );
 
 			}
-	
+			
 			// Let others play
 			do_action( 'mycred_tool_bar', $wp_admin_bar, $mycred );
 
@@ -1264,7 +1299,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 				$this->file( myCRED_INCLUDES_DIR . 'mycred-open-badge-settings.php' );
 				$this->file( myCRED_SHORTCODES_DIR . 'mycred-badge-evidence-page.php' );
 				// override old open badge setting to new settings
-            	mycred_override_open_badge();
+				mycred_override_open_badge();
 			}
 
 			if ( is_admin() && ! class_exists( 'myCRED_License' ) ) {
@@ -1297,18 +1332,18 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 		}
 
 		public function premium_addons_license_notice() {
-		    ?>
-		    <div class="notice notice-error is-dismissible">
-		        <p>
-		            <?php 
-		            printf(
-		                __('Our myCred license system has been upgraded. Please manually update your myCred premium addons (one time) for uninterrupted usage. For further information, please follow this %s.', 'mycred'),
-		                '<a href="https://mycred.me/blog/mycred-is-updating-its-license-system/" target="_blank">' . __('link', 'mycred') . '</a>'
-		            );
-		            ?>
-		        </p>
-		    </div>
-		    <?php
+			?>
+			<div class="notice notice-error is-dismissible">
+				<p>
+					<?php 
+					printf(
+						__('Our myCred license system has been upgraded. Please manually update your myCred premium addons (one time) for uninterrupted usage. For further information, please follow this %s.', 'mycred'),
+						'<a href="https://mycred.me/blog/mycred-is-updating-its-license-system/" target="_blank">' . __('link', 'mycred') . '</a>'
+					);
+					?>
+				</p>
+			</div>
+			<?php
 		}
 
 	}

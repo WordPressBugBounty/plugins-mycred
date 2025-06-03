@@ -57,6 +57,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			wp_localize_script('mycred-builtin-addons-script', 'mycredAddonsData', [
 				'upgraded' => apply_filters('mycred_plan_check', true ) ,
 				'root' => esc_url_raw( rest_url() ),
+				'nonce' => wp_create_nonce('wp_rest'),
 			]);
 
 		}

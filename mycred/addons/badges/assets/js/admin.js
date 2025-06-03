@@ -19,6 +19,7 @@ jQuery(document).ready(function (){
                 url: ajaxurl,
                 data: {
                     action: 'mycred_switch_all_to_open_badge',
+                    mycred_nonce: mycred_badge_localize_data.nonce
                 },
                 type: 'POST',
                 beforeSend: function() {

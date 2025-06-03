@@ -786,8 +786,10 @@ if ( ! function_exists( 'mycred_woo_after_order_total' ) ) :
 		$balance_label      = $available_gateways['mycred']->get_option( 'balance_format' );
 		$total_label		= $mycred->template_tags_general( $available_gateways['mycred']->get_option( 'total_label' ) );
 
+		$exchange_rate = $available_gateways['mycred']->get_option('exchange_rate');
+		$exchange_rate = (!empty($exchange_rate) && is_numeric($exchange_rate)) ? $exchange_rate : 1;
 		// Apply Exchange Rate
-		$cost    = $mycred->number( ( $woocommerce->cart->total / $available_gateways['mycred']->get_option( 'exchange_rate' ) ) );
+		$cost    = $mycred->number( ( $woocommerce->cart->total / $exchange_rate ) );
 		$cost    = apply_filters( 'mycred_woo_order_cost', $cost, $woocommerce->cart, true, $mycred );
 
 		// If we should show the total in points
