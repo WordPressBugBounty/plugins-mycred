@@ -561,6 +561,7 @@ if ( ! class_exists( 'myCRED_Settings_Module' ) ) :
 			$general     = $this->general;
 			$action_hook = ( ! $this->is_main_type ) ? $this->mycred_type : '';
 			$delete_user = ( isset( $this->core->delete_user ) ) ? $this->core->delete_user : 0;
+			$admin_log_entries = ( isset( $this->core->admin_log_entries ) ) ? $this->core->admin_log_entries : 0;
 			$main_screen = ( get_current_screen()->base == 'toplevel_page_mycred-main' );
 
 			// Social Media Links
@@ -804,6 +805,9 @@ if ( ! class_exists( 'myCRED_Settings_Module' ) ) :
 							<h3><?php esc_html_e( 'Other Settings', 'mycred' ); ?></h3>
 							<div class="form-group">
 								<label for="<?php echo esc_attr( $this->field_id( 'delete_user' ) ); ?>"><input type="checkbox" name="<?php echo esc_attr( $this->field_name( 'delete_user' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'delete_user' ) ); ?>" <?php checked( $delete_user, 1 ); ?> value="1" /> <?php esc_html_e( 'Delete log entries when user is deleted.', 'mycred' ); ?></label>
+							</div>
+							<div class="form-group">
+								<label for="<?php echo esc_attr( $this->field_id( 'admin_log_entries' ) ); ?>"><input type="checkbox" name="<?php echo esc_attr( $this->field_name( 'admin_log_entries' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'admin_log_entries' ) ); ?>" <?php checked( $admin_log_entries, 1 ); ?> value="1" /> <?php esc_html_e( 'Log entries will be required when the admin manually adjusts.', 'mycred' ); ?></label>
 							</div>
 						</div>
 						<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
@@ -1253,6 +1257,8 @@ if ( ! class_exists( 'myCRED_Settings_Module' ) ) :
 			
 			// User deletions
 			$new_data['delete_user'] = ( isset( $post['delete_user'] ) ) ? $post['delete_user'] : 0;
+
+			$new_data['admin_log_entries'] = ( isset( $post['admin_log_entries'] ) ) ? $post['admin_log_entries'] : 0;
 
 			//Point type image
 			$new_data['attachment_id'] = isset( $post['attachment_id'] ) ? $post['attachment_id'] : 0;

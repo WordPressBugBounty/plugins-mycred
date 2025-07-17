@@ -25,16 +25,6 @@
 
 .mycred-transfer-info { margin: 0; padding: 6px 0; display: block; clear: both; float: none; }
 .mycred-transfer-info p { font-size: smaller; line-height: 16px; margin: 0; padding: 0; }
-.transfer-amount-field {
-    margin-left: 28px !important;
-    margin-top: 10px !important;
-    width: 18% !important;
-}
-.transfer-ctype-field {
-    margin-left: 31px !important;
-    margin-top: 10px !important;
-    width: 18% !important;
-}
 
 /* ul.ui-autocomplete { border: none; margin: 0; padding: 6px 0 0 0; width: 100%; z-index: 10 !important; }
 ul.ui-autocomplete li { background-color: white; padding: 0 4px; display: block; margin: 0; width: 90%; text-align: left; border-bottom: 1px solid silver; list-style-type: none; }

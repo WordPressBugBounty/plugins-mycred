@@ -21,11 +21,17 @@
             var blockProps = useBlockProps.save();
             var data = wp.data.select('core/editor').getCurrentPostAttribute('meta');
 
+            // Ensure data and the specific property are defined
+            var message = '';
+            if (data && typeof data.mycred_rank_plus_congratulation_msg !== 'undefined') {
+                message = data.mycred_rank_plus_congratulation_msg;
+            }
+
             return el(
                 RichText.Content,
                 Object.assign( blockProps, {
                     tagName: 'p',
-                    value: data.mycred_rank_plus_congratulation_msg,
+                    value: message,
                 } )
             );
 

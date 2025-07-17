@@ -2,8 +2,8 @@
 Contributors: mycred, wpexpertsio
 Tags: ranks, rewards, level, gamification, points
 Requires at least: 6.2
-Tested up to: 6.6.1
-Stable tag: 1.0.3
+Tested up to: 6.5.2
+Stable tag: 1.0.2
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -76,9 +76,6 @@ If you're facing a problem not described in our technical documentation, we sugg
 
 == Upgrade Notice ==
 
-= 1.0.3 =
-Added Compatibility for WordPress Version 6.6.1.
-
 = 1.0.2 =
 Added Compatibility for WordPress Version 6.5.2.
 
@@ -86,9 +83,6 @@ Added Compatibility for WordPress Version 6.5.2.
 Bug fixes.
 
 == Changelog ==
-
-= 1.0.3 =
-- **TWEAK** - Added Compatibility for WordPress Version 6.6.1.
 
 = 1.0.2 =
 - **TWEAK** - Added Compatibility for WordPress Version 6.5.2.

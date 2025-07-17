@@ -90,7 +90,9 @@ if ( ! function_exists( 'mycred_render_buy_points' ) ) :
 			$current_url = str_replace( 'http://', 'https://', $current_url );
 
 		// Construct anchor element to take us to the checkout page
-		return '<a href="' . esc_url( add_query_arg( $args, $current_url ) ) . '" data-gateway="' . $gateway . '" class="' . implode( ' ', $classes ) . '" title="' . esc_attr( strip_tags( $button_label ) ) . '">' . do_shortcode( $button_label ) . '</a>';
+		$safe_button_label = wp_kses_post( do_shortcode( $button_label ) );
+		return '<a href="' . esc_url( add_query_arg( $args, $current_url ) ) . '" data-gateway="' . esc_attr( $gateway ) . '" class="' . esc_attr( implode( ' ', $classes ) ) . '" title="' . esc_attr( strip_tags( $button_label ) ) . '">' . $safe_button_label . '</a>';
+		
 
 	}
 endif;

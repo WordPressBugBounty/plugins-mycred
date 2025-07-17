@@ -1270,6 +1270,6 @@ if ( ! class_exists( 'myCRED_Ranks_Plus_Module' ) ) :
 
 			return $result;
 		}
-		
+
 	}
 endif;

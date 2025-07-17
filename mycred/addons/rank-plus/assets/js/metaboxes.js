@@ -2,7 +2,7 @@
     var el = wp.element.createElement;
     var Fragment = wp.element.Fragment;
     var PluginSidebar = wp.editPost.PluginSidebar;
-    var PluginDocumentSettingPanel = wp.editPost.PluginDocumentSettingPanel;
+    var PluginDocumentSettingPanel = wp.editor.PluginDocumentSettingPanel;
     var registerPlugin = wp.plugins.registerPlugin;
     var TextControl = wp.components.TextControl;
     var TextareaControl = wp.components.TextareaControl;

@@ -57,92 +57,118 @@
 
 	// Transfer form submissions
 	// @since 1.6.3
-	$( 'html body' ).on( 'submit', 'form.mycred-transfer-form', function(e){
+	// JavaScript: AJAX form submission handler for mycred transfer form
+	$('html body').on('submit', 'form.mycred-transfer-form', function(e) {
+	    console.log('new transfer');
 
-		console.log( 'new transfer' );
+	    var transferform = $(this);
+	    var formrefid = transferform.data('ref');
+	    var formid = '#mycred-transfer-form-' + formrefid;
+	    var submitbutton = $(formid + ' button.mycred-submit-transfer');
+	    var buttonlabel = submitbutton.val();
 
-		var transferform = $(this);
-		var formrefid    = transferform.data( 'ref' );
-		var formid       = '#mycred-transfer-form-' + formrefid;
-		var submitbutton = $( formid + ' button.mycred-submit-transfer' );
-		var buttonlabel  = submitbutton.val();
+	    e.preventDefault();
 
-		e.preventDefault();
+	    $.ajax({
+	        type: "POST",
+	        data: {
+	            action: 'mycred-new-transfer',
+	            form: transferform.serialize()
+	        },
+	        dataType: "JSON",
+	        url: myCREDTransfer.ajaxurl,
+	        beforeSend: function() {
+	            $(formid + ' input.form-control').each(function() {
+	                $(this).attr('disabled', 'disabled');
+	            });
+	            submitbutton.attr('disabled', 'disabled');
+	            submitbutton.val(myCREDTransfer.working);
+	        },
+	        success: function(response) {
+	            console.log(response);
 
-		$.ajax({
-			type       : "POST",
-			data       : {
-				action			: 'mycred-new-transfer',
-				form			: transferform.serialize()
-			},
-			dataType   : "JSON",
-			url        : myCREDTransfer.ajaxurl,
-			beforeSend : function() {
+	            $(formid + ' input.form-control').each(function() {
+	                $(this).removeAttr('disabled');
+	            });
 
-				$( formid + ' input.form-control' ).each(function(index){
-					$(this).attr( 'disabled', 'disabled' );
-				});
+	            submitbutton.removeAttr('disabled');
+	            submitbutton.val(buttonlabel);
 
-				submitbutton.attr( 'disabled', 'disabled' );
-				submitbutton.val( myCREDTransfer.working );
+	            if (response.success !== undefined) {
+	                if (response.success) {
+	                    if (response.data.message !== undefined && response.data.message != '')
+	                        alert(response.data.message);
+	                    else
+	                        alert(myCREDTransfer.completed);
 
-			},
-			success    : function( response ) {
-				console.log( response );
+	                    if ($(response.data.css) !== undefined)
+	                        $(response.data.css).empty().html(response.data.balance);
 
-				$( formid + ' input.form-control' ).each(function(index){
-					$(this).removeAttr( 'disabled' );
-				});
+	                    // Reset form inputs
+	                    $(formid + ' input.form-control').each(function() {
+	                        $(this).val('');
+	                    });
 
-				submitbutton.removeAttr( 'disabled', 'disabled' );
-				submitbutton.val( buttonlabel );
+	                    $(formid + ' select').each(function() {
+	                        var selecteditem = $(this).find(':selected');
+	                        if (selecteditem !== undefined)
+	                            selecteditem.removeAttr('selected');
+	                    });
 
-				if ( response.success !== undefined ) {
+	                    if (myCREDTransfer.reload == '1')
+	                        location.reload();
 
-					if ( response.success ) {
+	                } else if (myCREDTransfer[response.data] !== undefined) {
+	                    if (typeof myCREDTransfer[response.data] === 'object')
+	                        alert(myCREDTransfer[response.data][$(formid + ' [name="mycred_new_transfer[ctype]"]').val()]);
+	                    else
+	                        alert(myCREDTransfer[response.data]);
+	                }
+	            }
+	        }
+	    });
 
-						// Allow customizations to present custom success messages
-						if ( response.data.message !== undefined && response.data.message != '' )
-							alert( response.data.message );
-						else
-							alert( myCREDTransfer.completed );
+	    return false;
+	});
 
-						if ( $( response.data.css ) !== undefined )
-							$( response.data.css ).empty().html( response.data.balance );
-
-						// Reset form
-						$( formid + ' input.form-control' ).each(function(index){
-							$(this).val( '' );
-						});
-
-						$( formid + ' select' ).each(function(index){
-							var selecteditem = $(this).find( ':selected' );
-							if ( selecteditem !== undefined )
-								selecteditem.removeAttr( 'selected' );
-						});
-
-						// If we require reload after submission, do so now
-						if ( myCREDTransfer.reload == '1' ) location.reload();
-
+	jQuery(document).ready(function($) {
+		const checkDropdownExist = setInterval(function() {
+			const dropdown = $("select[name='mycred_new_transfer[ctype]']");
+	
+			if (dropdown.length) {
+				clearInterval(checkDropdownExist); // Stop checking once dropdown is found
+	
+				const balanceDivs = $(".mycred-balance");
+				const limitDivs = $(".mycred-limit");
+	
+				// Hide all balances and limits initially
+				balanceDivs.hide();
+				limitDivs.hide();
+	
+				dropdown.on("change", function() {
+					const selectedType = $(this).val();
+	
+					// Hide all balances and limits
+					balanceDivs.hide();
+					limitDivs.hide();
+	
+					// Show the selected balance
+					const selectedBalanceDiv = $(".mycred-balance[data-type='" + selectedType + "']");
+					if (selectedBalanceDiv.length) {
+						selectedBalanceDiv.show();
 					}
-
-					else if ( myCREDTransfer[ response.data ] !== undefined ) {
-
-						if ( typeof myCREDTransfer[ response.data ] === 'object' ) 
-							alert( myCREDTransfer[ response.data ][ $( formid + ' [name="mycred_new_transfer[ctype]"]' ).val() ] );
-						else
-							alert( myCREDTransfer[ response.data ] );
-						
+	
+					// Show the selected limit
+					const selectedLimitDiv = $(".mycred-limit[data-type='" + selectedType + "']");
+					if (selectedLimitDiv.length) {
+						selectedLimitDiv.show();
 					}
-
-				}
-
+				});
+	
+				// Trigger change event on page load to show the correct balance and limit
+				dropdown.trigger("change");
 			}
-
-		});
-
-		return false;
-
+		}, 100); // Check every 100ms if the dropdown exists
 	});
 
 })( jQuery );

@@ -295,109 +295,123 @@ if ( ! function_exists( 'mycred_init_woo_gateway' ) ) :
 			 * @since 0.1
 			 * @version 1.4.3
 			 */
-			function process_payment( $order_id ) {
-
-				global $woocommerce;
-
-				// Make sure we are still logged in
-				if ( ! is_user_logged_in() ) {
-					wc_add_notice( $this->mycred->template_tags_general( __( 'You must be logged in to pay with %_plural%', 'mycred' ) ), 'error' );
+			function process_payment($order_id) {
+				global $woocommerce, $wpdb;
+				
+				if (!is_user_logged_in()) {
+					wc_add_notice($this->mycred->template_tags_general(__('You must be logged in to pay with %_plural%', 'mycred')), 'error');
 					return array();
 				}
-
+				
 				$user_id = apply_filters('mycred_woo_gateway_user_id', get_current_user_id(), $order_id);
-
-				// Make sure we have not been excluded
-				if ( $this->mycred->exclude_user( $user_id ) ) {
-					wc_add_notice( $this->mycred->template_tags_general( __( 'You can not use this gateway. Please try a different payment option.', 'mycred' ) ), 'error' );
+				
+				$lock_key = 'mycred_payment_lock_' . $user_id;
+				$lock_acquired = false;
+				
+				if (false === get_transient($lock_key)) {
+					set_transient($lock_key, $order_id, 30); 
+					$lock_acquired = true;
+				} else {
+					wc_add_notice(__('Another payment is currently being processed. Please wait a moment and try again.', 'mycred'), 'error');
 					return array();
 				}
-
-				// Grab Order
-				$order       = wc_get_order( $order_id );
-
-				$order_total = ( version_compare( $woocommerce->version, '3.0', '>=' ) ) ? $order->get_total() : $order->order_total;
-
-				// Cost
-				$cost        = $order_total;
-				if ( $this->use_exchange() )
-					$cost = $this->mycred->number( ( $order_total / $this->exchange_rate ) );
-
-				$cost        = apply_filters( 'mycred_woo_order_cost', $cost, $order, false, $this );
-
-				// Check funds
-				if ( $this->mycred->get_users_balance( $user_id, $this->mycred_type ) < $cost ) {
-					$message = apply_filters( 'mycred_woo_error_insufficient_funds', __( 'Insufficient funds.', 'mycred' ) );
-					throw new \Exception( $message );
-                    return array();
-				}
-
-				// Let others decline a store order
-				$decline     = apply_filters( 'mycred_decline_store_purchase', false, $order, $this );
-				if ( $decline !== false ) {
-					throw new \Exception( $decline );
-                    return array();
-				}
-
-				// Charge
-				$this->mycred->add_creds(
-					'woocommerce_payment',
-					$user_id,
-					0 - $cost,
-					$this->log_template,
-					$order_id,
-					array( 'ref_type' => 'post' ),
-					$this->mycred_type
-				);
-
-				$order->payment_complete();
-
-				// Profit Sharing
-				if ( $this->profit_sharing_percent > 0 ) {
-
-					// Get Items
-					$items = $order->get_items();
-
-					// Loop though items
-					foreach ( $items as $item ) {
-
-						// Get Product
-						$product    = mycred_get_post( (int) $item['product_id'] );
-
-						// Continue if product has just been deleted or owner is buyer
-						if ( $product === NULL || $product->post_author == $user_id ) continue;
-
-						// Calculate Share
-						$percentage = apply_filters( 'mycred_woo_profit_share', $this->profit_sharing_percent, $order, $product, $this );
-						if ( $percentage == 0 ) continue;
-
-						$total_price_with_erate = $item['line_total'] / $this->exchange_rate;
-						$share      = ( $total_price_with_erate / 100 ) * $percentage;
-
-						// Payout
-						$this->mycred->add_creds(
-							'store_sale',
-							$product->post_author,
-							$this->mycred->number( $share ),
-							$this->profit_sharing_log,
-							$product->ID,
-							array( 'ref_type' => 'post' ),
-							$this->mycred_type
-						);
-
+				
+				try {
+					if ($this->mycred->exclude_user($user_id)) {
+						wc_add_notice($this->mycred->template_tags_general(__('You can not use this gateway. Please try a different payment option.', 'mycred')), 'error');
+						return array();
 					}
-
+					
+					$transaction_key = 'mycred_payment_processed_' . $order_id;
+					$already_processed = get_post_meta($order_id, $transaction_key, true);
+					
+					if ($already_processed) {
+						wc_add_notice(__('This order has already been processed.', 'mycred'), 'error');
+						return array();
+					}
+					
+					$order = wc_get_order($order_id);
+					$order_total = (version_compare($woocommerce->version, '3.0', '>=')) ? $order->get_total() : $order->order_total;
+					
+					$cost = $order_total;
+					if ($this->use_exchange())
+						$cost = $this->mycred->number(($order_total / $this->exchange_rate));
+					
+					$cost = apply_filters('mycred_woo_order_cost', $cost, $order, false, $this);
+					
+					if ($this->mycred->get_users_balance($user_id, $this->mycred_type) < $cost) {
+						$message = apply_filters('mycred_woo_error_insufficient_funds', __('Insufficient funds.', 'mycred'));
+						throw new \Exception($message);
+						return array();
+					}
+					
+					$decline = apply_filters('mycred_decline_store_purchase', false, $order, $this);
+					if ($decline !== false) {
+						throw new \Exception($decline);
+						return array();
+					}
+					
+					update_post_meta($order_id, $transaction_key, time());
+					
+					$this->mycred->add_creds(
+						'woocommerce_payment',
+						$user_id,
+						0 - $cost,
+						$this->log_template,
+						$order_id,
+						array('ref_type' => 'post'),
+						$this->mycred_type
+					);
+					
+					$order->payment_complete();
+					
+					$transaction_id = 'mycred_' . uniqid() . '_' . $order_id;
+					update_post_meta($order_id, '_mycred_transaction_id', $transaction_id);
+					
+					if ($this->profit_sharing_percent > 0) {
+						$items = $order->get_items();
+						
+						foreach ($items as $item) {
+							$product = mycred_get_post((int)$item['product_id']);
+							
+							if ($product === NULL || $product->post_author == $user_id) continue;
+							
+							$percentage = apply_filters('mycred_woo_profit_share', $this->profit_sharing_percent, $order, $product, $this);
+							if ($percentage == 0) continue;
+							
+							$total_price_with_erate = $item['line_total'] / $this->exchange_rate;
+							$share = ($total_price_with_erate / 100) * $percentage;
+							
+							$this->mycred->add_creds(
+								'store_sale',
+								$product->post_author,
+								$this->mycred->number($share),
+								$this->profit_sharing_log,
+								$product->ID,
+								array('ref_type' => 'post'),
+								$this->mycred_type
+							);
+						}
+					}
+					
+					do_action('mycred_paid_for_woo', $order, $user_id, $this);
+					
+					return array(
+						'result' => 'success',
+						'redirect' => $this->get_return_url($order)
+					);
+					
+				} catch (\Exception $e) {
+					if ($lock_acquired) {
+						delete_transient($lock_key);
+					}
+					throw $e;
+				} finally {
+					// Always release the lock when done
+					if ($lock_acquired) {
+						delete_transient($lock_key);
+					}
 				}
-
-				// Let others play
-				do_action( 'mycred_paid_for_woo', $order, $user_id, $this );
-
-				// Return the good news
-				return array(
-					'result'   => 'success',
-					'redirect' => $this->get_return_url( $order )
-				);
-
 			}
 
 			/**

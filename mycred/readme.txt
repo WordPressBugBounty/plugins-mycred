@@ -3,7 +3,7 @@ Contributors: mycred,wpexpertsio
 Tags: badges, gamification, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 6.8
-Stable tag: 2.9.4.3
+Stable tag: 2.9.4.4
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -30,16 +30,10 @@ myCred allows **THREE different ways** through which you can award your users:
 
 **Badges –** Boost your users’ participation by rewarding them for their exceptional performance.
 
-- Gain access to 50+ myCred add-ons.
-- Premium support & priority updates.
-- License key for all add-ons.
-- Connect multiple sites with just one license key.
-- Upgrade your package at any time to get more add-ons.
+== myCred Toolkit ==
+All myCred addons have been gathered under [myCred Toolkit](https://wordpress.org/plugins/mycred-toolkit/). Get multiple free and pro modules under one roof, and the most exciting part is that it won't burden your website as only enabled addons will work. 
 
-[Check package pricing page for add-on list](https://mycred.me/membership/)
-
-= WooCommerce Cart & Checkout Block Compatibility =
-myCred is compatible with WooCommerce’s cart & checkout block compatibility, making it easier for users to fill out checkout page seamlessly and win WooCommerce rewards.
+[Check pricing for myCred modules](https://mycred.me/pricing/?utm_source=wp_org&utm_medium=read_me)
 
 = Features =
 = Point Management =
@@ -143,18 +137,20 @@ Additional features
 myCred is much more than just a point management system or a gamification plugin – It comes with several [built-in add-ons](https://www.mycred.me/add-ons/) like WooCommerce rewards that enable you to perform complex tasks such as transfer or buy points for real money, allow payments in stores, etc. 
 
 **– Badges**: Award your users badges based on their history using gamification.
+**– Badge Plus**: Designate digital badges to suitable users, create default & infinite badges, and accomplish much more with Badge Plus. 
+**– Badge Editor**: Design, edit, and download images of aesthetic digital badges from the Badge Editor’s back-end dashboard. 
 **– buyCred**: Let your users buy points in exchange for real money.
 **– Coupons**: Create coupons that can be redeemed for points.
 **– Email notifications**: Setup email notifications for status updates.
 **– Gateway**: Let users pay with points in your store.
 **– Notifications**: Enable popup notifications that display status updates.
 **– Ranks**: Create ranks based on the user’s point balance.
+**– Rank Plus**: Rank Plus lets you assign ranks to eligible users, set default & unlimited ranks, and do much more. 
 **– Sell Content**: Sell your content in exchange for points.
 **– Statistics**: Get a statistical overview of points or rewards in circulation, etc.
 **– Transfers**: Allow your users to transfer points to other users.
-
-- [Gamification for WooCommerce](https://mycred.me/woocommerce-loyalty-rewards-badge-and-points-system/) 
-myCred WooCommerce offers seamless integration with WooCommerce, improving your e-commerce experience. This built-in add-on introduces five key features: compatibility with WooCommerce blocks, points for each order, first orders, order ranges, and several orders. Earn rewards based on various order criteria, while admins have full control over point allocation through customizable hooks. The addon also supports myCred as a payment gateway, displaying user reward balances on the cart & checkout pages.
+**– Birthdays**: Access myCred Birthdays to reward or deduct myCred points from your users on their birthday!
+**– WooCommerce**: WooCommerce enables you to reward your users with WooCommerce points each time they place an order.
 
 = BUILT-IN PLUGIN SUPPORT = 
 myCred supports some of the most popular WordPress plugins like **BuddyPress, WooCommerce, Jetpack, Contact Form 7, Disqus, Gravity Forms,** among countless others for gamification.
@@ -295,16 +291,11 @@ You can directly contact our [support.](https://objectsws.atlassian.net/serviced
 
 == Upgrade Notice ==
 
+= 2.9.4.4 =
+Bug fixes and improvements.
+
 = 2.9.4.3 =
-Buycred settings UI issues fixed.
-Bucred limit is not working as per the setting.
-Fixed warnings in mycred_buy shortcode.
-Gutenberg buy block payment gateway setting fixed.
-CashCred shortcode "Gateway" column name not showing.
-CashCred Withdrawal Request Backend UI issue.
-Transfer shortcode and block not showing current balance.
-Badge Plus errors and warnings.
-Code improvement and optimization.
+Bug fixes and improvements.
 
 = 2.9.4.2 =
 Code improvement.
@@ -479,15 +470,28 @@ The banking module have been replaced by Central deposite module, and interest r
 
 == Changelog ==
 
+= 2.9.4.4 =
+- **NEW** - Rank Plus Enhancements.
+- **NEW** - Added Server Side Validation in Transfer.
+- **FIX** - BuyCred UI Issue fixed.
+- **FIX** - BuyCred limit was not working.
+- **FIX** - BuyCred warning messages are now not showing in shortcodes and blocks.
+- **FIX** - BuyCred shortcode is now working with custom point type.
+- **FIX** - Badge Plus is not showing fatal error.
+- **FIX** - Bulk Assign points were not awarding to users when user role was selected.
+- **FIX** - Fixed fatal error in CashCred.
+- **FIX** - Sell Content 500 Server Error issue fixed.
+- **FIX** - Fixed warnings and errors on WooCommerce legacy checkout.
+
 = 2.9.4.3 =
-- **FIX** - Buycred settings UI issues fixed.
-- **FIX** - Bucred limit is not working as per the setting.
-- **FIX** - Fixed warnings in mycred_buy shortcode.
-- **FIX** - Gutenberg buy block payment gateway setting fixed.
-- **FIX** - CashCred shortcode "Gateway" column name not showing.
-- **FIX** - CashCred Withdrawal Request Backend UI issue.
-- **FIX** - Transfer shortcode and block not showing current balance.
-- **FIX** - Badge Plus errors and warnings.
+- **FIX** - Fixed UI issues in the buyCred settings.
+- **FIX** - buyCred limit now works according to the configured settings.
+- **FIX** - Warnings in the mycred_buy shortcode have been fixed.
+- **FIX** - Payment gateway setting issue in the Gutenberg Buy block resolved.
+- **FIX** - "Gateway" column name was missing in the cashCred shortcode.
+- **FIX** - Resolved backend UI issue in cashCred withdrawal requests.
+- **FIX** - Current balance now displays properly in the Transfer shortcode and block.
+- **FIX** - Fixed errors and warnings in Badge Plus.
 - **TWEAK** - Code improvement and optimization.
 
 = 2.9.4.2 =

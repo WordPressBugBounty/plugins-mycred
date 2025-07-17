@@ -226,26 +226,64 @@ if ( ! class_exists( 'myCRED_Transfer_Module' ) ) :
 		 * @since 0.1
 		 * @version 1.8
 		 */
-		public function ajax_call_transfer() {
+		 public function ajax_call_transfer() {
 
-			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized 
-			parse_str( $_POST['form'], $post );
+		    if ( ! is_user_logged_in() ) {
+		        wp_send_json_error( 'not_logged_in' );
+		    }
 
-			$post = mycred_sanitize_array( $post );
+		    // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized 
+		    parse_str( $_POST['form'], $post );
 
-			// Generate Transaction ID for our records
-			$user_id        = get_current_user_id();
+		    $post = mycred_sanitize_array( $post );
 
-			if ( mycred_force_singular_session( $user_id, 'mycred-last-transfer' ) )
-				wp_send_json_error( 'error_9' );
+		    // ✅ Validate amount against signed allowed values
+		    $transfer = $post['mycred_new_transfer'];
 
-			$request = mycred_new_transfer( $post['mycred_new_transfer'], $post );
-			if ( ! is_array( $request ) )
-				wp_send_json_error( $request );
 
-			// Transfer was successfull!
-			wp_send_json_success( $request );
 
+		    if ( isset( $transfer['allowed_amounts']  ) ) {
+
+		        $encoded_payload     = $transfer['allowed_amounts'];
+
+		        $received_signature  = $transfer['signature'];
+
+		        $submitted_amount    = floatval( $transfer['amount'] );
+
+		        $secret_key          = 'e3dA9p!7uGv#sT6jR@zQ2LfNc0MbWx8y';
+		        $expected_signature  = hash_hmac( 'sha256', $encoded_payload, $secret_key );
+
+
+		        if ( ! hash_equals( $expected_signature, $received_signature ) ) {
+
+		            wp_send_json_error( 'error_signature_mismatch' );
+		        }
+
+		        $allowed_amounts = json_decode( base64_decode( $encoded_payload ) );
+		        $allow_any_amount = false;
+				if ( empty( $allowed_amounts ) || (count($allowed_amounts) === 1 && !$allowed_amounts[0]) ) {
+				    $allow_any_amount = true;
+				}
+
+				if ( ! $allow_any_amount ) {
+				    if ( ! is_array( $allowed_amounts ) || ! in_array( $submitted_amount, array_map( 'floatval', $allowed_amounts ), true ) ) {
+				        wp_send_json_error( 'error_amount_not_allowed' );
+				    }
+				}
+		    }
+		    else {
+		    	
+		        wp_send_json_error( 'error_missing_signature' );
+		    }
+
+		    // Continue transfer after validation
+		    $request = mycred_new_transfer( $transfer, $post );
+
+		    if ( ! is_array( $request ) ) {
+		        wp_send_json_error( $request );
+		    }
+
+		    wp_send_json_success( $request );
 		}
 
 		/**
@@ -509,7 +547,7 @@ if ( ! class_exists( 'myCRED_Transfer_Module' ) ) :
 		 */
 		public function sanitize_extra_settings( $new_data, $data, $general ) {
 
-			$new_data['transfers']['types'] = isset($data['transfers']['types']) ? $data['transfers']['types'] : null;
+			$new_data['transfers']['types']                = $data['transfers']['types'];
 			$new_data['transfers']['reload']               = isset($data['transfers']['reload']) ? absint( $data['transfers']['reload'] ) : '';
 			$new_data['transfers']['message']              = absint( $data['transfers']['message'] );
 			$new_data['transfers']['autofill']             = sanitize_text_field( $data['transfers']['autofill'] );

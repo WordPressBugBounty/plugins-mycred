@@ -63,7 +63,7 @@ if ( ! function_exists( 'mycred_render_shortcode_load_coupon' ) ) :
 					$coupon_settings = mycred_get_addon_settings( 'coupons' ,  $coupon->point_type  );
 					$message = $mycred->template_tags_amount( $coupon_settings['success'], $updated_coupon_value );   // without filter
 					$message = str_replace( '%amount%', $mycred->format_creds( $updated_coupon_value ), $message );
-					$output .= '<div class="alert alert-success">' . $message . '</div>';
+					$output .= '<div class="alert alert-success">' . wp_kses_post($message) . '</div>';
 
 				}
 
@@ -74,7 +74,7 @@ if ( ! function_exists( 'mycred_render_shortcode_load_coupon' ) ) :
 
 				$message = mycred_get_coupon_error_message( 'invalid' );
 				$message = $mycred->template_tags_general( $message );
-				$output .= '<div class="alert alert-danger">' . $message . '</div>';
+				$output .= '<div class="alert alert-danger">' . wp_kses_post($message)  . '</div>';
 
 			}
 
@@ -91,7 +91,7 @@ if ( ! function_exists( 'mycred_render_shortcode_load_coupon' ) ) :
 		</div>
 		<div class="form-group">
 			<input type="hidden" name="mycred_coupon_load[token]" value="' . wp_create_nonce( 'mycred-load-coupon' . $user_id ) . '" />
-			<input type="submit" class="btn btn-primary" value="' . $button . '" />
+			<input type="submit" class="btn btn-primary" value="' . esc_attr($button) . '" />
 		</div>
 	</form>
 </div>';

@@ -810,7 +810,7 @@ label.mycred-checkbox-radio {
 }
 
 .mycred-ui-accordion-body {
-    padding: 10px 59px 25px 59px;
+    padding: 10px 59px 25px 59px !important;
 }
 
 .mycred-ui-mt20 {

@@ -308,17 +308,18 @@ if ( ! class_exists( 'myCRED_Transfer' ) ) :
 		public function new_instance( $request = array() ) {
 
 			global $mycred_do_transfer;
-
-			extract(shortcode_atts(array(
-			    'sender_id'   => get_current_user_id(),
-			    'reference'   => 'transfer',
-			    'minimum'     => 0,
-			    'recipient'   => 0,
-			    'amount'      => '',
-			    'point_types' => isset($this->settings['types']) && is_array($this->settings['types']) 
-			        ? implode(',', $this->settings['types']) 
-			        : ''
-			), $request));
+			
+			if ( ! $this->settings['types'] ) {
+				return;
+			}
+			extract( shortcode_atts( array(
+				'sender_id'   => get_current_user_id(),
+				'reference'   => 'transfer',
+				'minimum'     => 0,
+				'recipient'   => 0,
+				'amount'      => '',
+				'point_types' => implode( ',', $this->settings['types'] )
+			), $request ) );
 
 			$sender_id                = absint( $sender_id );
 			$this->transfer_id        = $this->generate_new_transfer_id( $sender_id );
@@ -334,15 +335,7 @@ if ( ! class_exists( 'myCRED_Transfer' ) ) :
 			$this->recipient_id       = $recipient_id;
 
 			$transferable             = array();
-			$requested_types = ( ! empty( $point_types ) ) 
-			    ? explode( ',', $point_types ) 
-			    : ( isset( $this->settings['types'] ) && is_array( $this->settings['types'] ) 
-			        ? $this->settings['types'] 
-			        : array() );
-			if ( ! is_array( $requested_types ) ) {
-			    $requested_types = array();
-			}
-
+			$requested_types          = ( ! empty( $point_types ) ) ? explode( ',', $point_types ) : $this->settings['types'];
 			$usable_types             = mycred_get_usable_types( $sender_id );
 
 			// Make sure we have "usable types". These are types we are not excluded from
@@ -603,135 +596,157 @@ if ( ! class_exists( 'myCRED_Transfer' ) ) :
 		 */
 		public function is_valid_transfer_request( $request = array(), $posted = array() ) {
 
-			$this->valid_request   = false;
-			$this->request         = shortcode_atts( apply_filters( 'mycred_new_transfer_request', array(
-				'token'        => NULL,
-				'recipient_id' => NULL,
-				'user_id'      => 'current',
-				'ctype'        => MYCRED_DEFAULT_TYPE_KEY,
-				'amount'       => NULL,
-				'amount_placeholder' => NULL,
-				'reference'    => 'transfer',
-				'message'      => isset( $posted['message'] ) ? $posted['message'] : '',
-				'transfered_attributes' => NULL
-	
-			), $posted ), $request );
+		    $this->valid_request = false;
 
-			// Security
-			if ( ! wp_verify_nonce( $this->request['token'], 'mycred-new-transfer-' . $this->request['reference'] ) || ! isset( $this->request['transfered_attributes'] ) )
-				return 'error_1';
+		    $this->request = shortcode_atts(
+		        apply_filters( 'mycred_new_transfer_request', array(
+		            'token'                 => null,
+		            'recipient_id'          => null,
+		            'user_id'               => 'current',
+		            'ctype'                 => MYCRED_DEFAULT_TYPE_KEY,
+		            'amount'                => null,
+		            'amount_placeholder'    => null,
+		            'reference'             => 'transfer',
+		            'message'               => isset( $posted['message'] ) ? $posted['message'] : '',
+		            'transfered_attributes' => null,
+		            'signature'             => null // ✅ Include signature in expected parameters
+		        ), $posted ),
+		        $request
+		    );
 
-			// Reference
-			$reference             = sanitize_key( $this->request['reference'] );
-			if ( $reference == '' ) $reference = 'transfer';
-			$this->reference       = $reference;
+		    // Nonce + locked attribute check
+		    if ( ! wp_verify_nonce( $this->request['token'], 'mycred-new-transfer-' . $this->request['reference'] ) || ! isset( $this->request['transfered_attributes'] ) ) {
+		        return 'error_1';
+		    }
 
-			// Make sure we are transfering an existing point type
-			if ( ! mycred_point_type_exists( $this->request['ctype'] ) || ! in_array( $this->request['ctype'], $this->settings['types'] ) )
-				return 'error_10';
+		    $reference = sanitize_key( $this->request['reference'] );
+		    if ( $reference == '' ) $reference = 'transfer';
+		    $this->reference = $reference;
 
-			$this->point_type      = $this->request['ctype'];
+		    // Validate point type
+		    if ( ! mycred_point_type_exists( $this->request['ctype'] ) || ! in_array( $this->request['ctype'], $this->settings['types'] ) ) {
+		        return 'error_10';
+		    }
+		    $this->point_type = $this->request['ctype'];
 
-			// Senders ID
-			$sender_id             = get_current_user_id();
-			if ( $this->request['user_id'] != 'current' && absint( $this->request['user_id'] ) > 0 && absint( $this->request['user_id'] ) != $user_id )
-				$sender_id = $this->request['user_id'];
+		    // Sender
+		    $sender_id = get_current_user_id();
+		    if ( $this->request['user_id'] !== 'current' && absint( $this->request['user_id'] ) > 0 ) {
+		        $sender_id = absint( $this->request['user_id'] );
+		    }
+		    $this->sender_id = $sender_id;
 
-			$this->sender_id       = absint( $sender_id );
+		    // Recipient
+		    $recipient_id = mycred_get_transfer_recipient( sanitize_text_field( $this->request['recipient_id'] ) );
+		    if ( $recipient_id === false ) return 'error_invalid_recipient';
 
-			// Transfer recipient
-			$recipient_id          = mycred_get_transfer_recipient( sanitize_text_field( $this->request['recipient_id'] ) );
-			
-			if ( $recipient_id === false )
-				return 'error_3';
+		    // Decode locked attributes
+		    $decoded = json_decode( base64_decode( $this->request['transfered_attributes'] ) );
+		    if ( ! $decoded ) return 'error_missing_amount_lock';
 
-			//If user is trying to hack
+		    // Lock recipient
+		    if ( ! empty( $decoded->recipient_id ) ) {
+		        $allowed_recipients = is_array( $decoded->recipient_id ) ? $decoded->recipient_id : array( $decoded->recipient_id );
+		        if ( ! in_array( $recipient_id, $allowed_recipients ) ) {
+		            return 'error_invalid_recipient';
+		        }
+		    }
 
-			$transfered_attributes = json_decode( $this->decode( $this->request['transfered_attributes'] ) );
+		    // Lock point type
+		    if ( ! empty( $decoded->types ) ) {
+		        $allowed_types = is_array( $decoded->types ) ? $decoded->types : array( $decoded->types );
+		        if ( ! in_array( $this->request['ctype'], $allowed_types ) ) {
+		            return 'error_invalid_point_type';
+		        }
+		    }
 
-			if ( ! empty( $transfered_attributes->recipient_id ) && ! in_array( $recipient_id, $transfered_attributes->recipient_id ) ) {
-				$recipient_id = $transfered_attributes->recipient_id[0];
+		    // ✅ Amount + Signature Validation
+		    if ( isset( $this->request['transfered_attributes'] ) && isset( $this->request['signature'] ) && isset( $this->request['amount'] ) ) {
+
+		    $encoded_payload     = $this->request['transfered_attributes']; // base64 encoded JSON
+		    $received_signature  = $this->request['signature'];
+		    $submitted_amount    = floatval( $this->request['amount'] );
+
+		    $secret_key          = 'e3dA9p!7uGv#sT6jR@zQ2LfNc0MbWx8y';
+		    $expected_signature  = hash_hmac( 'sha256', $encoded_payload, $secret_key );
+
+		    $decoded_payload = json_decode( base64_decode( $encoded_payload ), true );
+
+		    $raw_allowed = $decoded_payload['amount'];
+
+			if ( is_array( $raw_allowed ) ) {
+			    $allowed_amounts = array_map( 'floatval', $raw_allowed );
+			} else {
+			    $allowed_amounts = [ floatval( $raw_allowed ) ];
 			}
 
-			if ( ! empty( $transfered_attributes->types ) && ! in_array( $this->request['ctype'], $transfered_attributes->types ) ) {
-				$this->point_type = $transfered_attributes->types[0];
+			} else {
+			    return 'error_missing_required_fields';
 			}
 
-			if ( ! empty( $transfered_attributes->amount ) && $this->request['amount'] !== $transfered_attributes->amount ) {
-				$this->request['amount'] = $transfered_attributes->amount;
-			}
+		    // Final recipient
+		    $this->recipient_id = apply_filters( 'mycred_transfer_recipient', absint( $recipient_id ), $this->request );
 
-			$this->recipient_id    = apply_filters( 'mycred_transfer_recipient', absint( $recipient_id ), $this->request );
+		    if ( $this->recipient_id == $this->sender_id ) {
+		        return 'error_cannot_transfer_to_self';
+		    }
 
-			// We are trying to transfer to ourselves
-			if ( $this->recipient_id == $this->sender_id )
-				return 'error_4';
+		    $mycred = mycred( $this->point_type );
 
-			$mycred                = mycred( $this->point_type );
+		    if ( $mycred->exclude_user( $this->sender_id ) || $mycred->exclude_user( $this->recipient_id ) ) {
+		        return 'error_user_excluded';
+		    }
 
-			if ( $mycred->exclude_user( $this->sender_id ) )
-				return 'error_4';
+		    $amount = $mycred->number( abs( $this->request['amount'] ) );
+		    if ( $amount < $mycred->get_lowest_value() ) {
+		        return 'error_invalid_amount';
+		    }
 
-			// The recipient is excluded from the point type
-			if ( $mycred->exclude_user( $this->recipient_id ) )
-				return 'error_4';
+		    $balance = $mycred->get_users_balance( $this->sender_id );
+		    $lowest_balance = apply_filters( 'mycred_transfer_acc_limit', $mycred->zero(), $this->point_type, $this->sender_id, $this->reference );
 
-			// Amount can not be zero
-			$amount                = $mycred->number( abs( $this->request['amount'] ) );
-			
-			if ( $amount < $mycred->get_lowest_value() )
-				return 'error_5';
+		    if ( ( $balance - $amount ) < $lowest_balance ) {
+		        return 'error_insufficient_balance';
+		    }
 
-			$balance               = $mycred->get_users_balance( $this->sender_id );
-			$lowest_balance        = apply_filters( 'mycred_transfer_acc_limit', $mycred->zero(), $this->point_type, $this->sender_id, $this->reference );
-			if ( ( $balance - $amount ) < $lowest_balance )
-				return 'error_7';
+		    // Transfer limit check
+		    $transfer_limit = $this->get_transfer_limit();
+		    if ( $transfer_limit !== false ) {
+		        $transfer_limit->amount = $mycred->number( $transfer_limit->amount );
+		        $total = $this->total_sent( $this->reference, $this->sender_id, $this->point_type, $transfer_limit->from, $transfer_limit->until );
+		        $total += $amount;
 
-			// Enforce transfer limit
-			$transfer_limit        = $this->get_transfer_limit();
-			if ( $transfer_limit !== false ) {
+		        if ( $total > $transfer_limit->amount ) {
+		            return 'error_transfer_limit_exceeded';
+		        }
+		    }
 
-				// Format the limit amount
-				$transfer_limit->amount = $mycred->number( $transfer_limit->amount );
+		    $this->transfer_amount = $amount;
 
-				// Query our total for the limit period plus add the amount we want to transfer now
-				$total                  = $this->total_sent( $this->reference, $this->sender_id, $this->point_type, $transfer_limit->from, $transfer_limit->until );
-				$total                 += $amount;
+		    // Sanitize message
+		    if ( $this->settings['message'] > 0 ) {
+		        $message        = sanitize_text_field( $this->request['message'] );
+		        $this->message  = substr( $message, 0, $this->settings['message'] );
+		    }
 
-				// Determine if we are over or not
-				if ( $total > $transfer_limit->amount )
-					return 'error_8';
+		    $this->transfer_id = $this->generate_new_transfer_id( $this->sender_id, $this->recipient_id );
+		    $this->data = apply_filters( 'mycred_transfer_data', array(
+		        'ref_type' => 'user',
+		        'tid'      => $this->transfer_id,
+		        'message'  => $this->message,
+		    ), $this->transfer_id, $this->request, $this->settings );
 
-			}
+		    // Prevent duplicates
+		    if ( $mycred->has_entry( $this->reference, $this->recipient_id, $this->sender_id, $this->data, $this->point_type ) ) {
+		        return 'error_duplicate_transfer';
+		    }
 
-			$this->transfer_amount = $amount;
+		    $this->balances[ $this->point_type ] = $balance;
+		    $this->valid_request = apply_filters( 'mycred_is_valid_transfer_request', true, $this );
 
-			// If messages are allowed, enforce a max length
-			if ( $this->settings['message'] > 0 ) {
-				$message       = sanitize_text_field( $this->request['message'] );
-				$message       = substr( $message, 0, $this->settings['message'] );
-				$this->message = $message;
-			}
-
-			$this->transfer_id     = $this->generate_new_transfer_id( $this->sender_id, $this->recipient_id );
-			$this->data            = apply_filters( 'mycred_transfer_data', array(
-				'ref_type' => 'user',
-				'tid'      => $this->transfer_id,
-				'message'  => $this->message,
-				// 'message_placeholder'  => $this->message_placeholder
-			), $this->transfer_id, $this->request, $this->settings );
-
-			// Prevent Duplicate transactions
-			if ( $mycred->has_entry( $this->reference, $this->recipient_id, $this->sender_id, $this->data, $this->point_type ) )
-				return 'error_9';
-
-			$this->balances[ $this->point_type ] = $balance;
-
-			$this->valid_request = apply_filters( 'mycred_is_valid_transfer_request', true, $this );
-
-			return $this->valid_request;
-
+		    return $this->valid_request;
 		}
+
 
 		/**
 		 * Total Sent
@@ -847,8 +862,6 @@ if ( ! class_exists( 'myCRED_Transfer' ) ) :
 			// New or refunded transfers can not be refunded.
 			if ( in_array( $transfer->status, array( '', 'refunded' ) ) ) return false;
 
-
-
 			return true;
 
 		}
@@ -860,73 +873,77 @@ if ( ! class_exists( 'myCRED_Transfer' ) ) :
 		 * @since 2.3 Changed submit input tag with button tag to make compatible with modern UI
 		 * @version 1.0
 		 */
+		// PHP: Method to output the transfer form
 		public function get_transfer_form( $args = array() ) {
 
-			$this->args = shortcode_atts( array(
-				'button'          => '',
-				'button_class'    => 'btn btn-primary btn-block btn-lg',
-				'show_balance'    => 0,
-				'show_limit'      => 0,
-				'show_message'    => 1,
-				'placeholder'     => '',
-				'amount_placeholder'     => '',
-				'message_placeholder'         => '',
-				'recipient_placeholder' => '',
-				'recipient_label' => __( 'Recipient', 'mycred' ),
-				'amount_label'    => __( 'Amount', 'mycred' ),
-				'balance_label'   => __( 'Balance', 'mycred' ),
-				'message_label'   => __( 'Message', 'mycred' )
-			), $args );
+		    $this->args = shortcode_atts( array(
+		        'button'               => '',
+		        'button_class'         => 'btn btn-primary btn-block btn-lg',
+		        'show_balance'         => 0,
+		        'show_limit'           => 0,
+		        'show_message'         => 1,
+		        'placeholder'          => '',
+		        'amount_placeholder'   => '',
+		        'message_placeholder'  => '',
+		        'recipient_placeholder'=> '',
+		        'recipient_label'      => __( 'Recipient', 'mycred' ),
+		        'amount_label'         => __( 'Amount', 'mycred' ),
+		        'balance_label'        => __( 'Balance', 'mycred' ),
+		        'message_label'        => __( 'Message', 'mycred' )
+		    ), $args );
 
-			if ( $this->args['button'] == '' )
-				$this->args['button'] = $this->settings['templates']['button'];
+		    if ( $this->args['button'] == '' )
+		        $this->args['button'] = $this->settings['templates']['button'];
 
-			ob_start();
+		    ob_start();
+		    ?>
+		    <div class="mycred-transfer-cred-wrapper"<?php if ( $this->reference != '' ) echo ' id="transfer-form-' . esc_attr( $this->reference ) . '"'; ?>>
+		        <form class="form mycred-transfer mycred-transfer-form" id="mycred-transfer-form-<?php echo esc_attr( $this->reference ); ?>" method="post" data-ref="<?php echo esc_attr( $this->reference ); ?>" action="">
 
-?>
-<div class="mycred-transfer-cred-wrapper"<?php if ( $this->reference != '' ) echo ' id="transfer-form-' . esc_attr( $this->reference ) . '"'; ?>>
-	<form class="form mycred-transfer mycred-transfer-form" id="mycred-transfer-form-<?php echo esc_attr( $this->reference ); ?>" method="post" data-ref="<?php echo esc_attr( $this->reference ); ?>" action="">
+		            <?php do_action( 'mycred_transfer_form_start', $this->args, $this->settings ); ?>
 
-		<?php do_action( 'mycred_transfer_form_start', $this->args, $this->settings ); ?>
+		            <div class="row">
+		                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+		                    <?php $this->get_transfer_recipient_field(); ?>
+		                </div>
 
-		<div class="row">
+		                <?php $this->get_transfer_points_field(); ?>
+		            </div>
 
-			<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+		            <?php $this->get_transfer_message_field(); ?>
 
-				<?php $this->get_transfer_recipient_field(); ?>
+		            <?php $this->get_transfer_extra_fields(); ?>
 
-			</div>
+		            <div class="row">
+		                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+		                    <input type="hidden" name="mycred_new_transfer[token]" value="<?php echo esc_attr( wp_create_nonce( 'mycred-new-transfer-' . sanitize_key( $this->reference ) ) ); ?>" />
+		                    <input type="hidden" name="mycred_new_transfer[reference]" value="<?php echo esc_attr( $this->reference ); ?>" />
 
-			<?php $this->get_transfer_points_field(); ?>
+		                    <?php
+		                    // Prepare locked attributes - **DO NOT lock recipient_id** to allow free recipient input
+		                    $amount = isset( $this->shortcode_attr['amount'] ) ? floatval( $this->shortcode_attr['amount'] ) : 0;
+		                    $ctype  = isset( $this->shortcode_attr['ctype'] ) ? sanitize_key( $this->shortcode_attr['ctype'] ) : 'mycred_default';
 
-		</div>
+		                    $transfer_lock = base64_encode( wp_json_encode( array(
+		                        // 'recipient_id' => OMITTED so user can enter any recipient
+		                        'amount'       => $amount,
+		                        'types'        => array( $ctype ),
+		                    ) ) );
+		                    ?>
 
-		<?php $this->get_transfer_message_field(); ?>
+		                    <input type="hidden" name="mycred_new_transfer[transfered_attributes]" value="<?php echo esc_attr( $transfer_lock ); ?>" />
+		                    <button class="mycred-submit-transfer<?php echo ' ' . esc_attr( $this->args['button_class'] ); ?>"><?php echo esc_attr( $this->args['button'] ); ?></button>
+		                </div>
+		            </div>
 
-		<?php $this->get_transfer_extra_fields(); ?>
+		            <?php do_action( 'mycred_transfer_form_end', $this->args, $this->settings ); ?>
 
-		<div class="row">
+		        </form>
+		    </div>
+		    <?php
+		    $output = ob_get_clean();
 
-			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-				<input type="hidden" name="mycred_new_transfer[token]" value="<?php echo esc_attr( wp_create_nonce( 'mycred-new-transfer-' . sanitize_key( $this->reference ) ) ); ?>" />
-				<input type="hidden" name="mycred_new_transfer[reference]" value="<?php echo esc_attr( $this->reference ); ?>" />
-				<input type="hidden" name="mycred_new_transfer[transfered_attributes]" value="<?php echo esc_attr( $this->encode( $this->shortcode_attr ) ); ?>" />
-				<button class="mycred-submit-transfer<?php echo ' ' . esc_attr( $this->args['button_class'] ); ?>"><?php echo esc_attr( $this->args['button'] ); ?></button>
-			</div>
-
-		</div>
-
-		<?php do_action( 'mycred_transfer_form_end', $this->args, $this->settings ); ?>
-
-	</form>
-</div>
-<?php
-
-			$output = ob_get_contents();
-			ob_end_clean();
-
-			return do_shortcode( apply_filters( 'mycred_transfer_render', $output, $this->args, $this ) );
-
+		    return do_shortcode( apply_filters( 'mycred_transfer_render', $output, $this->args, $this ) );
 		}
 
 		/**
@@ -1082,49 +1099,68 @@ if ( ! class_exists( 'myCRED_Transfer' ) ) :
 		 */
 		public function get_transfer_amount_field( $return = false ) {
 
-			$type_id    = $this->transferable_types[0];
-			$balance    = $this->balances[ $type_id ];
-			$point_type = $balance->point_type;
+		    $type_id    = $this->transferable_types[0];
+		    $balance    = $this->balances[ $type_id ];
+		    $point_type = $balance->point_type;
 
-			$field      = '<div class="form-group select-amount-wrapper">';
-			if ( $this->args['amount_label'] != '' ) $field .= '<label class="amount-label">' . esc_attr( $this->args['amount_label'] ) . '</label>';
+		    $field = '<div class="form-group select-amount-wrapper">';
+		    if ( $this->args['amount_label'] != '' ) {
+		        $field .= '<label class="amount-label">' . esc_attr( $this->args['amount_label'] ) . '</label>';
+		    }
 
-			// User needs to nominate the amount
-			if ( ! is_array( $this->transfer_amount ) && $this->transfer_amount == 0 ){
-				$field .= '<input type="text" name="mycred_new_transfer[amount]" placeholder="' . esc_attr( $this->args['amount_placeholder'] ) . '" class="form-control" value="" />';	
-			}
-			// Multiple amounts to pick from
-			elseif ( is_array( $this->transfer_amount ) && count( $this->transfer_amount ) > 1 ) {
+		    // Signature + allowed amount generation (universal)
+		    $allowed_amounts = [];
 
-				$field .= '<select name="mycred_new_transfer[amount]" class="form-control transfer-amount-field">';
+		    if ( is_array( $this->transfer_amount ) ) {
+		        $allowed_amounts = $this->transfer_amount;
+		    } else {
+		        $allowed_amounts = [ $this->transfer_amount ];
+		    }
 
-				foreach ( $this->transfer_amount as $amount )
-					$field .= '<option value="' . esc_attr( $amount ) . '">' . esc_html( $amount ) . '</option>';
+		    $secret_key = 'e3dA9p!7uGv#sT6jR@zQ2LfNc0MbWx8y';
+		    $payload = json_encode( $allowed_amounts );
+		    $encoded_payload = base64_encode( $payload );
+		    $signature = hash_hmac( 'sha256', $encoded_payload, $secret_key );
 
-				$field .= '</select>';
+		    // Case 1: User selects amount from dropdown
+		    if ( is_array( $this->transfer_amount ) && count( $this->transfer_amount ) > 1 ) {
 
-			}
-
-			// An amount has been nominated
-			else {
-
-				$this->shortcode_attr['amount'] = $this->transfer_amount;
-				$field .= '<input type="hidden" name="mycred_new_transfer[amount]" value="' . esc_attr( $this->transfer_amount ) . '" />';
-				$field .= '<span class="form-control-static" id="mycred-transfer-form-amount-field">' . esc_html( $this->transfer_amount ) . '</span>';
-
-			}
-
-			$field .= '</div>';
-
-			$field  = apply_filters( 'mycred_transfer_form_amount', $field, $this->args, $this->settings );
-
-			if ( $return )
-				return $field;
-
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			echo $field;
+		    $field .= '<select name="mycred_new_transfer[amount]" class="form-control">';
+		    foreach ( $allowed_amounts as $amount ) {
+		        $field .= '<option value="' . esc_attr( $amount ) . '">' . esc_html( $amount ) . '</option>';
+		    }
+		    $field .= '</select>';
 
 		}
+		// Case 2: Single fixed amount or no amount specified
+		else {
+		    if ( empty( $this->transfer_amount ) ) {
+		        // No amount specified, allow manual entry
+		        $field .= '<input type="number" name="mycred_new_transfer[amount]" class="form-control" placeholder="' . esc_attr( $this->args['amount_placeholder'] ) . '" min="0" />';
+		    }
+		    else {
+		        // Fixed amount, show non-editable
+		        $amount_value = is_array( $this->transfer_amount ) ? $this->transfer_amount[0] : $this->transfer_amount;
+
+		        $field .= '<input type="hidden" name="mycred_new_transfer[amount]" value="' . esc_attr( $amount_value ) . '" />';
+		        $field .= '<span class="form-control-static" id="mycred-transfer-form-amount-field">' . esc_html( $amount_value ) . '</span>';
+		    }
+		}
+
+		    // Add hidden fields regardless
+		    $field .= '<input type="hidden" name="mycred_new_transfer[allowed_amounts]" value="' . esc_attr( $encoded_payload ) . '" />';
+		    $field .= '<input type="hidden" name="mycred_new_transfer[signature]" value="' . esc_attr( $signature ) . '" />';
+
+		    $field .= '</div>';
+
+		    $field = apply_filters( 'mycred_transfer_form_amount', $field, $this->args, $this->settings );
+
+		    if ( $return )
+		        return $field;
+
+		    echo $field;
+		}
+
 
 		/**
 		 * Get Transfer Point Type Field
@@ -1137,18 +1173,19 @@ if ( ! class_exists( 'myCRED_Transfer' ) ) :
 
 			$this->shortcode_attr['types'][] = $this->transferable_types[0];
 
-			if ( count( $this->transferable_types ) > 1 ) {
+			if ( count( $this->transferable_types ) >= 1 ) {
 
 				$field  = '<div class="form-group select-point-type-wrapper">';
 
 				if ( $this->args['balance_label'] != '' ) $field .= '<label>' . esc_html( $this->args['balance_label'] ) . '</label>';
-				$field .= '<select name="mycred_new_transfer[ctype]" class="form-control transfer-ctype-field">';
+				$field .= '<select name="mycred_new_transfer[ctype]" class="form-control">';
 
 				$this->shortcode_attr['types'] = [];
-
+				$field .= '<option value="0">Select Point Type</option>';	
 				foreach ( $this->balances as $type_id => $balance ){
 
 					$this->shortcode_attr['types'][] = $type_id;
+					
 					$field .= '<option value="' . esc_attr( $type_id ) . '">' . $balance->point_type->plural . '</option>';
 
 				}
@@ -1207,42 +1244,36 @@ if ( ! class_exists( 'myCRED_Transfer' ) ) :
 		 * @since 1.8
 		 * @version 1.0
 		 */
-		public function get_transfer_extra_fields( $return = false ) {
-			
-			// Show Balance 
+		
+		 public function get_transfer_extra_fields( $return = false ) {
 			$extras = array();
+		
+			// Show Balance
 			if ( (bool) $this->args['show_balance'] && ! empty( $this->settings['templates']['balance'] ) ) {
-
 				foreach ( $this->balances as $type_id => $balance ) {
-
 					$template = $this->settings['templates']['balance'];
-
 					$template = str_replace( '%balance%', $balance->point_type->format( $balance->current ), $template );
 					$template = str_replace( '%singular%', $balance->point_type->singular, $template );
 					$template = str_replace( '%plural%', $balance->point_type->plural, $template );
-
-					$extras[] = $template;
-
+		
+					$extras[ $type_id ]['balance'] = $template;
 				}
-
 			}
-
+		
 			// Show Limits
-			if ( (bool) $this->args['show_limit'] && ! empty( $this->settings['templates']['limit'] ) && $this->settings['limit']['limit'] != 'none' && count( $this->balances ) == 1 ) {
-
+			if ( (bool) $this->args['show_limit'] && ! empty( $this->settings['templates']['limit'] ) && $this->settings['limit']['limit'] != 'none' ) {
 				foreach ( $this->balances as $type_id => $balance ) {
-
-					$extras[] = $this->get_transfer_limit_desc( $type_id );
-
+					$limit_desc = $this->get_transfer_limit_desc( $type_id );
+					if ( $limit_desc ) {
+						$extras[ $type_id ]['limit'] = $limit_desc;
+					}
 				}
-
 			}
-
+		
 			$field = '';
-
+		
 			// Show extras
 			if ( ! empty( $extras ) ) {
-
 				$extras_count = count( $extras );
 				$column_class = 'col-lg-12 col-md-12 col-sm-12 col-xs-12';
 				if ( $extras_count == 2 )
@@ -1253,26 +1284,32 @@ if ( ! class_exists( 'myCRED_Transfer' ) ) :
 					$column_class = 'col-lg-3 col-md-3 col-sm-12 col-xs-12';
 				elseif ( $extras_count > 4 )
 					$column_class = 'col-lg-2 col-md-2 col-sm-12 col-xs-12';
-
+		
 				$field .= '<div class="row">';
-				foreach ( $extras as $extra_content ) {
-					$field .= '<div class="' . $column_class . '">';
-					$field .= do_shortcode( $extra_content );
-					$field .= '</div>';
+				foreach ( $extras as $type_id => $data ) {
+					if ( isset( $data['balance'] ) ) {
+						$field .= '<div class="mycred-balance" data-type="' . esc_attr( $type_id ) . '" style="display: none;">';
+						$field .= do_shortcode( $data['balance'] );
+						$field .= '</div>';
+					}
+					if ( isset( $data['limit'] ) ) {
+						$field .= '<div class="mycred-limit" data-type="' . esc_attr( $type_id ) . '" style="display: none;">';
+						$field .= do_shortcode( $data['limit'] );
+						$field .= '</div>';
+					}
 				}
 				$field .= '</div>';
-
 			}
-
+		
 			$field = apply_filters( 'mycred_transfer_form_extra', $field, $this->args, $this->settings );
-
-			if ( $return )
+		
+			if ( $return ) {
 				return $field;
-
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			}
+		
 			echo $field;
-
 		}
+				
 
 		/**
 		 * Encodes array for security
