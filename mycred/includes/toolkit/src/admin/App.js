@@ -298,18 +298,8 @@ const App = () => {
             gap: "8px",
           }}
         >
-          {__(
-            "myCred is an easy-to-use WordPress gamification plugin. Seamlessly create a daily login rewards",
-            "mycred-toolkit"
-          )}
-          <br />
-          {__(
-            "program or gamify your website and increase the average customer value with less marketing effort.",
-            "mycred-toolkit"
-          )}
+          
         </Typography>
-
-        <br />
 
         <FilterSection
           categories={categories}
