@@ -2,8 +2,8 @@
 Contributors: mycred,wpexpertsio
 Tags: badges, loyalty program, loyalty, points, rewards
 Requires at least: 4.8
-Tested up to: 6.8
-Stable tag: 2.9.5
+Tested up to: 6.9
+Stable tag: 2.9.7.4
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -297,6 +297,27 @@ You can directly contact our [support.](https://objectsws.atlassian.net/serviced
 
 == Upgrade Notice ==
 
+= 2.9.7.3 =
+Fixed warnings in badgeplus and rankplus
+
+= 2.9.7.2 =
+Vulnerability fixes
+
+= 2.9.7.1 =
+Vulnerability fixes
+
+= 2.9.7 =
+Compatible with WordPress Version 6.9
+
+= 2.9.6 =
+UI Improvements.
+
+= 2.9.5.2 =
+Paypal IPN URL Fix.
+
+= 2.9.5.1 =
+Bug fixes and improvements.
+
 = 2.9.5 =
 Bug fixes and improvements.
 
@@ -481,6 +502,30 @@ New features and Bug fixes.
 The banking module have been replaced by Central deposite module, and interest related functionality has been removed. If you are using simple interest or compound interest related functionality, you will fine the respective functionalities missing after the update.
 
 == Changelog ==
+
+= 2.9.7.4 =
+- **TWEAK** - Vulnerability fixes
+
+= 2.9.7.3 =
+- **FIX** - Fixed warnings in badgeplus and rankplus.
+
+= 2.9.7.2 =
+- **TWEAK** - Vulnerability fixes
+
+= 2.9.7.1 =
+- **TWEAK** - Vulnerability fixes
+
+= 2.9.7 =
+- **TWEAK** - Compatible with WordPress Version 6.9
+
+= 2.9.6 =
+- **TWEAK** - Code improvement.
+
+= 2.9.5.2 =
+- **FIX** - Paypal IPN URL Fix.
+
+= 2.9.5.1 =
+- **TWEAK** - Code improvement.
 
 = 2.9.5 =
 - **NEW** - Added filter mycred_woocom_purchase_reward_amount.
