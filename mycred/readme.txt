@@ -3,7 +3,7 @@ Contributors: mycred,wpexpertsio
 Tags: badges, loyalty program, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 6.9
-Stable tag: 2.9.7.5
+Stable tag: 2.9.7.6
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -297,12 +297,15 @@ You can directly contact our [support.](https://objectsws.atlassian.net/serviced
 
 == Upgrade Notice ==
 
+= 2.9.7.6 =
+Elementor Widget Bug Fix
+
 = 2.9.7.5 =
 Vulnerability fixes
 
 = 2.9.7.4 =
 Vulnerability fixes
-
+	
 = 2.9.7.3 =
 Fixed warnings in badgeplus and rankplus
 
@@ -509,6 +512,9 @@ The banking module have been replaced by Central deposite module, and interest r
 
 == Changelog ==
 
+= 2.9.7.6 =
+- **TWEAK** - Elementor Widget Bug Fix
+
 = 2.9.7.5 =
 - **TWEAK** - Vulnerability fixes
 
@@ -517,6 +523,11 @@ The banking module have been replaced by Central deposite module, and interest r
 
 = 2.9.7.3 =
 - **FIX** - Fixed warnings in badgeplus and rankplus.
+- **NEW** - Added integration with FluentCommunity
+- **NEW** - Added integration with Download Manager
+- **NEW** - Added integration with Asgaros Forum
+- **NEW** - Added integration with ARForms
+- **FIX** - Transfer addon limit issues
 
 = 2.9.7.2 =
 - **TWEAK** - Vulnerability fixes
