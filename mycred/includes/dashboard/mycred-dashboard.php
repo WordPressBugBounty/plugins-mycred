@@ -16,7 +16,20 @@ if ( ! class_exists( 'myCRED_Dashboard' ) ) :
             add_filter( 'mycred_save_core_prefs', array( $this, 'mycred_dashboard_save_settings'), 10, 3 );
             add_action( 'admin_menu', array( $this, 'mycred_dashboard_menu' ) );
             add_action( 'admin_enqueue_scripts', array( $this, 'mycred_dashboard_scripts' ) );
+            add_action( 'admin_head', array( $this, 'hide_notices' ), 1 );
             $this->load_api();
+        }
+
+        public function hide_notices() {
+            if ( isset( $_GET['page'] ) && $_GET['page'] === 'mycred-dashboard' ) {
+                remove_all_actions( 'admin_notices' );
+                remove_all_actions( 'all_admin_notices' );
+                echo '<style>
+                    .notice, .updated, .error, .fs-notice, .update-nag, .e-notice { 
+                        display: none !important; 
+                    }
+                </style>';
+            }
         }
 
         public function load_api() {
