@@ -1,9 +1,9 @@
-=== myCred - Points Management System For Gamification, Ranks, Badges, and Loyalty Rewards Program. ===
+=== Points Management System For Gamification, Ranks, Badges, and Loyalty Rewards Program - myCred ===
 Contributors: mycred,wpexpertsio
 Tags: badges, loyalty program, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 6.9
-Stable tag: 3.0.1
+Stable tag: 3.0.2
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -36,6 +36,18 @@ As a complete WordPress points management plugin, myCred provides THREE powerful
 **Ranks** – Create milestone-based progression systems using this WordPress digital wallet. Assign ranks on leaderboards and reward users with WooCommerce points and rewards when they reach defined achievements.
 
 **Badges** – Use myCred as a full-featured WordPress & WooCommerce rewards system plugin to award badges for achievements, encouraging higher participation, engagement, and community growth.
+
+== myCred Dashboard ==
+The myCred Dashboard provides a centralized interface to monitor and manage points and rewards across your WordPress site. It helps administrators track loyalty points, user engagement, and overall rewards activity from one place.
+
+- **Program Overview** – Monitor participation, engagement, and performance of your loyalty program.
+- **Points Management** – Award or deduct points instantly to maintain a balanced points and rewards system.
+- **User Insights** – Search users to view activity, manage loyalty points, and assign badges or ranks.
+- **Activity Tracking** – Review recent transactions, top members, and rewards activity in real time.
+- **WooCommerce Rewards Metrics** – Track points earned from purchases, points redeemed at checkout, and the revenue impact of WooCommerce rewards.
+- **Flexible Controls** – Filter data by user, point type, or date to analyze points and rewards performance.
+
+The dashboard simplifies the administration of loyalty points, badges, and WooCommerce rewards, making myCred a powerful rewards plugin for managing WordPress points and rewards programs.
 
 == myCred Toolkit ==
 All official modules are available inside the [myCred Toolkit](https://wordpress.org/plugins/mycred-toolkit/?utm_source=wp_org&utm_medium=read_me). Access free and premium addons to extend your WooCommerce rewards or referral programs without slowing down your website. Only enabled modules run, ensuring optimal performance.
@@ -269,14 +281,21 @@ Install myCred and enable the WooCommerce add-on. Then set up point triggers for
 
 == Screenshots ==
 
-1. **Point Type Image**
-2. **Built in Add-ons**
-3. **Free Add-ons**
-4. **Premium Add-ons**
-5. **Badges Social Share**
-6. **Badges Layout & Alignment**
+1. **Dashboard** - Central dashboard managing loyalty points, rewards, badges, and points and rewards.
+2. **User Specific Dashboard** - User dashboard showing earned loyalty points, rewards, badges, and activity.
+3. **Point Type Core Settings** - Configure loyalty points rules & points and rewards system settings.
+4. **Built-in Addons** - Built-in addons enhancing myCred rewards plugin with badges, loyalty, and points features.
+5. **Logs Screen** - Track loyalty points transactions, rewards activity, and points and rewards history.
+6. **Hooks Screen** - Manage hooks awarding loyalty points, rewards, and WooCommerce rewards.
+7. **Toolkit Addons** - Toolkit addons expanding rewards plugin with badges and advanced points controls.
+8. **Tools Screen** - Administrative tools for managing loyalty points, rewards, and badges data.
+9. **General Settings** - Global settings for loyalty points, rewards plugin behavior, and badges.
 
 == Upgrade Notice ==
+
+= 3.0.2 =
+Fixed Gutenberg block icons, revised block names.
+Resolved the limit issue in Contact Form 7 submissions.
 
 = 3.0.1 =
 Added Links and improved UI fixed in dashboard.
@@ -498,6 +517,10 @@ New features and Bug fixes.
 The banking module have been replaced by Central deposite module, and interest related functionality has been removed. If you are using simple interest or compound interest related functionality, you will fine the respective functionalities missing after the update.
 
 == Changelog ==
+
+= 3.0.2 =
+- **FIX** - Improved Gutenberg block icons and removed "myCred" prefix from block names for better visibility on WordPress.org.
+- **FIX** - Resolved limit issues in Contact Form 7 form submissions by correctly passing the form ID to the limit checker.
 
 = 3.0.1 =
 - **TWEAK** - Added Links and improved UI fixed in dashboard.
