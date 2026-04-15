@@ -3,7 +3,7 @@ Contributors: mycred,wpexpertsio
 Tags: badges, loyalty program, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 7.0
-Stable tag: 3.0.3
+Stable tag: 3.0.4
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -520,6 +520,9 @@ New features and Bug fixes.
 The banking module have been replaced by Central deposite module, and interest related functionality has been removed. If you are using simple interest or compound interest related functionality, you will fine the respective functionalities missing after the update.
 
 == Changelog ==
+
+= 3.0.4 =
+- **TWEAK** - Vulnerability fixes.
 
 = 3.0.3 =
 * Compatible with WP 7.0.
