@@ -202,7 +202,7 @@ if ( ! class_exists( 'myCRED_buyCRED_Module' ) ) :
 					$buycred_instance->gateway->process();
 
 					do_action( 'mycred_buycred_process',               $buycred_instance->gateway_id, $this->gateway_prefs );
-					do_action( "mycred_buycred_process_{$gateway_id}", $this->gateway_prefs );
+					do_action( "mycred_buycred_process_{$buycred_instance->gateway_id}", $this->gateway_prefs );
 
 				}
 
