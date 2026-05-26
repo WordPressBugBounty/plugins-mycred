@@ -1,6 +1,6 @@
 [
   {
-    "title": "AI Assistant (Experiment)",
+    "title": "AI Assistant",
     "description": "A powerful AI Assistant powered by WordPress 7.0 AI Core to help manage myCred data using natural language chats.",
     "slug": "ai-assistant",
     "dependency": "mycred/mycred.php",
