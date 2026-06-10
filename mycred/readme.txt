@@ -99,7 +99,6 @@ The myCred Loyalty Widget is a built-in floating widget that lets visitors and m
 - **Frontend Tabs** – Earn, Board (leaderboard), Logs, and Profile tabs for logged-in users; Redeem tab available with myCred Toolkit Pro.
 - **Content Customization** – Separate labels and messages for guest visitors and logged-in members.
 - **Design Options** – Customize colors, launcher icon, and branding (hide branding with Toolkit Pro).
-- **REST API** – Widget data served via `mycred-loyalty-widget/v1` for settings, leaderboard, logs, badges, ranks, and coupons.
 - **myCred Integration** – Active myCred hooks appear as earn triggers; ranks and badges display on the user profile tab.
 
 == myCred Toolkit ==
