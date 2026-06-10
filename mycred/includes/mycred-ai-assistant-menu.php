@@ -22,7 +22,7 @@ if ( ! defined( 'MYCRED_AI_ASSISTANT_ADDON_SLUG' ) ) {
 }
 
 if ( ! defined( 'MYCRED_AI_ASSISTANT_BLOG_URL' ) ) {
-	define( 'MYCRED_AI_ASSISTANT_BLOG_URL', 'https://mycred.me/blog/ai-assistant-for-wordpress-gamification-and-loyalty/?utm_source=wp_org&utm_medium=read_me&utm_campaign=ai-assistant' );
+	define( 'MYCRED_AI_ASSISTANT_BLOG_URL', 'https://codex.mycred.me/docs/toolkit/mycred-ai-assistant' );
 }
 
 if ( ! function_exists( 'mycred_ai_assistant_can_open' ) ) :

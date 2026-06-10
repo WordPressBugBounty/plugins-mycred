@@ -3,16 +3,16 @@ Contributors: mycred,wpexpertsio
 Tags: badges, loyalty program, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 7.0
-Stable tag: 3.0.8
+Stable tag: 3.1
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-A WordPress gamification plugin is also a **points management system**. Award ranks, loyalty points and rewards or WooCommerce rewards to your users.
+myCred is a flexible WordPress loyalty points and gamification plugin for points, badges, ranks, referrals, and WooCommerce rewards.
 
 == Description ==
 
-[myCred](https://mycred.me/?utm_source=wp_org&utm_medium=read_me) powers WordPress loyalty and gamification with points, badges, ranks, referrals, and rewards—all from one platform.
+[myCred](https://mycred.me/?utm_source=wp_org&utm_medium=read_me) is a powerful WordPress loyalty points and WordPress gamification plugin. Its a flexible points-based gamification and rewards system for WordPress and WooCommerce. Build and manage points, badges, ranks, referrals, and digital rewards from one points platform. Create customer loyalty points campaigns, run a WooCommerce points rewards program, launch a referral programs points plugin system, or use myCred as a scalable points rewards plugin for engagement and retention.
 
 The new [**myCred AI Assistant (Experiment)**](https://codex.mycred.me/docs/toolkit/mycred-ai-assistant?utm_source=wp_org&utm_medium=read_me&utm_campaign=ai-assistant) transforms how you manage it via the WordPress AI ecosystem. Skip the admin screens and use natural language to create point types, deploy hooks, adjust balances, and view summaries. Built on WordPress AI, it translates your commands into action instantly.
 
@@ -26,21 +26,21 @@ Reward users with points for purchases, referrals, logins, comments, course comp
 
 Whether you run an eCommerce store, membership points platform, or community, myCred works as a reliable WooCommerce loyalty points program plugin to increase points-driven engagement and repeat activity.
 
-This flexible WooCommerce points plugin allows you to reward customers with points-based cash back mechanism, loyalty points, gamification WooCommerce points rewards, community points leaderboard rankings, and points-based cashback monetization incentives. It also works as a complete points-driven gamification solution for businesses looking to improve user points retention.
+This flexible WooCommerce points and WordPress gamification plugin allows you to reward customers with points-based cash back mechanism, loyalty points, gamification WooCommerce points rewards, community points leaderboard rankings, and points-based cashback monetization incentives. It also works as a complete points-driven gamification solution for businesses looking to improve user points retention.
 
 == Introducing myCred AI Assistant (Experiment) ==
 
 Manage your WordPress loyalty points setup with natural language—create point types, deploy hooks, adjust points, check balances, and view summaries. The [**myCred AI Assistant (Experiment)**](https://codex.mycred.me/docs/toolkit/mycred-ai-assistant?utm_source=wp_org&utm_medium=read_me&utm_campaign=ai-assistant), part of the [myCred Toolkit](https://wordpress.org/plugins/mycred-toolkit/?utm_source=wp_org&utm_medium=read_me), replaces admin screen navigation by translating your plain-language commands into instant structured actions within myCred.
 
-== Why myCred for Points and Rewards? ==
+== Why myCred for Points and Rewards and WordPress Gamification Plugin? ==
 
-myCred is a scalable WordPress points gamification plugin and referral rewards programs plugin built for unlimited customization and growth.
+myCred is a scalable WordPress gamification plugin and referral points rewards programs plugin built for unlimited customization and growth.
 
-Increase engagement and retention with a proven WordPress loyalty points plugin. Rewarding users consistently builds stronger communities, improves conversions through points and rewards, and drives long-term loyalty.
+Increase engagement and retention with a proven WordPress loyalty points plugin. Rewarding users consistently builds stronger communities, improves conversions through points and rewards, and drives long-term loyalty through points and rewards.
 
 myCred combines a points engine, badges system, WooCommerce rewards, wallet functionality, and gamification in one points and rewards plugin.
 
-Whether you need a loyalty rewards plugin, a referral points plugin, or a full WooCommerce wallet solution, myCred is built to scale your points and rewards program.
+Whether you need a loyalty rewards plugin, a referral points plugin, WordPress gamification plugin, or a full WooCommerce wallet solution, myCred is built to scale your points and rewards program.
 
 == Features ==
 
@@ -48,10 +48,11 @@ Whether you need a loyalty rewards plugin, a referral points plugin, or a full W
 ✔ One-click (experimental) AI assistant based on Abilities API for quick administration
 ✔ Built-in badges and rank engine for points and rewards
 ✔ Advanced WooCommerce rewards and points functionality
-✔ Flexible referral programs plugin support with points rewards
+✔ Flexible referral programs & WordPress gamification plugin support with points rewards
 ✔ Digital wallet and WooCommerce wallet capabilities for points and rewards
 ✔ Customizable customer loyalty points rewards plugin features
 ✔ Scalable points and rewards gamification framework for communities and stores
+✔ Built-in Loyalty Widget for on-site points, rewards, and leaderboard engagement
 
 == REWARD USERS FOR ANYTHING ==
 
@@ -88,6 +89,18 @@ The myCred Dashboard provides a centralized interface to monitor and manage poin
 - **Flexible Controls** – Filter data by user, point type, or date to analyze points and customer loyalty rewards performance across your entire points and rewards program.
 
 The dashboard simplifies the administration of loyalty points, rewards, and badges, making myCred a powerful points and rewards plugin for managing WordPress points and rewards programs.
+
+== myCred Loyalty Widget ==
+
+The myCred Loyalty Widget is a built-in floating widget that lets visitors and members engage with your loyalty program directly on your site. Configure it from **myCred → Loyalty Widget** and display earn opportunities, leaderboards, activity logs, and profile stats without leaving the page.
+
+- **Admin Settings** – React-based settings UI with General, Design, Content, Tabs, and Event Triggers sections.
+- **General Controls** – Enable or disable the widget, set corner position, popup display mode, campaign date and time scheduling, and margin controls.
+- **Frontend Tabs** – Earn, Board (leaderboard), Logs, and Profile tabs for logged-in users; Redeem tab available with myCred Toolkit Pro.
+- **Content Customization** – Separate labels and messages for guest visitors and logged-in members.
+- **Design Options** – Customize colors, launcher icon, and branding (hide branding with Toolkit Pro).
+- **REST API** – Widget data served via `mycred-loyalty-widget/v1` for settings, leaderboard, logs, badges, ranks, and coupons.
+- **myCred Integration** – Active myCred hooks appear as earn triggers; ranks and badges display on the user profile tab.
 
 == myCred Toolkit ==
 
@@ -360,6 +373,9 @@ Install myCred and enable the WooCommerce add-on. Then set up point triggers for
 
 == Upgrade Notice ==
 
+= 3.1 =
+New Loyalty Widget — configure and display a floating loyalty widget on your site from myCred → Loyalty Widget.
+
 = 3.0.3 =
 * Compatible with WP 7.0 .
 
@@ -588,10 +604,13 @@ The banking module have been replaced by Central deposite module, and interest r
 
 == Changelog ==
 
+= 3.1 =
+- **NEW** - Loyalty Widget: Floating frontend widget with earn, redeem, leaderboard, logs, profile, badges, and ranks tabs.
+
 = 3.0.8 =
 - **TWEAK** - AI Assistant (Experimental): Improved AI response handling and chat UI.
-- Documentation: https://codex.mycred.me/docs/toolkit/mycred-ai-assistant?utm_source=wp_org&utm_medium=read_me&utm_campaign=ai-assistant
-- Learn more: https://mycred.me/blog/ai-assistant-for-wordpress-gamification-and-loyalty/?utm_source=wp_org&utm_medium=read_me&utm_campaign=ai-assistant
+- [Documentation](https://codex.mycred.me/docs/toolkit/mycred-ai-assistant?utm_source=wp_org&utm_medium=read_me&utm_campaign=ai-assistant)
+- [Learn more](https://mycred.me/blog/ai-assistant-for-wordpress-gamification-and-loyalty/?utm_source=wp_org&utm_medium=read_me&utm_campaign=ai-assistant)
 
 = 3.0.7 =
 - **NEW** - AI Assistant (Experimental) addon in myCred Toolkit: admin chat powered by WordPress 7.0 AI Core. Requires wp_supports_ai().
