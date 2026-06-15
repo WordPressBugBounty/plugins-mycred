@@ -3,7 +3,7 @@ Contributors: mycred,wpexpertsio
 Tags: badges, loyalty program, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 7.0
-Stable tag: 3.1
+Stable tag: 3.1.1
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -92,14 +92,19 @@ The dashboard simplifies the administration of loyalty points, rewards, and badg
 
 == myCred Loyalty Widget ==
 
-The myCred Loyalty Widget is a built-in floating widget that lets visitors and members engage with your loyalty program directly on your site. Configure it from **myCred → Loyalty Widget** and display earn opportunities, leaderboards, activity logs, and profile stats without leaving the page.
+Turn every visit into an opportunity to engage with your loyalty program using the myCred Loyalty Widget. This floating, front-end panel lets your members explore rewards, view their points activity, check profile stats, and stay connected to your program without leaving the page.
 
-- **Admin Settings** – React-based settings UI with General, Design, Content, Tabs, and Event Triggers sections.
-- **General Controls** – Enable or disable the widget, set corner position, popup display mode, campaign date and time scheduling, and margin controls.
-- **Frontend Tabs** – Earn, Board (leaderboard), Logs, and Profile tabs for logged-in users; Redeem tab available with myCred Toolkit Pro.
-- **Content Customization** – Separate labels and messages for guest visitors and logged-in members.
-- **Design Options** – Customize colors, launcher icon, and branding (hide branding with Toolkit Pro).
-- **myCred Integration** – Active myCred hooks appear as earn triggers; ranks and badges display on the user profile tab.
+Built for convenience and engagement, it helps you keep loyalty visible exactly where it matters most.
+
+From the backend, you can manage the widget through a clean settings interface with controls for layout, content, design, and trigger behavior. Choose where it appears, how it opens, when it displays, and how it matches your brand.
+
+For users, the widget offers dedicated tabs for earning points, checking leaderboards, reviewing logs, and viewing profile details, creating a more interactive loyalty experience.
+
+With flexible content options, guest visitors and logged-in members can see tailored messages that fit their journey.
+
+Powerful myCred integration also means active hooks can appear as earning opportunities, while ranks and badges can be surfaced directly inside the widget for stronger motivation.
+
+For complete the myCred Loyalty Widget flow from setup to usage, visit https://codex.mycred.me/chapter-ii/mycred-loyalty-widget/
 
 == myCred Toolkit ==
 
@@ -372,6 +377,9 @@ Install myCred and enable the WooCommerce add-on. Then set up point triggers for
 
 == Upgrade Notice ==
 
+= 3.1.1 =
+Security release: vulnerability fixes, code improvements, UI fixes, and PHP 8.5 support.
+
 = 3.1 =
 New Loyalty Widget — configure and display a floating loyalty widget on your site from myCred → Loyalty Widget.
 
@@ -603,8 +611,16 @@ The banking module have been replaced by Central deposite module, and interest r
 
 == Changelog ==
 
+= 3.1.1 =
+- **TWEAK** - Vulnerability fixes.
+- **TWEAK** - Code improvement.
+- **TWEAK** - Added PHP 8.5 support.
+- **FIX** - Badges UI and Buycred purchase log UI issue fixed.
+
+
 = 3.1 =
 - **NEW** - Loyalty Widget: Floating frontend widget with earn, redeem, leaderboard, logs, profile, badges, and ranks tabs.
+- [Documentation](https://codex.mycred.me/chapter-ii/mycred-loyalty-widget/)
 
 = 3.0.8 =
 - **TWEAK** - AI Assistant (Experimental): Improved AI response handling and chat UI.

@@ -1056,9 +1056,7 @@ jQuery(function($) {
 <div class="wrap list" id="myCRED-wrap">
 	<h1><?php esc_html_e( 'Purchase Log', 'mycred' ); ?></h1>
 
-	<?php $log->filter_dates( esc_url( $filter_url ) ); ?>
-
-	<form method="get" action="" name="mycred-buycred-form" novalidate>
+	<form method="get" action="" name="mycred-buycred-form" id="posts-filter" novalidate>
 		<input type="hidden" name="page" value="<?php echo esc_attr( sanitize_key( wp_unslash( $_GET['page'] ) ) ); ?>" />
 <?php
 
@@ -1077,9 +1075,11 @@ jQuery(function($) {
 			if ( array_key_exists( 'paged', $search_args ) )
 				echo '<input type="hidden" name="paged" value="' . esc_attr( $search_args['paged'] ) . '" />';
 
-			$log->search();
-
-?>
+			?>
+			<div class="mycred-log-navigation"><?php
+				$log->filter_dates( esc_url( $filter_url ) );
+				$log->search();
+			?></div>
 
 		<?php do_action( 'mycred_above_payment_log_table', $this ); ?>
 
