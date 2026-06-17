@@ -126,7 +126,16 @@ export default function EarnTab({ settings, currentContent, user, activeHooks, o
                     </Typography>
                 )}
 
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ 
+                    display: 'flex', flexDirection: 'column', gap: 2,
+                    '& > *': {
+                        animation: 'slideKeyframe 0.5s cubic-bezier(0.16, 1, 0.3, 1) both',
+                    },
+                    ...Array.from({ length: 15 }).reduce((acc, _, i) => ({
+                        ...acc,
+                        [`& > *:nth-of-type(${i + 1})`]: { animationDelay: `${i * 0.05}s` }
+                    }), {})
+                }}>
                     {filteredHooks.map((hook, index) => (
                         <Paper
                             key={`${hook.id}-${hook.point_type}-${index}`}

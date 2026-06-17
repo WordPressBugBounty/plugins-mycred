@@ -12,12 +12,99 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Page' ) ) :
         }
         
         public function __construct() {
+            add_action( 'admin_init', array( $this, 'upload_default_media' ) );
             add_action( 'admin_menu', array( $this, 'add_menu_page' ) );
             add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
             
             // Include API class
             require_once plugin_dir_path( __FILE__ ) . 'api/class-mycred-loyalty-widget-api.php';
             require_once plugin_dir_path( __FILE__ ) . 'class-mycred-loyalty-widget-frontend.php';
+        }
+
+        public function upload_default_media() {
+            if ( get_option( 'mycred_loyalty_widget_defaults_uploaded_v2' ) ) {
+                return;
+            }
+            
+            update_option( 'mycred_loyalty_widget_defaults_uploaded_v2', time() );
+            
+            if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
+                require_once( ABSPATH . 'wp-admin/includes/image.php' );
+                require_once( ABSPATH . 'wp-admin/includes/file.php' );
+                require_once( ABSPATH . 'wp-admin/includes/media.php' );
+            }
+
+            $images_to_upload = array(
+                'heroImageUrl' => array(
+                    'file'  => plugin_dir_path( __FILE__ ) . 'src/assets/widget-icon/default-logo1.svg',
+                    'title' => 'myCred Loyalty Widget Hero Brand Image',
+                ),
+                'headerImageUrl' => array(
+                    'file'  => plugin_dir_path( __FILE__ ) . 'src/assets/widget-icon/mycred_widget_header.png',
+                    'title' => 'myCred Loyalty Widget Header Image',
+                ),
+                'logoUrl' => array(
+                    'file'  => plugin_dir_path( __FILE__ ) . 'src/assets/widget-icon/widget-logo.png',
+                    'title' => 'myCred Loyalty Widget Logo',
+                ),
+            );
+
+            $settings = get_option( 'mycred_loyalty_widget_settings', array() );
+            $updated = false;
+
+            foreach ( $images_to_upload as $key => $data ) {
+                if ( ! file_exists( $data['file'] ) ) continue;
+
+                $query = new WP_Query( array(
+                    'post_type'      => 'attachment',
+                    'post_status'    => 'inherit',
+                    'title'          => $data['title'],
+                    'posts_per_page' => 1,
+                    'fields'         => 'ids',
+                ) );
+
+                $attachment_url = '';
+                if ( $query->have_posts() ) {
+                    $attachment_url = wp_get_attachment_url( $query->posts[0] );
+                } else {
+                    $upload_dir = wp_upload_dir();
+                    $filename = basename( $data['file'] );
+                    $upload_file = wp_unique_filename( $upload_dir['path'], $filename );
+                    $new_file = $upload_dir['path'] . '/' . $upload_file;
+
+                    if ( copy( $data['file'], $new_file ) ) {
+                        $mime_type = wp_check_filetype( $new_file, null );
+                        $type = ! empty( $mime_type['type'] ) ? $mime_type['type'] : 'image/svg+xml';
+                        $attachment = array(
+                            'post_mime_type' => $type,
+                            'post_title'     => $data['title'],
+                            'post_content'   => '',
+                            'post_status'    => 'inherit'
+                        );
+
+                        $attach_id = wp_insert_attachment( $attachment, $new_file );
+                        if ( ! is_wp_error( $attach_id ) ) {
+                            $attach_data = wp_generate_attachment_metadata( $attach_id, $new_file );
+                            wp_update_attachment_metadata( $attach_id, $attach_data );
+                            $attachment_url = wp_get_attachment_url( $attach_id );
+                        }
+                    }
+                }
+
+                if ( ! empty( $attachment_url ) ) {
+                    if ( ! isset( $settings['design'] ) ) {
+                        $settings['design'] = array();
+                    }
+                    if ( empty( $settings['design'][ $key ] ) ) {
+                        $settings['design'][ $key ] = $attachment_url;
+                        $updated = true;
+                    }
+                }
+            }
+
+            if ( $updated ) {
+                update_option( 'mycred_loyalty_widget_settings', $settings );
+            }
         }
 
         public function add_menu_page() {
@@ -113,6 +200,11 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Page' ) ) :
                     }
                 }
 
+
+                if ( class_exists( 'myCRED_Loyalty_Widget_API' ) ) {
+                    $defaults = myCRED_Loyalty_Widget_API::instance()->get_default_settings();
+                    $settings = myCRED_Loyalty_Widget_API::merge_defaults( $settings, $defaults );
+                }
 
                 wp_localize_script( 'mycred-loyalty-widget-script', 'mycredLoyaltyWidgetData', array(
                     'rest_url' => esc_url_raw( rest_url() ),

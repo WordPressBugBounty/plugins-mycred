@@ -2,7 +2,6 @@ import { useState, useRef } from '@wordpress/element';
 import {
     Box,
     Typography,
-    Switch,
     TextField,
     Button,
     Grid,
@@ -19,59 +18,11 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import BrandingWatermarkIcon from '@mui/icons-material/BrandingWatermark';
 import SaveIcon from '@mui/icons-material/Save';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import WidgetPreview from '../components/WidgetPreview';
+import WidgetPreviewPanel from '../components/preview/WidgetPreviewPanel';
+import { usePreviewSettings } from '../context/PreviewSettingsContext';
 import { saveSectionSettings } from '../services/api';
 import { toast } from 'react-hot-toast';
-
-// Styled MUI Toggle (32x16) matching dashboard
-// Custom styled Switch for a cleaner look
-const ToggleSwitch = styled((props) => (
-    <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
-))(({ theme }) => ({
-    width: 42,
-    height: 26,
-    padding: 0,
-    '& .MuiSwitch-switchBase': {
-        padding: 0,
-        margin: 2,
-        transitionDuration: '300ms',
-        '&.Mui-checked': {
-            transform: 'translateX(16px)',
-            color: '#fff',
-            '& + .MuiSwitch-track': {
-                backgroundColor: '#5E2CED',
-                opacity: 1,
-                border: 0,
-            },
-            '&.Mui-disabled + .MuiSwitch-track': {
-                opacity: 0.5,
-            },
-        },
-        '&.Mui-focusVisible .MuiSwitch-thumb': {
-            color: '#33cf4d',
-            border: '6px solid #fff',
-        },
-        '&.Mui-disabled .MuiSwitch-thumb': {
-            color: '#f5f5f5',
-        },
-        '&.Mui-disabled + .MuiSwitch-track': {
-            opacity: 0.7,
-        },
-    },
-    '& .MuiSwitch-thumb': {
-        boxSizing: 'border-box',
-        width: 22,
-        height: 22,
-    },
-    '& .MuiSwitch-track': {
-        borderRadius: 26 / 2,
-        backgroundColor: '#E0E0E0',
-        opacity: 1,
-        transition: theme.transitions.create(['background-color'], {
-            duration: 500,
-        }),
-    },
-}));
+import ToggleSwitch from '../components/admin/ToggleSwitch';
 
 const ColorInput = ({ label, value, onChange }) => {
     const [isFocused, setIsFocused] = useState(false);
@@ -166,24 +117,35 @@ const SectionHeader = ({ icon: Icon, title, desc }) => (
     </Box>
 );
 
+const getDefaultDesignSettings = () => ({
+    showLogo: true,
+    backgroundColor: '#000000',
+    textColor: '#FFFFFF',
+    buttonColor: '#000000',
+    buttonTextColor: '#FFFFFF',
+    showBranding: true,
+    logoUrl: window.mycredLoyaltyWidgetData?.assets_url ? window.mycredLoyaltyWidgetData.assets_url + 'widget-logo.png' : '',
+    logoText: 'Reward Program',
+    launcherRadius: 45,
+    launcherAnimation: 'fade',
+    layoutTemplate: 'luxury',
+    headerStyle: 'image',
+    headerImageUrl: window.mycredLoyaltyWidgetData?.assets_url ? window.mycredLoyaltyWidgetData.assets_url + 'mycred_widget_header.png' : '',
+    headerOverlayOpacity: 0.55,
+    headerSubtitle: __('Welcome to', 'mycred'),
+    programTitle: 'myCred Rewards',
+    borderRadius: 12,
+    navLayout: 'list',
+    heroImageUrl: window.mycredLoyaltyWidgetData?.assets_url ? window.mycredLoyaltyWidgetData.assets_url + 'default-logo1.svg' : '',
+});
+
 const DesignSettings = () => {
     const isPro = window.mycredLoyaltyWidgetData?.is_toolkit_pro_active || false;
-    const initialSettings = window.mycredLoyaltyWidgetData?.settings?.design || {};
-
-    const [settings, setSettings] = useState({
-        showLogo: initialSettings.showLogo !== undefined ? initialSettings.showLogo : true,
-        backgroundColor: initialSettings.backgroundColor || '#2D1572',
-        textColor: initialSettings.textColor || '#5E2CED',
-        buttonColor: initialSettings.buttonColor || '#5E2CED',
-        buttonTextColor: initialSettings.buttonTextColor || '#FFFFFF',
-        showBranding: isPro ? (initialSettings.showBranding !== undefined ? initialSettings.showBranding : true) : true,
-        logoUrl: initialSettings.logoUrl || '',
-        logoText: initialSettings.logoText || 'myCred rewards',
-        launcherRadius: initialSettings.launcherRadius !== undefined ? initialSettings.launcherRadius : 45,
-        launcherAnimation: initialSettings.launcherAnimation || 'fade'
-    });
+    const { design: settings, setDesign, updateDesign } = usePreviewSettings();
 
     const frameRef = useRef(null);
+    const headerFrameRef = useRef(null);
+    const heroFrameRef = useRef(null);
 
     const handleUploadLogo = () => {
         if (typeof wp === 'undefined' || !wp.media) {
@@ -215,40 +177,76 @@ const DesignSettings = () => {
         handleChange('logoUrl', '');
     };
 
+    const handleUploadHeroImage = () => {
+        if (typeof wp === 'undefined' || !wp.media) return;
+
+        if (heroFrameRef.current) {
+            heroFrameRef.current.open();
+            return;
+        }
+
+        heroFrameRef.current = wp.media({
+            title: __('Select Brand Image', 'mycred'),
+            button: { text: __('Use this image', 'mycred') },
+            multiple: false,
+        });
+
+        heroFrameRef.current.on('select', () => {
+            const attachment = heroFrameRef.current.state().get('selection').first().toJSON();
+            handleChange('heroImageUrl', attachment.url);
+        });
+
+        heroFrameRef.current.open();
+    };
+
+    const handleRemoveHeroImage = () => {
+        handleChange('heroImageUrl', '');
+    };
+
     const [loading, setLoading] = useState(false);
 
     const handleChange = (field, value) => {
-        setSettings(prev => ({ ...prev, [field]: value }));
+        updateDesign({ [field]: value });
+    };
+
+    const handleUploadHeaderImage = () => {
+        if (typeof wp === 'undefined' || !wp.media) return;
+
+        if (headerFrameRef.current) {
+            headerFrameRef.current.open();
+            return;
+        }
+
+        headerFrameRef.current = wp.media({
+            title: __('Select Header Image', 'mycred'),
+            button: { text: __('Use this image', 'mycred') },
+            multiple: false,
+        });
+
+        headerFrameRef.current.on('select', () => {
+            const attachment = headerFrameRef.current.state().get('selection').first().toJSON();
+            handleChange('headerImageUrl', attachment.url);
+            handleChange('headerStyle', 'image');
+        });
+
+        headerFrameRef.current.open();
     };
 
     const handleResetToDefaults = () => {
-        setSettings({
-            showLogo: true,
-            backgroundColor: '#2D1572',
-            textColor: '#5E2CED',
-            buttonColor: '#5E2CED',
-            buttonTextColor: '#FFFFFF',
-            showBranding: true,
-            logoUrl: '',
-            logoText: 'myCred rewards',
-            launcherRadius: 45,
-            launcherAnimation: 'fade'
-        });
+        setDesign(getDefaultDesignSettings());
         toast.success(__('Reset to defaults', 'mycred'));
     };
 
     const handleSave = async () => {
         setLoading(true);
         try {
-            const response = await saveSectionSettings('design', settings);
+            const response = await saveSectionSettings('design', { ...settings, layoutTemplate: 'luxury' });
             if (response.success) {
                 toast.success(__('Settings saved successfully!', 'mycred'));
-                // Update global data so other tabs can see the changes
                 if (window.mycredLoyaltyWidgetData) {
                     if (!window.mycredLoyaltyWidgetData.settings) window.mycredLoyaltyWidgetData.settings = {};
-                    window.mycredLoyaltyWidgetData.settings.design = settings;
+                    window.mycredLoyaltyWidgetData.settings.design = { ...settings, layoutTemplate: 'luxury' };
                 }
-                console.log('Settings saved:', response.message);
             } else {
                 toast.error(response.message || __('Failed to save settings', 'mycred'));
             }
@@ -261,9 +259,9 @@ const DesignSettings = () => {
 
     return (
         <Box sx={{ p: 4 }}>
-            <Box sx={{ display: 'flex', gap: 4, flexWrap: 'nowrap', alignItems: 'flex-start' }}>
+            <Box sx={{ display: 'flex', gap: 4, flexWrap: { xs: 'wrap', lg: 'nowrap' }, alignItems: 'flex-start' }}>
                 {/* Left Column: Settings - 50% Width */}
-                <Box sx={{ flex: '1', maxWidth: '500px' }}>
+                <Box sx={{ flex: '1', minWidth: { xs: '100%', lg: '0' }, maxWidth: { xs: '100%', lg: '500px' } }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                         {/* Logo Settings */}
                         <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
@@ -280,8 +278,8 @@ const DesignSettings = () => {
                                 <ToggleSwitch checked={settings.showLogo} onChange={(e) => handleChange('showLogo', e.target.checked)} />
                             </Box>
                             <Divider sx={{ my: 3 }} />
-                            {settings.showLogo ? (
-                                <Box>
+                            {settings.showLogo && (
+                                <Box sx={{ mb: 3 }}>
                                     <Typography sx={{ fontWeight: 600, fontSize: '15px', mb: 1.5 }}>{__('Upload Logo', 'mycred')}</Typography>
                                     <Box
                                         sx={{
@@ -336,9 +334,9 @@ const DesignSettings = () => {
                                         {__('Restore Default', 'mycred')}
                                     </Button>
                                 </Box>
-                            ) : (
-                                <Box>
-                                    <Typography sx={{ fontWeight: 600, fontSize: '15px', mb: 1.5 }}>{__('Widget Name', 'mycred')}</Typography>
+                            )}
+                            <Box>
+                                <Typography sx={{ fontWeight: 600, fontSize: '15px', mb: 1.5 }}>{__('Widget Name', 'mycred')}</Typography>
                                     <TextField
                                         fullWidth
                                         size="small"
@@ -348,15 +346,126 @@ const DesignSettings = () => {
                                         sx={{
                                             '& .MuiOutlinedInput-root': {
                                                 borderRadius: '8px',
+                                                height: '40px',
                                                 '&.Mui-focused fieldset': { borderColor: '#5E2CED' }
                                             }
                                         }}
                                     />
                                     <Typography sx={{ fontSize: '13px', color: '#666', mt: 1 }}>
-                                        {__('This name will appear in the widget header when logo is disabled.', 'mycred')}
+                                        {__('This name will appear in the widget launcher alongside your logo.', 'mycred')}
                                     </Typography>
                                 </Box>
+                        </Paper>
+
+                        {/* Hero card brand image */}
+                        <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+                            <SectionHeader
+                                icon={BrandingWatermarkIcon}
+                                title={__('Hero Card Brand Image', 'mycred')}
+                                desc={__('Optional image or GIF shown above the Join button for guests. Logged-in members see their point balances instead.', 'mycred')}
+                            />
+                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                                <Button onClick={handleUploadHeroImage} variant="outlined" size="small" sx={{ textTransform: 'none' }}>
+                                    {__('Upload Image / GIF', 'mycred')}
+                                </Button>
+                                {settings.heroImageUrl && (
+                                    <Button onClick={handleRemoveHeroImage} size="small" sx={{ textTransform: 'none', color: '#666' }}>
+                                        {__('Remove', 'mycred')}
+                                    </Button>
+                                )}
+                            </Box>
+                            {settings.heroImageUrl && (
+                                <Box sx={{ mt: 2, p: 2, bgcolor: '#FAFAFA', borderRadius: '8px', border: '1px solid #E0E0E0', textAlign: 'center' }}>
+                                    <Box
+                                        component="img"
+                                        src={settings.heroImageUrl}
+                                        alt=""
+                                        sx={{ maxWidth: '100%', maxHeight: 120, objectFit: 'contain' }}
+                                    />
+                                </Box>
                             )}
+                        </Paper>
+
+                        {/* Layout Settings */}
+                        <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+                            <SectionHeader
+                                icon={AutoAwesomeIcon}
+                                title={__('Layout Settings', 'mycred')}
+                                desc={__('Customize the luxury widget header, tiers, and home layout', 'mycred')}
+                            />
+
+                            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 2 }}>
+                                <Box>
+                                    <Typography sx={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a', mb: 1 }}>{__('Header Subtitle', 'mycred')}</Typography>
+                                    <TextField
+                                        fullWidth
+                                        size="small"
+                                        value={settings.headerSubtitle || ''}
+                                        onChange={(e) => handleChange('headerSubtitle', e.target.value)}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                borderRadius: '8px',
+                                                height: '40px',
+                                                '&.Mui-focused fieldset': { borderColor: '#5E2CED' }
+                                            }
+                                        }}
+                                    />
+                                </Box>
+                                <Box>
+                                    <Typography sx={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a', mb: 1 }}>{__('Program Title', 'mycred')}</Typography>
+                                    <TextField
+                                        fullWidth
+                                        size="small"
+                                        value={settings.programTitle || ''}
+                                        onChange={(e) => handleChange('programTitle', e.target.value)}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                borderRadius: '8px',
+                                                height: '40px',
+                                                '&.Mui-focused fieldset': { borderColor: '#5E2CED' }
+                                            }
+                                        }}
+                                    />
+                                </Box>
+                            </Box>
+
+                            <Box sx={{ mb: 2 }}>
+                                <Typography sx={{ fontWeight: 600, fontSize: '14px', mb: 1 }}>{__('Header Image', 'mycred')}</Typography>
+                                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                    <Button onClick={handleUploadHeaderImage} variant="outlined" size="small" sx={{ textTransform: 'none' }}>
+                                        {__('Upload Image', 'mycred')}
+                                    </Button>
+                                    {settings.headerImageUrl && (
+                                        <Button onClick={() => handleChange('headerImageUrl', '')} size="small" sx={{ textTransform: 'none', color: '#666' }}>
+                                            {__('Remove', 'mycred')}
+                                        </Button>
+                                    )}
+                                </Box>
+                                <Box sx={{ mt: 1.5 }}>
+                                    <Typography sx={{ fontSize: '13px', mb: 1 }}>{__('Overlay Opacity', 'mycred')}</Typography>
+                                    <Slider
+                                        value={settings.headerOverlayOpacity ?? 0.55}
+                                        onChange={(_, v) => handleChange('headerOverlayOpacity', v)}
+                                        min={0}
+                                        max={1}
+                                        step={0.05}
+                                        valueLabelDisplay="auto"
+                                        sx={{ color: '#5E2CED' }}
+                                    />
+                                </Box>
+                            </Box>
+                            <Box sx={{ mb: 2 }}>
+                                <Typography sx={{ fontSize: '13px', fontWeight: 600, mb: 1 }}>{__('Border Radius (px)', 'mycred')}</Typography>
+                                <Slider
+                                    value={settings.borderRadius ?? 12}
+                                    onChange={(_, v) => handleChange('borderRadius', v)}
+                                    min={8}
+                                    max={24}
+                                    step={1}
+                                    valueLabelDisplay="auto"
+                                    sx={{ color: '#5E2CED' }}
+                                />
+                            </Box>
                         </Paper>
 
                         {/* Appearance */}
@@ -465,24 +574,16 @@ const DesignSettings = () => {
                 </Box>
 
                 {/* Right Column: Preview & Launcher Settings - 50% Width */}
-                <Box sx={{ flex: '1', maxWidth: '500px' }}>
+                <Box sx={{ flex: '1', minWidth: { xs: '100%', lg: '0' }, maxWidth: { xs: '100%', lg: '520px' } }}>
                     <Box sx={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        {/* Live Widget Preview */}
                         <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
                             <SectionHeader
                                 icon={AutoAwesomeIcon}
                                 title={__('Live Widget Preview', 'mycred')}
                                 desc={__('See your design changes in real-time', 'mycred')}
                             />
-                            <Box sx={{
-                                mt: 2,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                minHeight: '652px', // Match widget height + some breathing room
-                                pb: 10 // Space for launcher button preview
-                            }}>
-                                <WidgetPreview settings={settings} />
+                            <Box sx={{ mt: 2 }}>
+                                <WidgetPreviewPanel />
                             </Box>
                         </Paper>
 

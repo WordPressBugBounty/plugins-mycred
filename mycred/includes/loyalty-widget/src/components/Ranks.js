@@ -6,7 +6,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { getRanks } from '../services/frontend-api';
 import { __, sprintf } from '@wordpress/i18n';
 
-export default function Ranks({ settings, currentContent, user, onBack, onClose }) {
+export default function Ranks({ settings, currentContent, user, onBack, onClose, previewMode = false, previewData }) {
     currentContent = currentContent || {};
     
     // Get unique point types from localized data
@@ -31,6 +31,12 @@ export default function Ranks({ settings, currentContent, user, onBack, onClose 
     const bgColor   = design.backgroundColor || '#2D1572';
 
     useEffect(() => {
+        if (previewMode) {
+            setRanks(previewData || []);
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         getRanks(pointType)
             .then(res => { 
@@ -41,7 +47,7 @@ export default function Ranks({ settings, currentContent, user, onBack, onClose 
             })
             .catch(console.error)
             .finally(() => setLoading(false));
-    }, [pointType]);
+    }, [pointType, previewMode, previewData]);
 
     // Find if user has a rank
     const currentRankIndex = ranks.findIndex(r => r.is_current);

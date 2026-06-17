@@ -18,9 +18,11 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import SaveIcon from '@mui/icons-material/Save';
-import WidgetPreview from '../components/WidgetPreview';
+import WidgetPreviewPanel from '../components/preview/WidgetPreviewPanel';
+import { usePreviewSettings } from '../context/PreviewSettingsContext';
 import { saveSectionSettings } from '../services/api';
 import { toast } from 'react-hot-toast';
+import ToggleSwitch from '../components/admin/ToggleSwitch';
 
 const SectionHeader = ({ icon: Icon, title, desc }) => (
     <Box sx={{ mb: 3 }}>
@@ -97,60 +99,20 @@ const MessageField = ({ label, value, onChange, disabled = false }) => (
 
 export default function ContentSettings() {
     const isPro = window.mycredLoyaltyWidgetData?.is_toolkit_pro_active || false;
-    const initialContent = window.mycredLoyaltyWidgetData?.settings?.content || {};
+    const { content, updateContent } = usePreviewSettings();
+    const guestSettings = content.guest || {};
+    const memberSettings = content.member || {};
 
     const [activeTab, setActiveTab] = useState(0);
     const [previewTab, setPreviewTab] = useState(0);
     const [loading, setLoading] = useState(false);
 
-    const [guestSettings, setGuestSettings] = useState({
-        welcomeMessage: initialContent.guest?.welcomeMessage || __('Welcome! Sign up to start earning rewards', 'mycred'),
-        earnLabel: initialContent.guest?.earnLabel || __('Earn', 'mycred'),
-        redeemLabel: initialContent.guest?.redeemLabel || __('Redeem', 'mycred'),
-        boardLabel: initialContent.guest?.boardLabel || __('Board', 'mycred'),
-        logsLabel: initialContent.guest?.logsLabel || __('History', 'mycred'),
-        profileLabel: initialContent.guest?.profileLabel || __('Profile', 'mycred'),
-        ranksLabel: initialContent.guest?.ranksLabel || __('Ranks', 'mycred'),
-        badgesLabel: initialContent.guest?.badgesLabel || __('Badges', 'mycred'),
-        earnMessage: initialContent.guest?.earnMessage || __('Complete actions to earn points', 'mycred'),
-        redeemMessage: initialContent.guest?.redeemMessage || __('Login to redeem rewards', 'mycred'),
-        joinRedirect: initialContent.guest?.joinRedirect || '',
-        loginRedirect: initialContent.guest?.loginRedirect || '',
-        joinButtonText: initialContent.guest?.joinButtonText || __('Join Now', 'mycred'),
-        loginButtonText: initialContent.guest?.loginButtonText || __('Sign in', 'mycred'),
-        boardMessage: initialContent.guest?.boardMessage || __('Leaderboard', 'mycred'),
-        logsMessage: initialContent.guest?.logsMessage || __('Point History', 'mycred'),
-        profileMessage: initialContent.guest?.profileMessage || __('My Profile', 'mycred'),
-        ranksMessage: initialContent.guest?.ranksMessage || __('My Rank', 'mycred'),
-        badgesMessage: initialContent.guest?.badgesMessage || __('My Badges', 'mycred')
-    });
-
-    const [memberSettings, setMemberSettings] = useState({
-        welcomeMessage: initialContent.member?.welcomeMessage || __('Welcome back! Keep earning rewards', 'mycred'),
-        earnLabel: initialContent.member?.earnLabel || __('Earn', 'mycred'),
-        redeemLabel: initialContent.member?.redeemLabel || __('Redeem', 'mycred'),
-        boardLabel: initialContent.member?.boardLabel || __('Board', 'mycred'),
-        logsLabel: initialContent.member?.logsLabel || __('History', 'mycred'),
-        profileLabel: initialContent.member?.profileLabel || __('Profile', 'mycred'),
-        ranksLabel: initialContent.member?.ranksLabel || __('Ranks', 'mycred'),
-        badgesLabel: initialContent.member?.badgesLabel || __('Badges', 'mycred'),
-        earnMessage: initialContent.member?.earnMessage || __('Check out new ways to earn points', 'mycred'),
-        redeemMessage: initialContent.member?.redeemMessage || __('Redeem your points for exclusive rewards', 'mycred'),
-        dashboardButtonText: initialContent.member?.dashboardButtonText || __('Dashboard', 'mycred'),
-        boardMessage: initialContent.member?.boardMessage || __('Leaderboard', 'mycred'),
-        logsMessage: initialContent.member?.logsMessage || __('Point History', 'mycred'),
-        profileMessage: initialContent.member?.profileMessage || __('My Profile', 'mycred'),
-        ranksMessage: initialContent.member?.ranksMessage || __('My Rank', 'mycred'),
-        badgesMessage: initialContent.member?.badgesMessage || __('My Badges', 'mycred'),
-        dashboardRedirect: initialContent.member?.dashboardRedirect || ''
-    });
-
     const handleGuestChange = (field, value) => {
-        setGuestSettings(prev => ({ ...prev, [field]: value }));
+        updateContent('guest', { [field]: value });
     };
 
     const handleMemberChange = (field, value) => {
-        setMemberSettings(prev => ({ ...prev, [field]: value }));
+        updateContent('member', { [field]: value });
     };
 
     const handleTabChange = (event, newValue) => {
@@ -164,14 +126,14 @@ export default function ContentSettings() {
     const handleSave = async () => {
         setLoading(true);
         try {
-            const dataToSave = {
-                guest: guestSettings,
-                member: memberSettings
-            };
+            const dataToSave = { guest: guestSettings, member: memberSettings };
             const response = await saveSectionSettings('content', dataToSave);
             if (response.success) {
                 toast.success(__('Settings saved successfully!', 'mycred'));
-                console.log('Settings saved:', response.message);
+                if (window.mycredLoyaltyWidgetData) {
+                    if (!window.mycredLoyaltyWidgetData.settings) window.mycredLoyaltyWidgetData.settings = {};
+                    window.mycredLoyaltyWidgetData.settings.content = dataToSave;
+                }
             } else {
                 toast.error(response.message || __('Failed to save settings', 'mycred'));
             }
@@ -184,9 +146,9 @@ export default function ContentSettings() {
 
     return (
         <Box sx={{ p: 4 }}>
-            <Box sx={{ display: 'flex', gap: 4, flexWrap: 'nowrap' }}>
+            <Box sx={{ display: 'flex', gap: 4, flexWrap: { xs: 'wrap', lg: 'nowrap' } }}>
                 {/* Left Column: Content Settings - 55% Width */}
-                <Box sx={{ flex: '0 0 50%', maxWidth: '55%' }}>
+                <Box sx={{ flex: { xs: '1 1 100%', lg: '0 0 50%' }, maxWidth: { xs: '100%', lg: '55%' } }}>
                     <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
                         <SectionHeader
                             icon={DescriptionIcon}
@@ -232,9 +194,14 @@ export default function ContentSettings() {
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ p: 3 }}>
                                         <MessageField
-                                            label={__('Welcome Message', 'mycred')}
-                                            value={guestSettings.welcomeMessage}
-                                            onChange={(v) => handleGuestChange('welcomeMessage', v)}
+                                            label={__('Join Card Title', 'mycred')}
+                                            value={guestSettings.joinCardTitle || ''}
+                                            onChange={(v) => handleGuestChange('joinCardTitle', v)}
+                                        />
+                                        <MessageField
+                                            label={__('Join Card Description', 'mycred')}
+                                            value={guestSettings.joinCardDescription || ''}
+                                            onChange={(v) => handleGuestChange('joinCardDescription', v)}
                                         />
                                     </AccordionDetails>
                                 </Accordion>
@@ -415,19 +382,7 @@ export default function ContentSettings() {
                         {/* Member Settings */}
                         {activeTab === 1 && (
                             <Box>
-                                {/* General Messages Accordion */}
-                                <Accordion defaultExpanded sx={{ boxShadow: 'none', border: '1px solid #E0E0E0', borderRadius: '8px !important', mb: 2, '&:before': { display: 'none' } }}>
-                                    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#FAFAFA', borderRadius: '8px' }}>
-                                        <Typography sx={{ fontSize: '15px', fontWeight: 600 }}>{__('General Messages', 'mycred')}</Typography>
-                                    </AccordionSummary>
-                                    <AccordionDetails sx={{ p: 3 }}>
-                                        <MessageField
-                                            label={__('Welcome Message', 'mycred')}
-                                            value={memberSettings.welcomeMessage}
-                                            onChange={(v) => handleMemberChange('welcomeMessage', v)}
-                                        />
-                                    </AccordionDetails>
-                                </Accordion>
+
 
                                 {/* Navigation Labels Accordion */}
                                 <Accordion sx={{ boxShadow: 'none', border: '1px solid #E0E0E0', borderRadius: '8px !important', mb: 2, '&:before': { display: 'none' } }}>
@@ -519,48 +474,7 @@ export default function ContentSettings() {
                                     </AccordionDetails>
                                 </Accordion>
 
-                                {/* Buttons & Redirects Accordion */}
-                                <Accordion sx={{ boxShadow: 'none', border: '1px solid #E0E0E0', borderRadius: '8px !important', mb: 2, '&:before': { display: 'none' } }}>
-                                    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#FAFAFA', borderRadius: '8px' }}>
-                                        <Typography sx={{ fontSize: '15px', fontWeight: 600 }}>{__('Buttons & Redirects', 'mycred')}</Typography>
-                                    </AccordionSummary>
-                                    <AccordionDetails sx={{ p: 3 }}>
-                                        <Box sx={{ mb: 3 }}>
-                                            <Typography sx={{ fontSize: '14px', fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
-                                                {__('Dashboard Redirect Page', 'mycred')}
-                                            </Typography>
-                                            <TextField
-                                                select
-                                                fullWidth
-                                                size="small"
-                                                value={memberSettings.dashboardRedirect}
-                                                onChange={(e) => handleMemberChange('dashboardRedirect', e.target.value)}
-                                                sx={{
-                                                    '& .MuiOutlinedInput-root': {
-                                                        borderRadius: '8px',
-                                                        '& fieldset': { borderColor: '#E0E0E0' },
-                                                        '&:hover fieldset': { borderColor: '#E0E0E0' },
-                                                        '&.Mui-focused fieldset': { borderColor: '#5E2CED', borderWidth: '1px' },
-                                                    }
-                                                }}
-                                            >
-                                                <MenuItem value="">
-                                                    <em>{__('Select page...', 'mycred')}</em>
-                                                </MenuItem>
-                                                {window.mycredLoyaltyWidgetData?.available_pages?.map((page) => (
-                                                    <MenuItem key={page.url} value={page.url}>
-                                                        {page.title}
-                                                     </MenuItem>
-                                                ))}
-                                            </TextField>
-                                        </Box>
-                                        <MessageField
-                                            label={__('Dashboard Button Text', 'mycred')}
-                                            value={memberSettings.dashboardButtonText}
-                                            onChange={(v) => handleMemberChange('dashboardButtonText', v)}
-                                        />
-                                    </AccordionDetails>
-                                </Accordion>
+
                             </Box>
                         )}
 
@@ -592,7 +506,7 @@ export default function ContentSettings() {
                 </Box>
 
                 {/* Right Column: Live Preview - 45% Width */}
-                <Box sx={{ flex: '0 0 50%', maxWidth: '45%' }}>
+                <Box sx={{ flex: { xs: '1 1 100%', lg: '0 0 50%' }, maxWidth: { xs: '100%', lg: '45%' } }}>
                     <Box sx={{ position: 'sticky', top: 24 }}>
                         <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0', minHeight: 600 }}>
                             <SectionHeader
@@ -601,45 +515,9 @@ export default function ContentSettings() {
                                 desc={__('This preview uses dummy records', 'mycred')}
                             />
 
-                            {/* Preview Tabs */}
-                            <Tabs
-                                value={previewTab}
-                                onChange={handlePreviewTabChange}
-                                sx={{
-                                    mb: 3,
-                                    minHeight: 'auto',
-                                    '& .MuiTabs-indicator': {
-                                        backgroundColor: '#5E2CED',
-                                    },
-                                    '& .MuiTab-root': {
-                                        minHeight: 'auto',
-                                        py: 1.5,
-                                        px: 3,
-                                        textTransform: 'none',
-                                        fontSize: '14px',
-                                        fontWeight: 600,
-                                        color: '#666',
-                                        '&.Mui-selected': {
-                                            color: '#5E2CED',
-                                        }
-                                    }
-                                }}
-                            >
-                                <Tab label={__('Guest', 'mycred')} />
-                                <Tab label={__('Member', 'mycred')} />
-                            </Tabs>
-
-                            {/* Preview Content */}
-                            <Box sx={{
-                                mt: 2,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}>
-                                <WidgetPreview
-                                    settings={window.mycredLoyaltyWidgetData?.settings?.design || {}}
-                                    activePreviewTab={previewTab === 0 ? 2 : 0}
-                                    content={{ guest: guestSettings, member: memberSettings }}
+                            <Box sx={{ mt: 2 }}>
+                                <WidgetPreviewPanel
+                                    guestMode={activeTab === 0}
                                 />
                             </Box>
                         </Paper>

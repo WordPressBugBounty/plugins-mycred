@@ -6,7 +6,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { getBadges } from '../services/frontend-api';
 import { __ } from '@wordpress/i18n';
 
-export default function Badges({ settings, currentContent, onBack, onClose }) {
+export default function Badges({ settings, currentContent, onBack, onClose, previewMode = false, previewData }) {
     currentContent = currentContent || {};
     const [badges, setBadges] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -16,11 +16,17 @@ export default function Badges({ settings, currentContent, onBack, onClose }) {
     const bgColor   = design.backgroundColor || '#2D1572';
 
     useEffect(() => {
+        if (previewMode) {
+            setBadges(previewData || []);
+            setLoading(false);
+            return;
+        }
+
         getBadges()
             .then(res => { if (res.success) setBadges(res.data); })
             .catch(console.error)
             .finally(() => setLoading(false));
-    }, []);
+    }, [previewMode, previewData]);
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: bgColor }}>

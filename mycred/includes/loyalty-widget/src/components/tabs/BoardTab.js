@@ -4,6 +4,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
 import { __ } from '@wordpress/i18n';
 import { getLeaderboard } from '../../services/frontend-api';
+import { getThemeColors, getRankStyle } from '../preview/utils';
 
 const ASSETS_URL = window.mycredLoyaltyWidget?.assets_url || '';
 
@@ -13,18 +14,10 @@ const MEDALS = {
     3: ASSETS_URL + 'position-3.svg'
 };
 
-// Rank badge pill styles — matches known rank names, falls back to default
-const getRankStyle = (rankName) => {
-    if (!rankName || typeof rankName !== 'string') return null;
-    const lower = rankName.toLowerCase();
-    if (lower.includes('gold')) return { bg: '#FEF0AE', text: '#8B6713' };
-    if (lower.includes('silver')) return { bg: '#E6E6E6', text: '#555555' };
-    if (lower.includes('bronze')) return { bg: '#FDE4BA', text: '#8C3D27' };
-    // Purple/generic fallback for custom rank names
-    return { bg: '#EDE8FF', text: '#5E2CED' };
-};
+// Rank badge pill styles — matches known rank names, falls back to theme accent
+const getRankBadgeStyle = (rankName, accent) => getRankStyle(rankName, accent);
 
-export default function BoardTab({ settings, currentContent, user, onBack, onClose }) {
+export default function BoardTab({ settings, currentContent, user, onBack, onClose, previewMode = false, previewData }) {
     currentContent = currentContent || {};
     // Addon feature flags
     const addons = window.mycredLoyaltyWidget?.addons || {};
@@ -59,6 +52,8 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
     const design = settings.design || {};
     const btnColor = design.buttonColor || '#5E2CED';
     const bgColor = design.backgroundColor || '#2D1572';
+    const headerText = design.textColor || '#FFFFFF';
+    const theme = getThemeColors(design);
 
     const handleSelect = (typeKey) => {
         setPointType(typeKey);
@@ -66,6 +61,12 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
     };
 
     useEffect(() => {
+        if (previewMode) {
+            setLeaderboard(previewData || []);
+            setLoading(false);
+            return;
+        }
+
         const fetchBoard = async () => {
             setLoading(true);
             try {
@@ -80,7 +81,7 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
             }
         };
         fetchBoard();
-    }, [pointType]);
+    }, [pointType, previewMode, previewData]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -94,7 +95,7 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
         const position = item.position;
         const isCurrentUser = item.is_current_user;
         const medalSrc = MEDALS[position];
-        const rankStyle = getRankStyle(item.rank);
+        const rankStyle = getRankBadgeStyle(item.rank, btnColor);
         // Gate by both displayOptions AND addon being enabled
         const showRank = ranksEnabled && displayOptions.showUserRank !== false;
         const showAvatar = displayOptions.showUserAvatar !== false;
@@ -116,10 +117,10 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
                     alignItems: 'center',
                     px: '16px',
                     mb: '10px',
-                    bgcolor: (isCurrentUser && highlight) ? '#5E2CED0D' : '#FFFFFF',
+                    bgcolor: (isCurrentUser && highlight) ? theme.accentSoftBg : '#FFFFFF',
                     border: (isCurrentUser && highlight)
-                        ? '1.5px solid #5E2CED'
-                        : '1.5px solid #F0F0FF',
+                        ? `1.5px solid ${btnColor}`
+                        : `1.5px solid ${theme.borderSoft}`,
                     position: 'relative',
                     overflow: 'visible',
                     boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.04)',
@@ -139,7 +140,7 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
                     {medalSrc ? (
                         <img src={medalSrc} alt={`#${position}`} style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
                     ) : (
-                        <Typography sx={{ fontSize: '16px', fontWeight: 700, color: '#9A85D3' }}>
+                        <Typography sx={{ fontSize: '16px', fontWeight: 700, color: theme.surfaceMuted }}>
                             #{position}
                         </Typography>
                     )}
@@ -152,13 +153,13 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
                             component="img"
                             src={item.avatar}
                             alt={item.name}
-                            onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=EDE8FF&color=5E2CED&size=40`; }}
+                            onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=${bgColor.replace('#', '')}&color=ffffff&size=40`; }}
                             sx={{
                                 width: '40px',
                                 height: '40px',
                                 borderRadius: '50%',
                                 objectFit: 'cover',
-                                border: '2px solid #F0EEFF',
+                                border: `2px solid ${theme.borderSoft}`,
                             }}
                         />
                         {/* Top badge thumbnail overlaid on avatar */}
@@ -191,14 +192,14 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
                         sx={{
                             fontSize: '14px',
                             fontWeight: 700,
-                            color: '#2D1572',
+                            color: theme.surfaceText,
                             lineHeight: 1.2,
                             fontFamily: "'Instrument Sans', sans-serif",
                         }}
                     >
                         {item.name}
                         {isCurrentUser && highlight && (
-                            <Box component="span" sx={{ fontWeight: 400, color: '#5E2CED', ml: '4px', fontSize: '13px' }}>
+                            <Box component="span" sx={{ fontWeight: 400, color: btnColor, ml: '4px', fontSize: '13px' }}>
                                 ({__('You', 'mycred')})
                             </Box>
                         )}
@@ -234,7 +235,7 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
                         <Typography sx={{
                             fontSize: '18px',
                             fontWeight: 700,
-                            color: '#2D1572',
+                            color: theme.surfaceText,
                             lineHeight: 1.2,
                             fontFamily: "'Instrument Sans', sans-serif",
                         }}>
@@ -243,7 +244,7 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
                         <Typography sx={{
                             fontSize: '11px',
                             fontWeight: 400,
-                            color: '#563BA1',
+                            color: theme.accentMuted,
                             opacity: 0.7,
                             fontFamily: "'Instrument Sans', sans-serif",
                         }}>
@@ -256,21 +257,21 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
     };
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: bgColor }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, bgcolor: bgColor }}>
             {/* Header */}
             <Box sx={{ p: '20px 24px', position: 'relative' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <IconButton size="small" onClick={onBack} sx={{ color: '#fff', p: 0 }}>
+                    <IconButton size="small" onClick={onBack} sx={{ color: headerText, p: 0 }}>
                         <ArrowBackIcon sx={{ fontSize: '20px' }} />
                     </IconButton>
-                    <Typography sx={{ fontSize: '16px', fontWeight: 600, color: '#fff', fontFamily: "'Instrument Sans', sans-serif" }}>
+                    <Typography sx={{ fontSize: '16px', fontWeight: 600, color: headerText, fontFamily: "'Instrument Sans', sans-serif" }}>
                         {currentContent.boardMessage || __('Board', 'mycred')}
                     </Typography>
                 </Box>
                 <IconButton
                     size="small"
                     onClick={onClose}
-                    sx={{ position: 'absolute', right: '20px', top: '20px', color: '#fff', p: 0 }}
+                    sx={{ position: 'absolute', right: '20px', top: '20px', color: headerText, p: 0 }}
                 >
                     <CloseIcon sx={{ fontSize: '20px' }} />
                 </IconButton>
@@ -279,7 +280,8 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
             {/* Main Content Area */}
             <Box sx={{
                 flex: 1,
-                bgcolor: '#F8F6FF',
+                minHeight: 0,
+                bgcolor: theme.panelBg,
                 borderRadius: '28px 28px 0 0',
                 display: 'flex',
                 flexDirection: 'column',
@@ -294,7 +296,7 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
                             onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
                             sx={{
                                 bgcolor: '#fff',
-                                border: `1.5px solid ${isOpen ? btnColor : '#E8E2FF'}`,
+                                border: `1.5px solid ${isOpen ? btnColor : theme.accentBorderLight}`,
                                 borderRadius: '12px',
                                 height: '46px',
                                 display: 'flex',
@@ -302,7 +304,7 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
                                 justifyContent: 'space-between',
                                 px: '14px',
                                 cursor: 'pointer',
-                                boxShadow: isOpen ? `0 0 0 3px ${bgColor}22` : '0px 2px 6px rgba(94,44,237,0.06)',
+                                boxShadow: isOpen ? `0 0 0 3px ${theme.accentSoft}` : `0px 2px 6px ${theme.accentSoftBg}`,
                                 transition: 'border-color 0.2s, box-shadow 0.2s',
                                 userSelect: 'none',
                             }}
@@ -322,7 +324,7 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
                                 <Typography sx={{
                                     fontSize: '14px',
                                     fontWeight: 500,
-                                    color: '#2D1572',
+                                    color: theme.surfaceText,
                                     fontFamily: "'Instrument Sans', sans-serif",
                                 }}>
                                     {availableTypes[pointType] || __('Points', 'mycred')}
@@ -353,7 +355,7 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
                                     bgcolor: '#fff',
                                     border: `1.5px solid ${btnColor}33`,
                                     borderRadius: '12px',
-                                    boxShadow: '0px 8px 24px rgba(94,44,237,0.12)',
+                                    boxShadow: `0px 8px 24px ${theme.accentSoft}`,
                                     overflow: 'hidden',
                                     zIndex: 20,
                                 }}
@@ -370,7 +372,7 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
                                             alignItems: 'center',
                                             gap: '10px',
                                             bgcolor: typeKey === pointType ? `${btnColor}0D` : 'transparent',
-                                            borderBottom: i < pointTypeKeys.length - 1 ? '1px solid #F0EEFF' : 'none',
+                                            borderBottom: i < pointTypeKeys.length - 1 ? `1px solid ${theme.borderSoft}` : 'none',
                                             '&:hover': {
                                                 bgcolor: `${btnColor}08`,
                                             },
@@ -388,7 +390,7 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
                                         <Typography sx={{
                                             fontSize: '14px',
                                             fontWeight: typeKey === pointType ? 600 : 400,
-                                            color: typeKey === pointType ? btnColor : '#2D1572',
+                                            color: typeKey === pointType ? btnColor : theme.surfaceText,
                                             fontFamily: "'Instrument Sans', sans-serif",
                                         }}>
                                             {availableTypes[typeKey]}
@@ -403,16 +405,24 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
                 {/* List of Users */}
                 <Box sx={{
                     flex: 1,
+                    minHeight: 0,
                     px: '16px',
                     pb: '16px',
                     overflowY: 'auto',
                     scrollbarWidth: 'none',
                     '&::-webkit-scrollbar': { display: 'none' },
                     pt: displayOptions.filterByPointType !== false && pointTypeKeys.length > 1 ? '8px' : '20px',
+                    '& > *': {
+                        animation: 'slideKeyframe 0.5s cubic-bezier(0.16, 1, 0.3, 1) both',
+                    },
+                    ...Array.from({ length: 15 }).reduce((acc, _, i) => ({
+                        ...acc,
+                        [`& > *:nth-of-type(${i + 1})`]: { animationDelay: `${i * 0.05}s` }
+                    }), {})
                 }}>
                     {loading ? (
                         [1, 2, 3, 4].map((i) => (
-                            <Paper key={i} sx={{ height: '76px', borderRadius: '16px', mb: '10px', p: '16px', display: 'flex', alignItems: 'center', gap: '12px', border: '1.5px solid #F0F0FF' }}>
+                            <Paper key={i} sx={{ height: '76px', borderRadius: '16px', mb: '10px', p: '16px', display: 'flex', alignItems: 'center', gap: '12px', border: `1.5px solid ${theme.borderSoft}` }}>
                                 <Skeleton variant="rectangular" width={32} height={32} sx={{ borderRadius: '6px', flexShrink: 0 }} />
                                 <Skeleton variant="circular" width={40} height={40} sx={{ flexShrink: 0 }} />
                                 <Box sx={{ flex: 1 }}>
@@ -431,7 +441,7 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
 
                             {leaderboard.length === 0 && (
                                 <Box sx={{ textAlign: 'center', py: 5 }}>
-                                    <Typography sx={{ color: '#563BA1', fontSize: '14px', fontFamily: "'Instrument Sans', sans-serif" }}>
+                                    <Typography sx={{ color: theme.accentMuted, fontSize: '14px', fontFamily: "'Instrument Sans', sans-serif" }}>
                                         {boardSettings.leaderboard?.emptyMessage || __('No users to display', 'mycred')}
                                     </Typography>
                                 </Box>

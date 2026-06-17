@@ -153,7 +153,7 @@ const WidgetPreview = ({ settings = {}, activePreviewTab = 0, content = {} }) =>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <Box
                                         component="img"
-                                        src={settings.logoUrl || (assetsUrl + 'default-logo.svg')}
+                                        src={settings.logoUrl || (assetsUrl + 'default-logo.png')}
                                         alt="Logo"
                                         sx={{ height: 36, objectFit: 'contain', maxWidth: 192, display: 'block' }}
                                     />
@@ -364,7 +364,7 @@ const WidgetPreview = ({ settings = {}, activePreviewTab = 0, content = {} }) =>
                     {settings?.showLogo ? (
                         <Box
                             component="img"
-                            src={settings.logoUrl || (assetsUrl + 'default-logo.svg')}
+                            src={settings.logoUrl || (assetsUrl + 'default-logo.png')}
                             alt="Logo"
                             sx={{ height: 24, objectFit: 'contain', maxWidth: 100 }}
                         />

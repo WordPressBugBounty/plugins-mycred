@@ -3,16 +3,7 @@ import { Box, Typography, Paper, IconButton, Skeleton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
 import { __ } from '@wordpress/i18n';
-
-// Rank pill colour helper (same logic as BoardTab)
-const getRankStyle = (rankName) => {
-    if (!rankName) return { bg: '#EDE8FF', text: '#5E2CED' };
-    const l = rankName.toLowerCase();
-    if (l.includes('gold'))   return { bg: '#FEF0AE', text: '#8B6713' };
-    if (l.includes('silver')) return { bg: '#E6E6E6', text: '#555555' };
-    if (l.includes('bronze')) return { bg: '#FDE4BA', text: '#8C3D27' };
-    return { bg: '#EDE8FF', text: '#5E2CED' };
-};
+import { getRankStyle } from '../preview/utils';
 
 /* ─── Guest screen ───────────────────────────────────────────────── */
 function GuestProfile({ btnColor, bgColor, currentContent, onBack, onClose }) {
@@ -103,7 +94,7 @@ export default function ProfileTab({ user, settings, currentContent, onBack, onC
         return <GuestProfile btnColor={btnColor} bgColor={bgColor} currentContent={currentContent} onBack={onBack} onClose={onClose} />;
     }
 
-    const rankStyle    = getRankStyle(user.rank);
+    const rankStyle    = getRankStyle(user.rank, btnColor);
     const rankMin      = user.rank_min || 0;
     const rankMax      = user.rank_max || 0;
     const balance      = user.balance  || 0;

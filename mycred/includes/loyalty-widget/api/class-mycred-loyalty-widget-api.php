@@ -326,7 +326,21 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
             ) );
         }
 
-        private function get_default_settings() {
+        public static function merge_defaults( $settings, $defaults ) {
+            $merged = $defaults;
+            if ( is_array( $settings ) ) {
+                foreach ( $settings as $key => $value ) {
+                    if ( is_array( $value ) && isset( $merged[ $key ] ) && is_array( $merged[ $key ] ) ) {
+                        $merged[ $key ] = self::merge_defaults( $value, $merged[ $key ] );
+                    } else {
+                        $merged[ $key ] = $value;
+                    }
+                }
+            }
+            return $merged;
+        }
+
+        public function get_default_settings() {
             return array(
                 'general' => array(
                     'enableWidget' => true,
@@ -344,15 +358,25 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                 ),
                 'design' => array(
                     'showLogo' => true,
-                    'backgroundColor' => '#8B5CF6',
-                    'textColor' => '#5E2CED',
-                    'buttonColor' => '#9333EA',
+                    'backgroundColor' => '#000000',
+                    'textColor' => '#FFFFFF',
+                    'buttonColor' => '#000000',
                     'buttonTextColor' => '#FFFFFF',
                     'showBranding' => true,
-                    'logoUrl' => '',
-                    'logoText' => 'myCred rewards',
+                    'logoUrl' => plugin_dir_url( dirname( __FILE__ ) ) . 'src/assets/widget-icon/widget-logo.png',
+                    'logoText' => 'Reward Program',
                     'launcherRadius' => 45,
                     'launcherAnimation' => 'fade',
+                    'layoutTemplate' => 'luxury',
+                    'headerStyle' => 'solid',
+                    'headerImageUrl' => plugin_dir_url( dirname( __FILE__ ) ) . 'src/assets/widget-icon/mycred_widget_header.png',
+                    'headerOverlayOpacity' => 0.55,
+                    'headerSubtitle' => __( 'Welcome to', 'mycred' ),
+                    'programTitle' => 'myCred Rewards',
+                    'borderRadius' => 12,
+                    'showReferralOnHome' => true,
+                    'navLayout' => 'grid',
+                    'heroImageUrl' => plugin_dir_url( dirname( __FILE__ ) ) . 'src/assets/widget-icon/default-logo1.svg',
                 ),
                 'content' => array(
                     'guest' => array(
@@ -366,7 +390,14 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                         'badgesLabel' => __( 'Badges', 'mycred' ),
                         'earnMessage' => __( 'Complete actions to earn points', 'mycred' ),
                         'redeemMessage' => __( 'Login to redeem rewards', 'mycred' ),
+                        'boardMessage' => __( 'See the leaderboard', 'mycred' ),
+                        'logsMessage' => __( 'Track your points history', 'mycred' ),
+                        'profileMessage' => __( 'Manage your profile', 'mycred' ),
+                        'ranksMessage' => __( 'View member ranks', 'mycred' ),
+                        'badgesMessage' => __( 'See all badges', 'mycred' ),
                         'referralMessage' => __( 'Refer friends and earn bonus points', 'mycred' ),
+                        'joinCardTitle' => __( 'Join the Circle', 'mycred' ),
+                        'joinCardDescription' => __( 'First access to rare rewards, exclusive events, and privileges reserved for members.', 'mycred' ),
                         'joinRedirect' => '',
                         'loginRedirect' => '',
                     ),
@@ -381,7 +412,15 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                         'badgesLabel' => __( 'Badges', 'mycred' ),
                         'earnMessage' => __( 'Check out new ways to earn points', 'mycred' ),
                         'redeemMessage' => __( 'Redeem your points for exclusive rewards', 'mycred' ),
+                        'boardMessage' => __( 'Check your standing', 'mycred' ),
+                        'logsMessage' => __( 'Track your points history', 'mycred' ),
+                        'profileMessage' => __( 'Update your details', 'mycred' ),
+                        'ranksMessage' => __( 'Explore your ranks', 'mycred' ),
+                        'badgesMessage' => __( 'View your earned badges', 'mycred' ),
                         'referralMessage' => __( 'Share your referral link and earn together', 'mycred' ),
+                        'showDashboardButton' => true,
+                        'dashboardButtonText' => __( 'Dashboard', 'mycred' ),
+                        'dashboardRedirect' => '',
                     ),
                 ),
                 'tabs' => array(
@@ -427,6 +466,12 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
             
             if ( empty( $settings ) ) {
                 $settings = $this->get_default_settings();
+            } else {
+                $settings = self::merge_defaults( $settings, $this->get_default_settings() );
+            }
+
+            if ( isset( $settings['design'] ) && is_array( $settings['design'] ) ) {
+                $settings['design']['layoutTemplate'] = 'luxury';
             }
             
             return rest_ensure_response( array(
@@ -462,6 +507,8 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
 
             if ( empty( $all_settings ) ) {
                 $all_settings = $this->get_default_settings();
+            } else {
+                $all_settings = self::merge_defaults( $all_settings, $this->get_default_settings() );
             }
 
             if ( ! isset( $all_settings[ $section ] ) ) {
@@ -558,17 +605,56 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
         }
 
         private function sanitize_design_settings( $data ) {
+            $layout_template = 'luxury';
+            $header_styles   = array( 'solid', 'image' );
+            $nav_layouts     = array( 'grid', 'list' );
+
+            $header_style = isset( $data['headerStyle'] ) ? sanitize_key( $data['headerStyle'] ) : 'solid';
+            if ( ! in_array( $header_style, $header_styles, true ) ) {
+                $header_style = 'solid';
+            }
+
+            $nav_layout = isset( $data['navLayout'] ) ? sanitize_key( $data['navLayout'] ) : 'list';
+            if ( ! in_array( $nav_layout, $nav_layouts, true ) ) {
+                $nav_layout = 'list';
+            }
+
+            $overlay = isset( $data['headerOverlayOpacity'] ) ? floatval( $data['headerOverlayOpacity'] ) : 0.55;
+            if ( $overlay < 0 ) {
+                $overlay = 0;
+            } elseif ( $overlay > 1 ) {
+                $overlay = 1;
+            }
+
+            $border_radius = isset( $data['borderRadius'] ) ? absint( $data['borderRadius'] ) : 12;
+            if ( $border_radius < 8 ) {
+                $border_radius = 8;
+            } elseif ( $border_radius > 24 ) {
+                $border_radius = 24;
+            }
+
             return array(
-                'showLogo' => isset( $data['showLogo'] ) ? (bool) $data['showLogo'] : true,
-                'backgroundColor' => isset( $data['backgroundColor'] ) ? sanitize_hex_color( $data['backgroundColor'] ) : '#8B5CF6',
-                'textColor' => isset( $data['textColor'] ) ? sanitize_hex_color( $data['textColor'] ) : '#5E2CED',
-                'buttonColor' => isset( $data['buttonColor'] ) ? sanitize_hex_color( $data['buttonColor'] ) : '#9333EA',
+                'showLogo' => isset( $data['showLogo'] ) ? (bool) $data['showLogo'] : false,
+                'backgroundColor' => isset( $data['backgroundColor'] ) ? sanitize_hex_color( $data['backgroundColor'] ) : '#000000',
+                'textColor' => isset( $data['textColor'] ) ? sanitize_hex_color( $data['textColor'] ) : '#FFFFFF',
+                'buttonColor' => isset( $data['buttonColor'] ) ? sanitize_hex_color( $data['buttonColor'] ) : '#000000',
                 'buttonTextColor' => isset( $data['buttonTextColor'] ) ? sanitize_hex_color( $data['buttonTextColor'] ) : '#FFFFFF',
                 'showBranding' => isset( $data['showBranding'] ) ? (bool) $data['showBranding'] : true,
                 'logoUrl' => isset( $data['logoUrl'] ) ? esc_url_raw( $data['logoUrl'] ) : '',
-                'logoText' => isset( $data['logoText'] ) ? sanitize_text_field( $data['logoText'] ) : 'myCred rewards',
+                'logoText' => isset( $data['logoText'] ) ? sanitize_text_field( $data['logoText'] ) : 'Reward Program',
                 'launcherRadius' => isset( $data['launcherRadius'] ) ? absint( $data['launcherRadius'] ) : 45,
                 'launcherAnimation' => isset( $data['launcherAnimation'] ) ? sanitize_key( $data['launcherAnimation'] ) : 'fade',
+                'layoutTemplate' => $layout_template,
+                'headerStyle' => $header_style,
+                'headerImageUrl' => isset( $data['headerImageUrl'] ) ? esc_url_raw( $data['headerImageUrl'] ) : '',
+                'headerOverlayOpacity' => $overlay,
+                'headerSubtitle' => isset( $data['headerSubtitle'] ) ? sanitize_text_field( $data['headerSubtitle'] ) : __( 'Welcome to', 'mycred' ),
+                'programTitle' => isset( $data['programTitle'] ) ? sanitize_text_field( $data['programTitle'] ) : 'myCred Rewards',
+                'borderRadius' => $border_radius,
+                'showTiersOnHome' => isset( $data['showTiersOnHome'] ) ? (bool) $data['showTiersOnHome'] : false,
+                'showReferralOnHome' => isset( $data['showReferralOnHome'] ) ? (bool) $data['showReferralOnHome'] : true,
+                'navLayout' => $nav_layout,
+                'heroImageUrl' => isset( $data['heroImageUrl'] ) ? esc_url_raw( $data['heroImageUrl'] ) : '',
             );
         }
 
@@ -600,6 +686,8 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                     'loginRedirect' => isset( $data['guest']['loginRedirect'] ) ? esc_url_raw( $data['guest']['loginRedirect'] ) : '',
                     'joinButtonText' => isset( $data['guest']['joinButtonText'] ) ? sanitize_text_field( $data['guest']['joinButtonText'] ) : '',
                     'loginButtonText' => isset( $data['guest']['loginButtonText'] ) ? sanitize_text_field( $data['guest']['loginButtonText'] ) : '',
+                    'joinCardTitle' => isset( $data['guest']['joinCardTitle'] ) ? sanitize_text_field( $data['guest']['joinCardTitle'] ) : '',
+                    'joinCardDescription' => isset( $data['guest']['joinCardDescription'] ) ? sanitize_textarea_field( $data['guest']['joinCardDescription'] ) : '',
                     'boardMessage' => isset( $data['guest']['boardMessage'] ) ? sanitize_text_field( $data['guest']['boardMessage'] ) : '',
                     'logsMessage' => isset( $data['guest']['logsMessage'] ) ? sanitize_text_field( $data['guest']['logsMessage'] ) : '',
                     'profileMessage' => isset( $data['guest']['profileMessage'] ) ? sanitize_text_field( $data['guest']['profileMessage'] ) : '',
@@ -621,6 +709,7 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                     'earnMessage' => isset( $data['member']['earnMessage'] ) ? sanitize_text_field( $data['member']['earnMessage'] ) : '',
                     'redeemMessage' => isset( $data['member']['redeemMessage'] ) ? sanitize_text_field( $data['member']['redeemMessage'] ) : '',
                     'referralMessage' => isset( $data['member']['referralMessage'] ) ? sanitize_text_field( $data['member']['referralMessage'] ) : '',
+                    'showDashboardButton' => ! isset( $data['member']['showDashboardButton'] ) || (bool) $data['member']['showDashboardButton'],
                     'dashboardButtonText' => isset( $data['member']['dashboardButtonText'] ) ? sanitize_text_field( $data['member']['dashboardButtonText'] ) : '',
                     'boardMessage' => isset( $data['member']['boardMessage'] ) ? sanitize_text_field( $data['member']['boardMessage'] ) : '',
                     'logsMessage' => isset( $data['member']['logsMessage'] ) ? sanitize_text_field( $data['member']['logsMessage'] ) : '',

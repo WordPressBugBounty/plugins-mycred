@@ -7,6 +7,7 @@ import DesignSettings from './tabs/DesignSettings';
 import ContentSettings from './tabs/ContentSettings';
 import TabsSettings from './tabs/TabsSettings';
 import EventTriggersSettings from './tabs/EventTriggersSettings';
+import { PreviewSettingsProvider } from './context/PreviewSettingsContext';
 import SettingsIcon from '@mui/icons-material/Settings';
 import PaletteIcon from '@mui/icons-material/Palette';
 import ArticleIcon from '@mui/icons-material/Article';
@@ -87,6 +88,20 @@ export default function App() {
                         },
                         '.mycred-react-root': {
                             fontFamily: 'Poppins, sans-serif !important',
+                        },
+                        '.mycred-react-root input[type="text"], .mycred-react-root input[type="number"], .mycred-react-root textarea, .mycred-react-root select, .mycred-react-root input[type="email"], .mycred-react-root input[type="password"]': {
+                            border: 'none !important',
+                            boxShadow: 'none !important',
+                            backgroundColor: 'transparent !important',
+                            minHeight: 'auto !important',
+                            padding: '10px 14px !important',
+                            boxSizing: 'border-box !important',
+                        },
+                        '.mycred-react-root legend': {
+                            width: 'auto',
+                            display: 'block',
+                            padding: 0,
+                            marginBottom: 0,
                         }
                     }}
                 />
@@ -150,23 +165,25 @@ export default function App() {
                                 <Tab icon={<EventIcon sx={{ mr: 1.5 }} />} iconPosition="start" label={__('Event triggers', 'mycred')} {...a11yProps(4)} />
                             </Tabs>
     
-                            <Box sx={{ flexGrow: 1, bgcolor: '#fff', width: '100%' }}>
-                                <TabPanel value={value} index={0}>
-                                    <GeneralSettings />
-                                </TabPanel>
-                                <TabPanel value={value} index={1}>
-                                    <DesignSettings />
-                                </TabPanel>
-                                <TabPanel value={value} index={2}>
-                                    <ContentSettings />
-                                </TabPanel>
-                                <TabPanel value={value} index={3}>
-                                    <TabsSettings />
-                                </TabPanel>
-                                <TabPanel value={value} index={4}>
-                                    <EventTriggersSettings />
-                                </TabPanel>
-                            </Box>
+                            <PreviewSettingsProvider>
+                                <Box sx={{ flexGrow: 1, bgcolor: '#fff', width: '100%' }}>
+                                    <TabPanel value={value} index={0}>
+                                        <GeneralSettings />
+                                    </TabPanel>
+                                    <TabPanel value={value} index={1}>
+                                        <DesignSettings />
+                                    </TabPanel>
+                                    <TabPanel value={value} index={2}>
+                                        <ContentSettings />
+                                    </TabPanel>
+                                    <TabPanel value={value} index={3}>
+                                        <TabsSettings />
+                                    </TabPanel>
+                                    <TabPanel value={value} index={4}>
+                                        <EventTriggersSettings />
+                                    </TabPanel>
+                                </Box>
+                            </PreviewSettingsProvider>
                         </Box>
                     </Box>
                 </Box>

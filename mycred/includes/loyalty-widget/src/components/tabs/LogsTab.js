@@ -10,7 +10,7 @@ import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import { __ } from '@wordpress/i18n';
 import { getLogs } from '../../services/frontend-api';
 
-export default function LogsTab({ settings, currentContent, user, onBack, onClose }) {
+export default function LogsTab({ settings, currentContent, user, onBack, onClose, previewMode = false, previewData }) {
     currentContent = currentContent || {};
     const [logs, setLogs] = useState([]);
     const [pointLabel, setPointLabel] = useState(__('Points', 'mycred'));
@@ -22,6 +22,12 @@ export default function LogsTab({ settings, currentContent, user, onBack, onClos
     const bgColor = design.backgroundColor || '#2D1572';
 
     useEffect(() => {
+        if (previewMode) {
+            setLogs(previewData || []);
+            setLoading(false);
+            return;
+        }
+
         const fetchLogs = async () => {
             setLoading(true);
             try {
@@ -37,7 +43,7 @@ export default function LogsTab({ settings, currentContent, user, onBack, onClos
             }
         };
         fetchLogs();
-    }, [selectedType]);
+    }, [selectedType, previewMode, previewData]);
 
     const getIcon = (type, reason) => {
         const lowerReason = (reason || '').toLowerCase();

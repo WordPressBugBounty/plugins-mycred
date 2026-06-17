@@ -6,7 +6,7 @@ import PaymentsIcon from '@mui/icons-material/Payments';
 import { __ } from '@wordpress/i18n';
 import { useState, useEffect } from '@wordpress/element';
 
-export default function RedeemTab({ settings, currentContent, onBack, onClose }) {
+export default function RedeemTab({ settings, currentContent, onBack, onClose, previewMode = false, previewData }) {
     const [coupons, setCoupons]   = useState([]);
     const [loading, setLoading]   = useState(true);
 
@@ -20,6 +20,12 @@ export default function RedeemTab({ settings, currentContent, onBack, onClose })
     const partialPay   = (typeof mycredLoyaltyWidget !== 'undefined' && mycredLoyaltyWidget.woo_partial_payment) || { enabled: false };
 
     useEffect(() => {
+        if (previewMode) {
+            setCoupons(previewData || []);
+            setLoading(false);
+            return;
+        }
+
         fetch(`${mycredLoyaltyWidget.rest_url}/coupons`, {
             headers: { 'X-WP-Nonce': mycredLoyaltyWidget.nonce }
         })
@@ -27,7 +33,7 @@ export default function RedeemTab({ settings, currentContent, onBack, onClose })
         .then(data => setCoupons(Array.isArray(data) ? data : []))
         .catch(console.error)
         .finally(() => setLoading(false));
-    }, []);
+    }, [previewMode, previewData]);
 
     /* ─── shared styles ─────────────────────────────────────────── */
     const infoCard = (icon, accentColor, title, rows, footer) => (
@@ -111,6 +117,14 @@ export default function RedeemTab({ settings, currentContent, onBack, onClose })
                 flex: 1, bgcolor: '#F4F5F8', borderRadius: '24px 24px 0 0',
                 overflowY: 'auto', p: '20px 16px',
                 scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' },
+                display: 'flex', flexDirection: 'column', gap: '12px',
+                '& > *': {
+                    animation: 'slideKeyframe 0.5s cubic-bezier(0.16, 1, 0.3, 1) both',
+                },
+                ...Array.from({ length: 15 }).reduce((acc, _, i) => ({
+                    ...acc,
+                    [`& > *:nth-of-type(${i + 1})`]: { animationDelay: `${i * 0.05}s` }
+                }), {})
             }}>
 
                 {/* ── Gateway card ───────────────────────────────── */}

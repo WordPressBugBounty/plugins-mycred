@@ -59,18 +59,17 @@ export default function Launcher({ isOpen, onClick, settings }) {
                     '&:hover': { transform: 'scale(1.02)' }
                 }}
             >
-                {design.showLogo ? (
+                {design.showLogo && (
                     <Box
                         component="img"
-                        src={design.logoUrl || (assetsUrl + 'default-logo.svg')}
+                        src={design.logoUrl || (assetsUrl + 'widget-logo.png')}
                         alt="Logo"
                         sx={{ height: 24, objectFit: 'contain', maxWidth: 100 }}
                     />
-                ) : (
-                    <Typography sx={{ fontSize: '14px', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                        {design.logoText || 'myCred rewards'}
-                    </Typography>
                 )}
+                <Typography sx={{ fontSize: '14px', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                    {design.logoText || 'myCred rewards'}
+                </Typography>
             </Box>
 
             {/* Close/Open Toggle Button (only show if widget is actually open to allow closing via X) */}

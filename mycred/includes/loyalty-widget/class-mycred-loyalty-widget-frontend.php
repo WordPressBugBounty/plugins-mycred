@@ -22,7 +22,8 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Frontend' ) ) :
             $general  = isset( $settings['general'] ) ? $settings['general'] : array();
 
             // 1. Basic Enable Check
-            if ( ! isset( $general['enableWidget'] ) || ! $general['enableWidget'] ) {
+            $is_enabled = isset( $general['enableWidget'] ) ? $general['enableWidget'] : true;
+            if ( ! $is_enabled ) {
                 return;
             }
 
@@ -86,11 +87,30 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Frontend' ) ) :
                     if ( function_exists( 'mycred_get_types' ) ) {
                         foreach ( mycred_get_types() as $type_key => $type_label ) {
                             $mc = mycred( $type_key );
+                            
+                            // Retrieve point type image URL
+                            $attachment_id = '';
+                            if ( is_array( $mc->core ) && isset( $mc->core['attachment_id'] ) ) {
+                                $attachment_id = $mc->core['attachment_id'];
+                            } elseif ( is_object( $mc->core ) && property_exists( $mc->core, 'attachment_id' ) ) {
+                                $attachment_id = $mc->core->attachment_id;
+                            }
+
+                            if ( empty( $attachment_id ) && function_exists( 'mycred_get_default_point_image_id' ) ) {
+                                $attachment_id = mycred_get_default_point_image_id();
+                            }
+
+                            $image_url = '';
+                            if ( ! empty( $attachment_id ) ) {
+                                $image_url = wp_get_attachment_url( $attachment_id );
+                            }
+
                             $all_balances[] = array(
                                 'type'      => $type_key,
                                 'label'     => $mc->plural(),
                                 'balance'   => $mc->get_users_balance( $user_id ),
                                 'formatted' => $mc->format_creds( $mc->get_users_balance( $user_id ) ),
+                                'image_url' => $image_url,
                             );
                         }
                     }
@@ -317,6 +337,11 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Frontend' ) ) :
                     if( file_exists( WP_PLUGIN_DIR . '/mycred-toolkit-pro/includes/mycred-toolkit-plan-check.php' ) ) {
                         $is_toolkit_pro_active = true;    
                     }
+                }
+
+                if ( class_exists( 'myCRED_Loyalty_Widget_API' ) ) {
+                    $defaults = myCRED_Loyalty_Widget_API::instance()->get_default_settings();
+                    $settings = myCRED_Loyalty_Widget_API::merge_defaults( $settings, $defaults );
                 }
 
                 wp_localize_script( 'mycred-loyalty-widget-frontend', 'mycredLoyaltyWidget', array(
