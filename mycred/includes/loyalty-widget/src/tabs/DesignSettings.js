@@ -131,10 +131,10 @@ const getDefaultDesignSettings = () => ({
     layoutTemplate: 'luxury',
     headerStyle: 'image',
     headerImageUrl: window.mycredLoyaltyWidgetData?.assets_url ? window.mycredLoyaltyWidgetData.assets_url + 'mycred_widget_header.png' : '',
-    headerOverlayOpacity: 0.55,
+    headerOverlayOpacity: 0,
     headerSubtitle: __('Welcome to', 'mycred'),
     programTitle: 'myCred Rewards',
-    borderRadius: 12,
+    borderRadius: 8,
     navLayout: 'list',
     heroImageUrl: window.mycredLoyaltyWidgetData?.assets_url ? window.mycredLoyaltyWidgetData.assets_url + 'default-logo1.svg' : '',
 });
@@ -444,7 +444,7 @@ const DesignSettings = () => {
                                 <Box sx={{ mt: 1.5 }}>
                                     <Typography sx={{ fontSize: '13px', mb: 1 }}>{__('Overlay Opacity', 'mycred')}</Typography>
                                     <Slider
-                                        value={settings.headerOverlayOpacity ?? 0.55}
+                                        value={settings.headerOverlayOpacity ?? 0}
                                         onChange={(_, v) => handleChange('headerOverlayOpacity', v)}
                                         min={0}
                                         max={1}
@@ -457,7 +457,7 @@ const DesignSettings = () => {
                             <Box sx={{ mb: 2 }}>
                                 <Typography sx={{ fontSize: '13px', fontWeight: 600, mb: 1 }}>{__('Border Radius (px)', 'mycred')}</Typography>
                                 <Slider
-                                    value={settings.borderRadius ?? 12}
+                                    value={settings.borderRadius ?? 8}
                                     onChange={(_, v) => handleChange('borderRadius', v)}
                                     min={8}
                                     max={24}

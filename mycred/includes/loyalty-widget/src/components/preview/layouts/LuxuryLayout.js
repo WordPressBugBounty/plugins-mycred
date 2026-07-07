@@ -151,10 +151,9 @@ const LuxuryNavCard = ({ icon: Icon, iconSrc, title, subtitle, btnColor, borderR
             py: 2,
             borderRadius: `${borderRadius}px`,
             bgcolor: '#fff',
-            boxShadow: '0px 8px 24px rgba(0,0,0,0.06)',
+            boxShadow: '0px 2px 8px rgba(0,0,0,0.04)',
             cursor: onClick ? 'pointer' : 'default',
-            transition: 'box-shadow 0.15s ease',
-            '&:hover': onClick ? { boxShadow: '0px 12px 28px rgba(0,0,0,0.1)' } : {},
+            '&:hover .nav-arrow': onClick ? { transform: 'translateX(4px)' } : {},
         }}
     >
         <Box sx={{
@@ -183,7 +182,7 @@ const LuxuryNavCard = ({ icon: Icon, iconSrc, title, subtitle, btnColor, borderR
                 </Typography>
             )}
         </Box>
-        <ChevronRightIcon sx={{ fontSize: 18, color: '#C4C4C4', flexShrink: 0 }} />
+        <ChevronRightIcon className="nav-arrow" sx={{ fontSize: 18, color: '#1a1a1a', flexShrink: 0, transition: 'transform 0.2s ease' }} />
     </Paper>
 );
 
@@ -209,7 +208,7 @@ export default function LuxuryLayout({
     const btnTextColor = design.buttonTextColor || '#FFFFFF';
     const overlay = design.headerOverlayOpacity ?? 0.55;
     const headerImage = design.headerImageUrl || '';
-    const programTitle = design.programTitle || __('Grand Cru Privileges', 'mycred');
+    const programTitle = design.programTitle || __('myCred Rewards', 'mycred');
     const tabControls = tabs.tabControls || {};
 
     const navItems = [
@@ -411,7 +410,7 @@ export default function LuxuryLayout({
                 {isGuest && (
                     <Paper elevation={0} sx={{
                         p: '24px', borderRadius: `${borderRadius}px`, bgcolor: '#fff',
-                        boxShadow: '0px 12px 32px rgba(0,0,0,0.1)', mb: 2, textAlign: 'center',
+                        boxShadow: '0px 2px 8px rgba(0,0,0,0.04)', mb: 2, textAlign: 'center',
                         display: 'flex', flexDirection: 'column', alignItems: 'stretch',
                     }}>
                         <Typography sx={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a', mb: 1, fontFamily: "'Instrument Sans', sans-serif" }}>
@@ -426,9 +425,9 @@ export default function LuxuryLayout({
                         </Box>
 
                         <Button fullWidth variant="contained" onClick={onPrimaryAction} sx={{
-                            bgcolor: btnColor, color: btnTextColor, textTransform: 'none',
+                            bgcolor: btnColor, color: btnTextColor, textTransform: 'none', boxShadow: 'none',
                             borderRadius: `${Math.max(8, borderRadius - 4)}px`, py: 1.5, fontWeight: 600,
-                            fontFamily: "'Instrument Sans', sans-serif", mb: 1.5, '&:hover': { bgcolor: btnColor, opacity: 0.9 },
+                            fontFamily: "'Instrument Sans', sans-serif", mb: 1.5, '&:hover': { bgcolor: btnColor, boxShadow: 'none' },
                         }}>
                             {content.joinButtonText || __('Join now', 'mycred')}
                         </Button>

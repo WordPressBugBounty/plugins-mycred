@@ -866,41 +866,26 @@ if ( ! class_exists( 'myCRED_buyCRED_Module' ) ) :
 				}
 			}
 
-			$more_gateways_tab = array();
-
-			$more_gateways_tab[] = array(
-				'icon'				=>	'dashicons dashicons-admin-generic static',
-				'text'				=>	'Stripe',
-				'additional_text'	=>	'Paid',
-				'url'				=>	'https://mycred.me/store/buycred-stripe/',
-				'status'			=>	'disabled',
-				'plugin'			=>	'mycred-stripe/mycred-stripe.php'
-			);
-
-			$more_gateways_tab[] = array(
-				'icon'				=>	'dashicons dashicons-admin-generic static',
-				'text'				=>	'Coinbase',
-				'additional_text'	=>	'Paid',
-				'url'				=>	'https://mycred.me/store/buycred-coinbase/',
-				'status'			=>	'disabled',
-				'plugin'			=>	'mycred-coinbase/mycred-coinbase.php'
-			);
-
-			$more_gateways_tab[] = array(
-				'icon'				=>	'dashicons dashicons-admin-generic static',
-				'text'				=>	'More Gateways',
-				'url'				=>	'https://mycred.me/product-category/buycred-gateways/',
-			);
-
-			$more_gateways_tab = apply_filters( 'mycred_buycred_more_gateways_tab', $more_gateways_tab );
+			$more_gateways_tab = mycred_build_gateway_upsell_tabs( 'buycred', $installed );
+			if ( function_exists( 'mycred_build_toolkit_free_gateway_upsell_tabs' ) ) {
+				$more_gateways_tab = array_merge(
+					mycred_build_toolkit_free_gateway_upsell_tabs( 'buycred', $installed ),
+					$more_gateways_tab
+				);
+			}
 
 			if( MYCRED_SHOW_PREMIUM_ADDONS ) {
 
-				include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-
 				foreach( $more_gateways_tab as $key => $gateway ) {
 
-					if ( isset( $gateway['plugin'] ) && is_plugin_active( $gateway['plugin'] ) ) continue;
+					if ( isset( $gateway['plugin'] ) && $gateway['plugin'] !== '' ) {
+						if ( ! function_exists( 'is_plugin_active' ) ) {
+							require_once ABSPATH . 'wp-admin/includes/plugin.php';
+						}
+						if ( is_plugin_active( $gateway['plugin'] ) ) {
+							continue;
+						}
+					}
 
 					$disabled_class = ( isset( $gateway['status'] ) && $gateway['status'] == 'disabled' ) ? 'disabled' : ''; 
 

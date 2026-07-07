@@ -3,7 +3,7 @@ Contributors: mycred,wpexpertsio
 Tags: badges, loyalty program, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 7.0
-Stable tag: 3.1.2
+Stable tag: 3.2.0
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -30,7 +30,7 @@ This flexible WooCommerce points and WordPress gamification plugin allows you to
 
 == Introducing myCred AI Assistant (Experiment) ==
 
-Manage your WordPress loyalty points setup with natural language—create point types, deploy hooks, adjust points, check balances, and view summaries. The [**myCred AI Assistant (Experiment)**](https://codex.mycred.me/docs/toolkit/mycred-ai-assistant?utm_source=wp_org&utm_medium=read_me&utm_campaign=ai-assistant), part of the [myCred Toolkit](https://wordpress.org/plugins/mycred-toolkit/?utm_source=wp_org&utm_medium=read_me), replaces admin screen navigation by translating your plain-language commands into instant structured actions within myCred.
+Manage your WordPress loyalty points setup with natural language—create point types, deploy hooks, adjust points, check balances, and view summaries. The [**myCred AI Assistant (Experiment)**](https://codex.mycred.me/docs/toolkit/mycred-ai-assistant?utm_source=wp_org&utm_medium=read_me&utm_campaign=ai-assistant), part of the [myCred Addons](https://wordpress.org/plugins/mycred-toolkit/?utm_source=wp_org&utm_medium=read_me), replaces admin screen navigation by translating your plain-language commands into instant structured actions within myCred.
 
 == Why myCred for Points and Rewards and WordPress Gamification Plugin? ==
 
@@ -106,9 +106,9 @@ Powerful myCred integration also means active hooks can appear as earning opport
 
 For complete the myCred Loyalty Widget flow from setup to usage, visit https://codex.mycred.me/chapter-ii/mycred-loyalty-widget/
 
-== myCred Toolkit ==
+== myCred Addons ==
 
-All official modules are available inside the [myCred Toolkit](https://wordpress.org/plugins/mycred-toolkit/?utm_source=wp_org&utm_medium=read_me). Access free and premium addons related to points and rewards to extend your WooCommerce points and rewards or referral programs without slowing down your website.
+All official modules are available inside the [myCred Addons](https://wordpress.org/plugins/mycred-toolkit/?utm_source=wp_org&utm_medium=read_me). Access free and premium addons related to points and rewards to extend your WooCommerce points and rewards or referral programs without slowing down your website.
 
 Only enabled modules run, ensuring optimal points and rewards performance.
 
@@ -371,11 +371,14 @@ Install myCred and enable the WooCommerce add-on. Then set up point triggers for
 4. **Built-in Addons** - Built-in addons enhancing myCred rewards plugin with badges, loyalty, and points features.
 5. **Logs Screen** - Track loyalty points transactions, rewards activity, and points and rewards history.
 6. **Hooks Screen** - Manage hooks awarding loyalty points, rewards, and WooCommerce rewards.
-7. **Toolkit Addons** - Toolkit addons expanding rewards plugin with badges and advanced points controls.
+7. **Addons Package** - Addons package addons expanding rewards plugin with badges and advanced points controls.
 8. **Tools Screen** - Administrative tools for managing loyalty points, rewards, and badges data.
 9. **General Settings** - Global settings for loyalty points, rewards plugin behavior, and badges.
 
 == Upgrade Notice ==
+
+= 3.2.0 =
+Merged the built-in Add-ons and Toolkit pages into a single unified Add-ons page.
 
 = 3.1.2 =
 * UI improvement in loyalty widget.
@@ -448,7 +451,7 @@ Code improvement.
 Text domain warning fix.
 
 = 2.9.4 =
-Fixed issue for mycred toolkit.
+Fixed issue for mycred addons.
 
 = 2.9.3 =
 Tested Upto WordPress Latest Version 6.8
@@ -614,6 +617,9 @@ The banking module have been replaced by Central deposite module, and interest r
 
 == Changelog ==
 
+= 3.2.0 =
+- **NEW** - Merged the built-in Add-ons and Toolkit pages into a single unified Add-ons page.
+
 = 3.1.2 =
 - **TWEAK** - Loyalty widget UI improvements.
 
@@ -634,7 +640,7 @@ The banking module have been replaced by Central deposite module, and interest r
 - [Learn more](https://mycred.me/blog/ai-assistant-for-wordpress-gamification-and-loyalty/?utm_source=wp_org&utm_medium=read_me&utm_campaign=ai-assistant)
 
 = 3.0.7 =
-- **NEW** - AI Assistant (Experimental) addon in myCred Toolkit: admin chat powered by WordPress 7.0 AI Core. Requires wp_supports_ai().
+- **NEW** - AI Assistant (Experimental) addon in myCred Addons: admin chat powered by WordPress 7.0 AI Core. Requires wp_supports_ai().
 
 = 3.0.6 =
 - **FIX** - Paypal IPN URL Fix.
@@ -703,7 +709,7 @@ The banking module have been replaced by Central deposite module, and interest r
 - **FIX** - Fixed mycred_transfer shortcode showed point type dropdown even with only one point type enabled..
 
 = 2.9.4.5 =
-- **FIX** - Total Survey icon was not showing on toolkit page.
+- **FIX** - Total Survey icon was not showing on add-ons page.
 
 = 2.9.4.4 =
 - **NEW** - Rank Plus Enhancements.
@@ -736,13 +742,13 @@ The banking module have been replaced by Central deposite module, and interest r
 - **FIX** - Text domain warning fix.
 
 = 2.9.4 =
-- **FIX** - Fixed issue for mycred toolkit
+- **FIX** - Fixed issue for mycred addons
 
 = 2.9.3 =
 - **TWEAK** - Tested Upto WordPress Latest Version 6.8
 
 = 2.9.2 =
-- **FIX** - Fixed issue for mycred toolkit
+- **FIX** - Fixed issue for mycred addons
 
 = 2.9.1 =
 - **FIX** - Freemius SDK Update
@@ -774,13 +780,13 @@ The banking module have been replaced by Central deposite module, and interest r
 - **FIX** - myCred network-wide activation issues on multisite.
 
 = 2.7.6.2 =
-- **NEW** - Added compatibility for mycred toolkit.
+- **NEW** - Added compatibility for mycred addons.
 
 = 2.7.6.1 =
 - **NEW** - Added block.json files to blocks.
 
 = 2.7.6 =
-- **NEW** - Added compatibility for myCred Toolkit.
+- **NEW** - Added compatibility for myCred Addons.
 - **Fix** - Fixed security issues in mycred_send shortcode.
 
 = 2.7.5.2 =

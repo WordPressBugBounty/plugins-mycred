@@ -22,7 +22,7 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Frontend' ) ) :
             $general  = isset( $settings['general'] ) ? $settings['general'] : array();
 
             // 1. Basic Enable Check
-            $is_enabled = isset( $general['enableWidget'] ) ? $general['enableWidget'] : true;
+            $is_enabled = isset( $general['enableWidget'] ) ? $general['enableWidget'] : false;
             if ( ! $is_enabled ) {
                 return;
             }

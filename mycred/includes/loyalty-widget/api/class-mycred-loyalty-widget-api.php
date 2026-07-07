@@ -343,7 +343,7 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
         public function get_default_settings() {
             return array(
                 'general' => array(
-                    'enableWidget' => true,
+                    'enableWidget' => false,
                     'widgetPosition' => 'bottom-right',
                     'displayMode' => 'popup',
                     'enableDateRange' => false,
@@ -370,10 +370,10 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                     'layoutTemplate' => 'luxury',
                     'headerStyle' => 'solid',
                     'headerImageUrl' => plugin_dir_url( dirname( __FILE__ ) ) . 'src/assets/widget-icon/mycred_widget_header.png',
-                    'headerOverlayOpacity' => 0.55,
+                    'headerOverlayOpacity' => 0,
                     'headerSubtitle' => __( 'Welcome to', 'mycred' ),
                     'programTitle' => 'myCred Rewards',
-                    'borderRadius' => 12,
+                    'borderRadius' => 8,
                     'showReferralOnHome' => true,
                     'navLayout' => 'grid',
                     'heroImageUrl' => plugin_dir_url( dirname( __FILE__ ) ) . 'src/assets/widget-icon/default-logo1.svg',
@@ -589,7 +589,7 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
 
         private function sanitize_general_settings( $data ) {
             return array(
-                'enableWidget' => isset( $data['enableWidget'] ) ? (bool) $data['enableWidget'] : true,
+                'enableWidget' => isset( $data['enableWidget'] ) ? (bool) $data['enableWidget'] : false,
                 'widgetPosition' => isset( $data['widgetPosition'] ) ? sanitize_key( $data['widgetPosition'] ) : 'bottom-right',
                 'displayMode' => isset( $data['displayMode'] ) ? sanitize_key( $data['displayMode'] ) : 'popup',
                 'enableDateRange' => isset( $data['enableDateRange'] ) ? (bool) $data['enableDateRange'] : false,
@@ -619,14 +619,14 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                 $nav_layout = 'list';
             }
 
-            $overlay = isset( $data['headerOverlayOpacity'] ) ? floatval( $data['headerOverlayOpacity'] ) : 0.55;
+            $overlay = isset( $data['headerOverlayOpacity'] ) ? floatval( $data['headerOverlayOpacity'] ) : 0;
             if ( $overlay < 0 ) {
                 $overlay = 0;
             } elseif ( $overlay > 1 ) {
                 $overlay = 1;
             }
 
-            $border_radius = isset( $data['borderRadius'] ) ? absint( $data['borderRadius'] ) : 12;
+            $border_radius = isset( $data['borderRadius'] ) ? absint( $data['borderRadius'] ) : 8;
             if ( $border_radius < 8 ) {
                 $border_radius = 8;
             } elseif ( $border_radius > 24 ) {

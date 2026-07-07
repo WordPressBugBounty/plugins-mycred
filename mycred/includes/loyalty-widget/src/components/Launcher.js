@@ -55,8 +55,6 @@ export default function Launcher({ isOpen, onClick, settings }) {
                     gap: '10px',
                     boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                     cursor: 'pointer',
-                    transition: '0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    '&:hover': { transform: 'scale(1.02)' }
                 }}
             >
                 {design.showLogo && (
@@ -87,8 +85,6 @@ export default function Launcher({ isOpen, onClick, settings }) {
                         justifyContent: 'center',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                         cursor: 'pointer',
-                        transition: '0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        '&:hover': { transform: 'scale(1.02)' }
                     }}
                 >
                     <CloseIcon sx={{ fontSize: 24 }} />

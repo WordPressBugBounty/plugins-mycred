@@ -16,7 +16,7 @@ export default function HomeScreen({
     onClose,
     previewMode = false,
 }) {
-    const borderRadius = design.borderRadius ?? 12;
+    const borderRadius = design.borderRadius ?? 8;
 
     const handlePrimaryAction = () => {
         const url = isGuest ? content.joinRedirect : content.dashboardRedirect;

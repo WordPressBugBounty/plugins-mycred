@@ -16,7 +16,7 @@ export default function WidgetShell({
     const bgColor = design.backgroundColor || '#2D1572';
     const textColor = design.textColor || '#FFFFFF';
     const theme = getThemeColors(design);
-    const borderRadius = design.borderRadius ?? 12;
+    const borderRadius = design.borderRadius ?? 8;
     const assetsUrl = getAssetsUrl();
     const animation = getAnimationKeyframes(design.launcherAnimation || 'none');
 
