@@ -25,6 +25,42 @@ if ( ! defined( 'MYCRED_AI_ASSISTANT_BLOG_URL' ) ) {
 	define( 'MYCRED_AI_ASSISTANT_BLOG_URL', 'https://codex.mycred.me/docs/toolkit/mycred-ai-assistant' );
 }
 
+if ( ! function_exists( 'mycred_ai_assistant_is_addon_enabled' ) ) :
+	/**
+	 * Whether the ai-assistant toolkit add-on is enabled.
+	 *
+	 * @return bool
+	 */
+	function mycred_ai_assistant_is_addon_enabled() {
+		if ( function_exists( 'mycred_get_active_addon_slugs' ) ) {
+			return in_array( MYCRED_AI_ASSISTANT_ADDON_SLUG, mycred_get_active_addon_slugs(), true );
+		}
+
+		$enabled = get_option( 'mycred_enabled_addons', array() );
+
+		return is_array( $enabled ) && in_array( MYCRED_AI_ASSISTANT_ADDON_SLUG, $enabled, true );
+	}
+endif;
+
+if ( ! function_exists( 'mycred_ai_assistant_is_toolkit_active' ) ) :
+	/**
+	 * Whether myCred Toolkit is active.
+	 *
+	 * @return bool
+	 */
+	function mycred_ai_assistant_is_toolkit_active() {
+		if ( function_exists( 'mycred_is_toolkit_plugin_active' ) ) {
+			return mycred_is_toolkit_plugin_active();
+		}
+
+		if ( ! function_exists( 'is_plugin_active' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+
+		return is_plugin_active( 'mycred-toolkit/mycred-toolkit.php' );
+	}
+endif;
+
 if ( ! function_exists( 'mycred_ai_assistant_can_open' ) ) :
 	/**
 	 * Whether the AI Assistant chat may load (Toolkit active + add-on enabled).
@@ -32,17 +68,11 @@ if ( ! function_exists( 'mycred_ai_assistant_can_open' ) ) :
 	 * @return bool
 	 */
 	function mycred_ai_assistant_can_open() {
-		if ( ! function_exists( 'is_plugin_active' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
-		}
-
-		if ( ! is_plugin_active( 'mycred-toolkit/mycred-toolkit.php' ) ) {
+		if ( ! mycred_ai_assistant_is_toolkit_active() ) {
 			return false;
 		}
 
-		$enabled = get_option( 'mycred_enabled_addons', array() );
-
-		return is_array( $enabled ) && in_array( MYCRED_AI_ASSISTANT_ADDON_SLUG, $enabled, true );
+		return mycred_ai_assistant_is_addon_enabled();
 	}
 endif;
 
@@ -136,7 +166,7 @@ if ( ! class_exists( 'myCRED_AI_Assistant_Menu' ) ) :
 		}
 
 		/**
-		 * Render chat via Toolkit, or open blog in a new tab (direct URL fallback).
+		 * Render chat via Toolkit, show an admin notice, or open blog in a new tab.
 		 */
 		public function render_admin_page() {
 
@@ -145,7 +175,33 @@ if ( ! class_exists( 'myCRED_AI_Assistant_Menu' ) ) :
 				return;
 			}
 
+			if ( mycred_ai_assistant_can_open() ) {
+				$this->render_unavailable_notice();
+				return;
+			}
+
 			$this->open_blog_new_tab();
+		}
+
+		/**
+		 * Admin notice when the add-on is enabled but chat cannot load.
+		 */
+		private function render_unavailable_notice() {
+			?>
+			<div class="wrap">
+				<h1><?php esc_html_e( 'AI Assistant', 'mycred' ); ?></h1>
+				<div class="notice notice-warning">
+					<p>
+						<?php
+						esc_html_e(
+							'The AI Assistant add-on is enabled, but WordPress AI support is not available in this environment. Ensure you are running WordPress 7.0 or later and that AI features are not disabled (for example via WP_AI_SUPPORT).',
+							'mycred'
+						);
+						?>
+					</p>
+				</div>
+			</div>
+			<?php
 		}
 
 		/**
