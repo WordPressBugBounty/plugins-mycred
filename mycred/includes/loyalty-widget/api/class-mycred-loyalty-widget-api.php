@@ -96,7 +96,7 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
             register_rest_route( $this->namespace, '/leaderboard', array(
                 'methods'  => WP_REST_Server::READABLE,
                 'callback' => array( $this, 'get_leaderboard' ),
-                'permission_callback' => '__return_true',
+                'permission_callback' => array( $this, 'public_widget_endpoint_permission_callback' ),
             ));
 
             // GET logs
@@ -112,7 +112,7 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
             register_rest_route( $this->namespace, '/badges', array(
                 'methods'  => WP_REST_Server::READABLE,
                 'callback' => array( $this, 'get_badges' ),
-                'permission_callback' => '__return_true',
+                'permission_callback' => array( $this, 'public_widget_endpoint_permission_callback' ),
             ));
 
             // GET coupons
@@ -128,12 +128,95 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
             register_rest_route( $this->namespace, '/ranks', array(
                 'methods'  => WP_REST_Server::READABLE,
                 'callback' => array( $this, 'get_ranks' ),
-                'permission_callback' => '__return_true',
+                'permission_callback' => array( $this, 'public_widget_endpoint_permission_callback' ),
             ));
         }
 
         public function check_permission() {
             return current_user_can( 'manage_options' );
+        }
+
+        public function public_widget_endpoint_permission_callback( WP_REST_Request $request ) {
+            if ( ! self::visitor_can_see_widget() ) {
+                return new WP_Error(
+                    'rest_forbidden',
+                    __( 'Loyalty widget is not available.', 'mycred' ),
+                    array( 'status' => 403 )
+                );
+            }
+
+            return true;
+        }
+
+        public static function visitor_can_see_widget( $settings = null ) {
+            if ( null === $settings || ! is_array( $settings ) ) {
+                $settings = get_option( 'mycred_loyalty_widget_settings', array() );
+            }
+
+            $general = isset( $settings['general'] ) && is_array( $settings['general'] ) ? $settings['general'] : array();
+
+            // 1) Enable check
+            $is_enabled = isset( $general['enableWidget'] ) ? (bool) $general['enableWidget'] : false;
+            if ( ! $is_enabled ) {
+                return false;
+            }
+
+            // 2) Visibility check
+            $visibility = isset( $general['visibility'] ) ? $general['visibility'] : 'all';
+
+            if ( 'logged_in' === $visibility && ! is_user_logged_in() ) {
+                return false;
+            }
+            if ( 'guests' === $visibility && is_user_logged_in() ) {
+                return false;
+            }
+            if ( 'roles' === $visibility ) {
+                if ( ! is_user_logged_in() ) {
+                    return false;
+                }
+
+                $allowed_roles = isset( $general['visibilityRoles'] ) && is_array( $general['visibilityRoles'] ) ? $general['visibilityRoles'] : array();
+                if ( empty( $allowed_roles ) ) {
+                    return false;
+                }
+
+                $user = wp_get_current_user();
+                $user_roles = isset( $user->roles ) && is_array( $user->roles ) ? $user->roles : array();
+
+                $has_role = false;
+                foreach ( $user_roles as $role ) {
+                    if ( in_array( $role, $allowed_roles, true ) ) {
+                        $has_role = true;
+                        break;
+                    }
+                }
+
+                if ( ! $has_role ) {
+                    return false;
+                }
+            }
+
+            // 3) Scheduling check
+            if ( ! empty( $general['enableDateRange'] ) ) {
+                $now = current_time( 'timestamp' );
+
+                $start_date = ! empty( $general['campaignStart'] ) ? strtotime( $general['campaignStart'] ) : 0;
+                $end_date   = ! empty( $general['campaignEnd'] ) ? strtotime( $general['campaignEnd'] . ' 23:59:59' ) : PHP_INT_MAX;
+
+                if ( $now < $start_date || $now > $end_date ) {
+                    return false;
+                }
+
+                $start_time = ! empty( $general['startTime'] ) ? $general['startTime'] : '00:00';
+                $end_time   = ! empty( $general['endTime'] ) ? $general['endTime'] : '23:59';
+
+                $current_time_str = current_time( 'H:i' );
+                if ( $current_time_str < $start_time || $current_time_str > $end_time ) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public function get_leaderboard( WP_REST_Request $request ) {
@@ -364,7 +447,7 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                     'buttonTextColor' => '#FFFFFF',
                     'showBranding' => true,
                     'logoUrl' => plugin_dir_url( dirname( __FILE__ ) ) . 'src/assets/widget-icon/widget-logo.png',
-                    'logoText' => 'Reward Program',
+                    'logoText' => __( 'Reward Program', 'mycred' ),
                     'launcherRadius' => 45,
                     'launcherAnimation' => 'fade',
                     'layoutTemplate' => 'luxury',
@@ -372,7 +455,7 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                     'headerImageUrl' => plugin_dir_url( dirname( __FILE__ ) ) . 'src/assets/widget-icon/mycred_widget_header.png',
                     'headerOverlayOpacity' => 0,
                     'headerSubtitle' => __( 'Welcome to', 'mycred' ),
-                    'programTitle' => 'myCred Rewards',
+                    'programTitle' => __( 'Rewards Hub', 'mycred' ),
                     'borderRadius' => 8,
                     'showReferralOnHome' => true,
                     'navLayout' => 'grid',
@@ -447,8 +530,14 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                         'profile' => true,
                         'board' => true,
                         'logs' => true,
+                        'badges' => true,
                         'ranks' => true,
+                        'faq' => true,
                     ),
+                ),
+                'faq' => array(
+                    'screenTitle' => __( 'FAQs', 'mycred' ),
+                    'items' => array(),
                 ),
                 'eventtriggers' => array(
                     'enableHooks' => true,
@@ -471,7 +560,9 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
             }
 
             if ( isset( $settings['design'] ) && is_array( $settings['design'] ) ) {
-                $settings['design']['layoutTemplate'] = 'luxury';
+                $settings['design']['layoutTemplate'] = $this->normalize_layout_template(
+                    isset( $settings['design']['layoutTemplate'] ) ? $settings['design']['layoutTemplate'] : 'luxury'
+                );
             }
             
             return rest_ensure_response( array(
@@ -580,6 +671,8 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                     return $this->sanitize_content_settings( $data );
                 case 'tabs':
                     return $this->sanitize_tabs_settings( $data );
+                case 'faq':
+                    return $this->sanitize_faq_settings( $data );
                 case 'eventtriggers':
                     return $this->sanitize_event_triggers_settings( $data );
                 default:
@@ -601,11 +694,24 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                 'marginRight' => isset( $data['marginRight'] ) ? absint( $data['marginRight'] ) : 24,
                 'marginBottom' => isset( $data['marginBottom'] ) ? absint( $data['marginBottom'] ) : 24,
                 'marginLeft' => isset( $data['marginLeft'] ) ? absint( $data['marginLeft'] ) : 24,
+                'visibility' => isset( $data['visibility'] ) ? sanitize_text_field( $data['visibility'] ) : 'all',
+                'visibilityRoles' => isset( $data['visibilityRoles'] ) && is_array( $data['visibilityRoles'] ) ? array_map( 'sanitize_text_field', $data['visibilityRoles'] ) : array(),
             );
         }
 
+        private function normalize_layout_template( $template ) {
+            $allowed  = array( 'luxury', 'modern' );
+            $template = is_string( $template ) ? sanitize_key( $template ) : 'luxury';
+            if ( ! in_array( $template, $allowed, true ) ) {
+                return 'luxury';
+            }
+            return $template;
+        }
+
         private function sanitize_design_settings( $data ) {
-            $layout_template = 'luxury';
+            $layout_template = $this->normalize_layout_template(
+                isset( $data['layoutTemplate'] ) ? $data['layoutTemplate'] : 'luxury'
+            );
             $header_styles   = array( 'solid', 'image' );
             $nav_layouts     = array( 'grid', 'list' );
 
@@ -641,7 +747,7 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                 'buttonTextColor' => isset( $data['buttonTextColor'] ) ? sanitize_hex_color( $data['buttonTextColor'] ) : '#FFFFFF',
                 'showBranding' => isset( $data['showBranding'] ) ? (bool) $data['showBranding'] : true,
                 'logoUrl' => isset( $data['logoUrl'] ) ? esc_url_raw( $data['logoUrl'] ) : '',
-                'logoText' => isset( $data['logoText'] ) ? sanitize_text_field( $data['logoText'] ) : 'Reward Program',
+                'logoText' => isset( $data['logoText'] ) ? sanitize_text_field( $data['logoText'] ) : __( 'Reward Program', 'mycred' ),
                 'launcherRadius' => isset( $data['launcherRadius'] ) ? absint( $data['launcherRadius'] ) : 45,
                 'launcherAnimation' => isset( $data['launcherAnimation'] ) ? sanitize_key( $data['launcherAnimation'] ) : 'fade',
                 'layoutTemplate' => $layout_template,
@@ -649,7 +755,7 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                 'headerImageUrl' => isset( $data['headerImageUrl'] ) ? esc_url_raw( $data['headerImageUrl'] ) : '',
                 'headerOverlayOpacity' => $overlay,
                 'headerSubtitle' => isset( $data['headerSubtitle'] ) ? sanitize_text_field( $data['headerSubtitle'] ) : __( 'Welcome to', 'mycred' ),
-                'programTitle' => isset( $data['programTitle'] ) ? sanitize_text_field( $data['programTitle'] ) : 'myCred Rewards',
+                'programTitle' => isset( $data['programTitle'] ) ? sanitize_text_field( $data['programTitle'] ) : __( 'Rewards Hub', 'mycred' ),
                 'borderRadius' => $border_radius,
                 'showTiersOnHome' => isset( $data['showTiersOnHome'] ) ? (bool) $data['showTiersOnHome'] : false,
                 'showReferralOnHome' => isset( $data['showReferralOnHome'] ) ? (bool) $data['showReferralOnHome'] : true,
@@ -761,10 +867,46 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                     'logs' => isset( $data['tabControls']['logs'] ) ? (bool) $data['tabControls']['logs'] : true,
                     'badges' => isset( $data['tabControls']['badges'] ) ? (bool) $data['tabControls']['badges'] : true,
                     'ranks' => isset( $data['tabControls']['ranks'] ) ? (bool) $data['tabControls']['ranks'] : true,
+                    'faq' => isset( $data['tabControls']['faq'] ) ? (bool) $data['tabControls']['faq'] : true,
                 );
             }
 
             return $sanitized;
+        }
+
+        private function sanitize_faq_settings( $data ) {
+            $items = array();
+            if ( isset( $data['items'] ) && is_array( $data['items'] ) ) {
+                $count = 0;
+                foreach ( $data['items'] as $item ) {
+                    if ( $count >= 20 ) {
+                        break;
+                    }
+                    if ( ! is_array( $item ) ) {
+                        continue;
+                    }
+                    $title  = isset( $item['title'] ) ? sanitize_text_field( $item['title'] ) : '';
+                    $answer = isset( $item['answer'] ) ? sanitize_textarea_field( $item['answer'] ) : '';
+                    if ( '' === $title && '' === $answer ) {
+                        continue;
+                    }
+                    $id = isset( $item['id'] ) ? sanitize_text_field( $item['id'] ) : '';
+                    if ( '' === $id ) {
+                        $id = uniqid( 'faq_', false );
+                    }
+                    $items[] = array(
+                        'id'     => $id,
+                        'title'  => $title,
+                        'answer' => $answer,
+                    );
+                    $count++;
+                }
+            }
+
+            return array(
+                'screenTitle' => isset( $data['screenTitle'] ) ? sanitize_text_field( $data['screenTitle'] ) : __( 'FAQs', 'mycred' ),
+                'items'       => $items,
+            );
         }
 
         private function sanitize_event_triggers_settings( $data ) {

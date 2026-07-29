@@ -11,6 +11,7 @@ import BoardTab from '../tabs/BoardTab';
 import LogsTab from '../tabs/LogsTab';
 import ProfileTab from '../tabs/ProfileTab';
 import RedeemTab from '../tabs/RedeemTab';
+import FaqTab from '../tabs/FaqTab';
 import Badges from '../Badges';
 import Ranks from '../Ranks';
 import {
@@ -40,7 +41,7 @@ const SCREEN_OPTIONS = [
 
 export default function WidgetPreviewPanel({ guestMode: externalGuestMode, onGuestModeChange }) {
     const { settings } = usePreviewSettings();
-    const { design, content, tabs, general } = settings;
+    const { design, content, tabs, general, faq } = settings;
 
     const containerRef = useRef(null);
     const [scale, setScale] = useState(1);
@@ -94,6 +95,7 @@ export default function WidgetPreviewPanel({ guestMode: externalGuestMode, onGue
         content,
         tabs,
         general,
+        faq: faq || { screenTitle: __('FAQs', 'mycred'), items: [] },
         eventtriggers: settings.eventtriggers || window.mycredLoyaltyWidgetData?.settings?.eventtriggers || {},
     };
 
@@ -106,6 +108,7 @@ export default function WidgetPreviewPanel({ guestMode: externalGuestMode, onGue
             design={design}
             content={currentContent}
             tabs={tabs}
+            faq={faq}
             user={user}
             isGuest={isGuest}
             isPro={isPro}
@@ -140,6 +143,8 @@ export default function WidgetPreviewPanel({ guestMode: externalGuestMode, onGue
                 return <ProfileTab {...tabProps} previewMode />;
             case 'redeem':
                 return <RedeemTab {...tabProps} previewMode previewData={fixtureCoupons} />;
+            case 'faq':
+                return <FaqTab {...tabProps} />;
             case 'badges':
                 return <Badges {...tabProps} previewMode previewData={fixtureBadges} />;
             case 'ranks':

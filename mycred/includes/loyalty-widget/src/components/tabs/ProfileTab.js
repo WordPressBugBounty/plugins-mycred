@@ -15,7 +15,7 @@ function GuestProfile({ btnColor, bgColor, currentContent, onBack, onClose }) {
                 <Box sx={{ width: 80, height: 80, borderRadius: '50%', bgcolor: `${btnColor}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
                     <Typography sx={{ fontSize: '40px' }}>👤</Typography>
                 </Box>
-                <Typography sx={{ fontSize: '16px', fontWeight: 600, color: '#2D1572', fontFamily: "'Instrument Sans', sans-serif" }}>
+                <Typography sx={{ fontSize: '16px', fontWeight: 600, color: btnColor, fontFamily: "'Instrument Sans', sans-serif" }}>
                     {__('You are not logged in', 'mycred')}
                 </Typography>
                 <Typography sx={{ fontSize: '13px', color: '#8670C4', textAlign: 'center', fontFamily: "'Instrument Sans', sans-serif" }}>
@@ -39,18 +39,19 @@ function GuestProfile({ btnColor, bgColor, currentContent, onBack, onClose }) {
 
 /* ─── Shared header ──────────────────────────────────────────────── */
 function Header({ title, subtitle, btnColor, onBack, onClose }) {
+    const isRtl = document?.documentElement?.dir === 'rtl';
     return (
         <Box sx={{ px: '24px', pt: '20px', pb: '16px', position: 'relative' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <IconButton size="small" onClick={onBack} sx={{ color: '#fff', p: 0 }}>
-                    <ArrowBackIcon sx={{ fontSize: '20px' }} />
+                    <ArrowBackIcon sx={{ fontSize: '20px', transform: isRtl ? 'scaleX(-1)' : 'none' }} />
                 </IconButton>
                 <Typography sx={{ fontSize: '16px', fontWeight: 600, color: '#fff', fontFamily: "'Instrument Sans', sans-serif" }}>
                     {title}
                 </Typography>
             </Box>
             <IconButton size="small" onClick={onClose}
-                sx={{ position: 'absolute', right: '20px', top: '18px', color: '#fff', p: 0 }}>
+                sx={{ position: 'absolute', insetInlineEnd: '20px', top: '18px', color: '#fff', p: 0 }}>
                 <CloseIcon sx={{ fontSize: '20px' }} />
             </IconButton>
         </Box>
@@ -183,7 +184,7 @@ export default function ProfileTab({ user, settings, currentContent, onBack, onC
                     </Box>
 
                     {/* Display name */}
-                    <Typography sx={{ fontSize: '17px', fontWeight: 700, color: '#2D1572', fontFamily: "'Instrument Sans', sans-serif", textAlign: 'center' }}>
+                    <Typography sx={{ fontSize: '17px', fontWeight: 700, color: btnColor, fontFamily: "'Instrument Sans', sans-serif", textAlign: 'center' }}>
                         {user.display_name || __('User', 'mycred')}
                     </Typography>
 
@@ -242,13 +243,13 @@ export default function ProfileTab({ user, settings, currentContent, onBack, onC
                         </Typography>
                         <Box sx={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                             {allBalances.map((b) => (
-                                <StatCard key={b.type} label={b.label} value={b.formatted} color="#2D1572" />
+                                <StatCard key={b.type} label={b.label} value={b.formatted} color={btnColor} />
                             ))}
                         </Box>
                     </Box>
                 ) : (
                     <Box sx={{ display: 'flex', gap: '10px' }}>
-                        <StatCard label={user.point_label || __('Points', 'mycred')} value={user.formatted_balance || '0'} color="#2D1572" />
+                        <StatCard label={user.point_label || __('Points', 'mycred')} value={user.formatted_balance || '0'} color={btnColor} />
                     </Box>
                 )}
 
@@ -290,7 +291,7 @@ export default function ProfileTab({ user, settings, currentContent, onBack, onC
                                     <Typography sx={{
                                         fontSize: '11px',
                                         fontWeight: 600,
-                                        color: '#2D1572',
+                                        color: btnColor,
                                         textAlign: 'center',
                                         fontFamily: "'Instrument Sans', sans-serif",
                                         lineHeight: 1.3,
@@ -363,7 +364,7 @@ export default function ProfileTab({ user, settings, currentContent, onBack, onC
                         gap: '6px',
                     }}>
                         <Typography sx={{ fontSize: '32px' }}>🏆</Typography>
-                        <Typography sx={{ fontSize: '13px', fontWeight: 600, color: '#2D1572', fontFamily: "'Instrument Sans', sans-serif" }}>
+                        <Typography sx={{ fontSize: '13px', fontWeight: 600, color: btnColor, fontFamily: "'Instrument Sans', sans-serif" }}>
                             {__('No badges yet', 'mycred')}
                         </Typography>
                         <Typography sx={{ fontSize: '12px', color: '#8670C4', textAlign: 'center', fontFamily: "'Instrument Sans', sans-serif" }}>

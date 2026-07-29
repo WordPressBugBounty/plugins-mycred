@@ -8,6 +8,7 @@ import { __, sprintf } from '@wordpress/i18n';
 
 export default function Ranks({ settings, currentContent, user, onBack, onClose, previewMode = false, previewData }) {
     currentContent = currentContent || {};
+    const isRtl = document?.documentElement?.dir === 'rtl';
     
     // Get unique point types from localized data
     const availableTypes = useMemo(() => {
@@ -59,7 +60,7 @@ export default function Ranks({ settings, currentContent, user, onBack, onClose,
             <Box sx={{ p: '20px 24px', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <IconButton size="small" onClick={onBack} sx={{ color: '#fff', p: 0.5 }}>
-                        <ArrowBackIcon />
+                        <ArrowBackIcon sx={{ transform: isRtl ? 'scaleX(-1)' : 'none' }} />
                     </IconButton>
                     <Box>
                         <Typography sx={{ fontSize: '18px', fontWeight: 700, fontFamily: "'Instrument Sans', sans-serif" }}>
@@ -119,7 +120,7 @@ export default function Ranks({ settings, currentContent, user, onBack, onClose,
                                 <Typography sx={{
                                     fontSize: '14px',
                                     fontWeight: 500,
-                                    color: '#2D1572',
+                                    color: btnColor,
                                     fontFamily: "'Instrument Sans', sans-serif",
                                 }}>
                                     {availableTypes[pointType] || __('Points', 'mycred')}
@@ -292,7 +293,7 @@ export default function Ranks({ settings, currentContent, user, onBack, onClose,
                                             </Box>
                                             
                                             <Typography sx={{
-                                                fontSize: '16px', fontWeight: 800, color: isEarned ? '#1A1040' : '#8A8A9A',
+                                                fontSize: '16px', fontWeight: 800, color: isEarned ? btnColor : '#8A8A9A',
                                                 fontFamily: "'Instrument Sans', sans-serif", mb: '4px'
                                             }}>
                                                 {rank.title}
@@ -300,11 +301,11 @@ export default function Ranks({ settings, currentContent, user, onBack, onClose,
                                             
                                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                                 <Typography sx={{ fontSize: '12px', color: '#7A7A9A', fontFamily: "'Instrument Sans', sans-serif" }}>
-                                                    {sprintf(__('Minimum %s:', 'mycred'), pointLabel)} <strong style={{ color: isEarned ? '#1A1040' : '#8A8A9A' }}>{rank.minimum}</strong>
+                                                    {sprintf(__('Minimum %s:', 'mycred'), pointLabel)} <strong style={{ color: isEarned ? btnColor : '#8A8A9A' }}>{rank.minimum}</strong>
                                                 </Typography>
                                                 {rank.maximum && (
                                                     <Typography sx={{ fontSize: '12px', color: '#7A7A9A', fontFamily: "'Instrument Sans', sans-serif" }}>
-                                                        {sprintf(__('Maximum %s:', 'mycred'), pointLabel)} <strong style={{ color: isEarned ? '#1A1040' : '#8A8A9A' }}>{rank.maximum}</strong>
+                                                        {sprintf(__('Maximum %s:', 'mycred'), pointLabel)} <strong style={{ color: isEarned ? btnColor : '#8A8A9A' }}>{rank.maximum}</strong>
                                                     </Typography>
                                                 )}
                                             </Box>

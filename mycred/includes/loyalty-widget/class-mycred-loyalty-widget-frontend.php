@@ -17,37 +17,23 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Frontend' ) ) :
             add_action( 'wp_footer', array( $this, 'render_widget_root' ) );
         }
 
+        private function should_display_widget() {
+            $settings = get_option( 'mycred_loyalty_widget_settings', array() );
+            if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) {
+                return false;
+            }
+
+            return myCRED_Loyalty_Widget_API::visitor_can_see_widget( $settings );
+        }
+
         public function enqueue_scripts() {
+            if ( ! $this->should_display_widget() ) {
+                return;
+            }
+            
             $settings = get_option( 'mycred_loyalty_widget_settings', array() );
             $general  = isset( $settings['general'] ) ? $settings['general'] : array();
 
-            // 1. Basic Enable Check
-            $is_enabled = isset( $general['enableWidget'] ) ? $general['enableWidget'] : false;
-            if ( ! $is_enabled ) {
-                return;
-            }
-
-            // 2. Scheduling Check
-            if ( ! empty( $general['enableDateRange'] ) ) {
-                $now = current_time( 'timestamp' );
-                
-                // Date Check
-                $start_date = ! empty( $general['campaignStart'] ) ? strtotime( $general['campaignStart'] ) : 0;
-                $end_date   = ! empty( $general['campaignEnd'] ) ? strtotime( $general['campaignEnd'] . ' 23:59:59' ) : PHP_INT_MAX;
-
-                if ( $now < $start_date || $now > $end_date ) {
-                    return;
-                }
-
-                // Time Check (Optional refined check if within dates)
-                $start_time = ! empty( $general['startTime'] ) ? $general['startTime'] : '00:00';
-                $end_time   = ! empty( $general['endTime'] ) ? $general['endTime'] : '23:59';
-                
-                $current_time_str = current_time( 'H:i' );
-                if ( $current_time_str < $start_time || $current_time_str > $end_time ) {
-                    return;
-                }
-            }
 
             // 3. Enqueue Fonts & Frontend Bundle
             wp_enqueue_style( 'mycred-loyalty-widget-fonts', 'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600;700&display=swap', array(), '1.0.0' );
@@ -352,6 +338,8 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Frontend' ) ) :
                     'rest_url'            => esc_url_raw( rest_url( 'mycred-loyalty-widget/v1' ) ),
                     'nonce'               => wp_create_nonce( 'wp_rest' ),
                     'assets_url'          => plugin_dir_url( __FILE__ ) . 'src/assets/widget-icon/',
+                    'is_admin'            => current_user_can( 'manage_options' ),
+                    'settings_url'        => admin_url( 'admin.php?page=mycred-loyalty-widget' ),
                     'addons'              => array(
                         'ranks_enabled'  => function_exists( 'mycred_get_users_rank' ),
                         'badges_enabled' => function_exists( 'mycred_get_badge_ids' ),
@@ -404,6 +392,9 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Frontend' ) ) :
         }
 
         public function render_widget_root() {
+            if ( ! $this->should_display_widget() ) {
+                return;
+            }
             echo '<div id="mycred-loyalty-widget-root"></div>';
         }
 

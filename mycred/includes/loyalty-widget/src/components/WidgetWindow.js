@@ -6,6 +6,7 @@ import BoardTab from './tabs/BoardTab';
 import LogsTab from './tabs/LogsTab';
 import ProfileTab from './tabs/ProfileTab';
 import RedeemTab from './tabs/RedeemTab';
+import FaqTab from './tabs/FaqTab';
 import Badges from './Badges';
 import Ranks from './Ranks';
 import { getThemeColors, MYCRED_BRANDING_URL, getAnimationKeyframes, animationStyles } from './preview/utils';
@@ -15,12 +16,16 @@ export default function WidgetWindow({ settings, user, currentTab, setCurrentTab
     const content = settings.content || {};
     const tabs = settings.tabs || {};
     const general = settings.general || {};
+    const faq = settings.faq || {};
     const assetsUrl = window.mycredLoyaltyWidget?.assets_url || '';
 
     const addons = window.mycredLoyaltyWidget?.addons || {};
     const ranksEnabled = addons.ranks_enabled !== false && addons.ranks_enabled !== 0;
     const badgesEnabled = addons.badges_enabled !== false && addons.badges_enabled !== 0;
     const isPro = addons.is_toolkit_pro_active;
+
+    const isAdmin = window.mycredLoyaltyWidget?.is_admin;
+    const settingsUrl = window.mycredLoyaltyWidget?.settings_url;
 
     const btnColor = design.buttonColor || '#5E2CED';
     const theme = getThemeColors(design);
@@ -36,7 +41,7 @@ export default function WidgetWindow({ settings, user, currentTab, setCurrentTab
     const windowStyles = {
         ...animationStyles,
         animation,
-        width: 'min(420px, calc(100vw - 32px))',
+        width: 'min(365px, calc(100vw - 32px))',
         height: 'min(652px, calc(100vh - 120px))',
         bgcolor: '#F8F6FF',
         borderRadius: '24px',
@@ -68,6 +73,7 @@ export default function WidgetWindow({ settings, user, currentTab, setCurrentTab
                     design={design}
                     content={currentContent}
                     tabs={tabs}
+                    faq={faq}
                     user={user}
                     isGuest={isGuest}
                     isPro={isPro}
@@ -84,6 +90,7 @@ export default function WidgetWindow({ settings, user, currentTab, setCurrentTab
         if (currentTab === 'board') return <BoardTab {...tabProps} />;
         if (currentTab === 'redeem') return <RedeemTab {...tabProps} />;
         if (currentTab === 'logs') return <LogsTab {...tabProps} />;
+        if (currentTab === 'faq') return <FaqTab {...tabProps} />;
         if (currentTab === 'profile') return <ProfileTab {...tabProps} />;
         if (currentTab === 'badges') return <Badges {...tabProps} />;
         if (currentTab === 'ranks') return <Ranks {...tabProps} />;
@@ -109,51 +116,73 @@ export default function WidgetWindow({ settings, user, currentTab, setCurrentTab
                 {renderContent()}
             </Box>
 
-            {design.showBranding !== false && (
+            {(design.showBranding !== false || isAdmin) && (
                 <Box sx={{
                     height: '50px',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
+                    justifyContent: isAdmin ? 'space-between' : 'center',
                     bgcolor: '#F8F6FF',
                     borderTop: `1px solid ${theme.footerBorder}`,
                     flexShrink: 0,
+                    px: 2,
                 }}>
-                    <Box sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.75,
-                        bgcolor: 'rgba(0, 0, 0, 0.05)',
-                        px: 1.5,
-                        py: 0.75,
-                        borderRadius: '100px',
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                            bgcolor: 'rgba(0, 0, 0, 0.08)',
-                        }
-                    }}>
-                        <Typography sx={{ fontSize: '12px', color: '#555', fontFamily: "'Instrument Sans', sans-serif", fontWeight: 500 }}>
-                            {__('Powered by', 'mycred')}
-                        </Typography>
-                        <Box
-                            component="a"
-                            href={MYCRED_BRANDING_URL}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                    {isAdmin && (
+                        <Button
+                            href={settingsUrl}
+                            variant="text"
+                            size="small"
                             sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 0.5,
-                                fontWeight: 700,
-                                color: '#1a1a1a',
-                                textDecoration: 'none',
-                                fontSize: '13px',
+                                color: btnColor,
+                                fontSize: '12px',
                                 fontFamily: "'Instrument Sans', sans-serif",
+                                fontWeight: 600,
+                                textTransform: 'none',
+                                minWidth: 0,
+                                p: 1,
                             }}
                         >
-                            {__('myCred', 'mycred')}
+                            {__('Edit Widget', 'mycred')}
+                        </Button>
+                    )}
+                    
+                    {design.showBranding !== false ? (
+                        <Box sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.75,
+                            bgcolor: 'rgba(0, 0, 0, 0.05)',
+                            px: 1.5,
+                            py: 0.75,
+                            borderRadius: '100px',
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                                bgcolor: 'rgba(0, 0, 0, 0.08)',
+                            }
+                        }}>
+                            <Typography sx={{ fontSize: '12px', color: '#555', fontFamily: "'Instrument Sans', sans-serif", fontWeight: 500 }}>
+                                {__('Powered by', 'mycred')}
+                            </Typography>
+                            <Box
+                                component="a"
+                                href={MYCRED_BRANDING_URL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 0.5,
+                                    fontWeight: 700,
+                                    color: '#1a1a1a',
+                                    textDecoration: 'none',
+                                    fontSize: '13px',
+                                    fontFamily: "'Instrument Sans', sans-serif",
+                                }}
+                            >
+                                {__('myCred', 'mycred')}
+                            </Box>
                         </Box>
-                    </Box>
+                    ) : <Box />}
                 </Box>
             )}
         </Box>

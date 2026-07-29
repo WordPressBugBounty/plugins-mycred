@@ -9,6 +9,8 @@ import {
     Button,
     TextField,
     Divider,
+    Checkbox,
+    ListItemText,
 } from '@mui/material';
 import { styled, alpha } from '@mui/material/styles';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -61,7 +63,11 @@ export default function GeneralSettings() {
         marginRight: initialSettings.marginRight !== undefined ? initialSettings.marginRight : 24,
         marginBottom: initialSettings.marginBottom !== undefined ? initialSettings.marginBottom : 24,
         marginLeft: initialSettings.marginLeft !== undefined ? initialSettings.marginLeft : 24,
+        visibility: initialSettings.visibility || 'all',
+        visibilityRoles: initialSettings.visibilityRoles || [],
     });
+
+    const availableRoles = window.mycredLoyaltyWidgetData?.available_roles || [];
 
     const [loading, setLoading] = useState(false);
 
@@ -131,6 +137,92 @@ export default function GeneralSettings() {
                                 onChange={(e) => handleChange('enableWidget', e.target.checked)}
                             />
                         </Box>
+                    </Paper>
+
+                    {/* Widget Visibility */}
+                    <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+                        <SectionHeader
+                            icon={SettingsIcon}
+                            title={__('Widget Visibility', 'mycred')}
+                            desc={__('Control which users can see the widget', 'mycred')}
+                        />
+                        <FormControl fullWidth size="small" sx={{ mb: settings.visibility === 'roles' ? 2 : 0 }}>
+                            <Select
+                                value={settings.visibility}
+                                onChange={(e) => handleChange('visibility', e.target.value)}
+                                sx={{
+                                    borderRadius: '10px',
+                                    height: 40,
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: '#E6E0F8 !important',
+                                        borderWidth: '1px !important',
+                                    },
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: '#5E2CED !important',
+                                        borderWidth: '1px !important',
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: '#D9D0FF !important',
+                                    },
+                                    '& .MuiSelect-select': {
+                                        padding: '10px 12px',
+                                        fontSize: '14px',
+                                        boxShadow: 'none !important',
+                                        outline: 'none !important',
+                                        backgroundColor: 'transparent !important',
+                                    }
+                                }}
+                            >
+                                <MenuItem value="all">{__('Show to All Users', 'mycred')}</MenuItem>
+                                <MenuItem value="logged_in">{__('Logged-in Users Only', 'mycred')}</MenuItem>
+                                <MenuItem value="guests">{__('Guest Users Only', 'mycred')}</MenuItem>
+                                <MenuItem value="roles">{__('Restrict by Specific Roles', 'mycred')}</MenuItem>
+                            </Select>
+                        </FormControl>
+                        {settings.visibility === 'roles' && (
+                            <FormControl fullWidth size="small">
+                                <Typography sx={{ fontSize: '13px', fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                                    {__('Select Roles', 'mycred')}
+                                </Typography>
+                                <Select
+                                    multiple
+                                    value={settings.visibilityRoles}
+                                    onChange={(e) => handleChange('visibilityRoles', typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)}
+                                    renderValue={(selected) => selected.map(k => {
+                                        const r = availableRoles.find(ar => ar.key === k);
+                                        return r ? r.name : k;
+                                    }).join(', ')}
+                                    sx={{
+                                        borderRadius: '10px',
+                                        '& .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: '#E6E0F8 !important',
+                                            borderWidth: '1px !important',
+                                        },
+                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: '#5E2CED !important',
+                                            borderWidth: '1px !important',
+                                        },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: '#D9D0FF !important',
+                                        },
+                                        '& .MuiSelect-select': {
+                                            padding: '10px 12px',
+                                            fontSize: '14px',
+                                            boxShadow: 'none !important',
+                                            outline: 'none !important',
+                                            backgroundColor: 'transparent !important',
+                                        }
+                                    }}
+                                >
+                                    {availableRoles.map((role) => (
+                                        <MenuItem key={role.key} value={role.key}>
+                                            <Checkbox checked={settings.visibilityRoles.indexOf(role.key) > -1} />
+                                            <ListItemText primary={role.name} />
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        )}
                     </Paper>
 
                     {/* Widget Position */}

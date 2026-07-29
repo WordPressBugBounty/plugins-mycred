@@ -13,12 +13,31 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Page' ) ) :
         
         public function __construct() {
             add_action( 'admin_init', array( $this, 'upload_default_media' ) );
+            add_action( 'init', array( $this, 'migrate_program_title_defaults' ) );
             add_action( 'admin_menu', array( $this, 'add_menu_page' ) );
             add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
             
             // Include API class
             require_once plugin_dir_path( __FILE__ ) . 'api/class-mycred-loyalty-widget-api.php';
             require_once plugin_dir_path( __FILE__ ) . 'class-mycred-loyalty-widget-frontend.php';
+        }
+
+        public function migrate_program_title_defaults() {
+            $flag = 'mycred_loyalty_widget_program_title_v2_migrated';
+            if ( get_option( $flag ) ) {
+                return;
+            }
+
+            $settings = get_option( 'mycred_loyalty_widget_settings', array() );
+            if ( is_array( $settings ) && isset( $settings['design'] ) && is_array( $settings['design'] ) ) {
+                // Only update the exact legacy default string, so custom branding is not overwritten.
+                if ( isset( $settings['design']['programTitle'] ) && is_string( $settings['design']['programTitle'] ) && 'myCred Rewards' === $settings['design']['programTitle'] ) {
+                    $settings['design']['programTitle'] = 'Rewards Hub';
+                    update_option( 'mycred_loyalty_widget_settings', $settings );
+                }
+            }
+
+            update_option( $flag, time() );
         }
 
         public function upload_default_media() {
@@ -206,6 +225,18 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Page' ) ) :
                     $settings = myCRED_Loyalty_Widget_API::merge_defaults( $settings, $defaults );
                 }
 
+                global $wp_roles;
+                if ( ! isset( $wp_roles ) ) {
+                    $wp_roles = new WP_Roles();
+                }
+                $available_roles = array();
+                foreach ( $wp_roles->get_names() as $role_key => $role_name ) {
+                    $available_roles[] = array(
+                        'key'  => $role_key,
+                        'name' => $role_name
+                    );
+                }
+
                 wp_localize_script( 'mycred-loyalty-widget-script', 'mycredLoyaltyWidgetData', array(
                     'rest_url' => esc_url_raw( rest_url() ),
                     'nonce'    => wp_create_nonce( 'wp_rest' ),
@@ -213,6 +244,7 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Page' ) ) :
                     'settings' => $settings,
                     'available_pages' => $available_pages,
                     'active_hooks' => $active_hooks,
+                    'available_roles' => $available_roles,
                     'assets_url' => plugin_dir_url( __FILE__ ) . 'src/assets/widget-icon/'
                 ) );
                 

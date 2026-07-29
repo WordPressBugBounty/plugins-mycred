@@ -117,12 +117,24 @@ export default function WidgetShell({
                         gap: '10px',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                         cursor: 'pointer',
+                        '@keyframes shakeKeyframe': {
+                            '0%, 100%': { transform: 'translateX(0) rotate(0deg)' },
+                            '15%': { transform: 'translateX(-4px) rotate(-2deg)' },
+                            '30%': { transform: 'translateX(4px) rotate(2deg)' },
+                            '45%': { transform: 'translateX(-3px) rotate(-1.5deg)' },
+                            '60%': { transform: 'translateX(3px) rotate(1.5deg)' },
+                            '75%': { transform: 'translateX(-2px) rotate(-1deg)' },
+                            '90%': { transform: 'translateX(2px) rotate(1deg)' },
+                        },
+                        '&:hover': {
+                            animation: 'shakeKeyframe 0.45s ease-in-out',
+                        },
                     }}>
                         {design.showLogo && (
                             <Box component="img" src={design.logoUrl || (assetsUrl + 'widget-logo.png')} alt="Logo" sx={{ height: 24, objectFit: 'contain', maxWidth: 100 }} />
                         )}
                         <Typography sx={{ fontSize: '14px', fontWeight: 700, whiteSpace: 'nowrap', color: textColor }}>
-                            {design.logoText || __('myCred rewards', 'mycred')}
+                            {design.logoText || __('Rewards Hub', 'mycred')}
                         </Typography>
                     </Box>
                     <Box sx={{

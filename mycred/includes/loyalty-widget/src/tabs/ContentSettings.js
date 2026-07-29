@@ -307,29 +307,33 @@ export default function ContentSettings() {
                                                 {__('Join Now Redirect Page', 'mycred')}
                                             </Typography>
                                             <TextField
-                                                select
                                                 fullWidth
                                                 size="small"
+                                                type="url"
+                                                placeholder="https://..."
                                                 value={guestSettings.joinRedirect}
                                                 onChange={(e) => handleGuestChange('joinRedirect', e.target.value)}
                                                 sx={{
+                                                    minWidth: { xs: 220, sm: 240 },
                                                     '& .MuiOutlinedInput-root': {
-                                                        borderRadius: '8px',
-                                                        '& fieldset': { borderColor: '#E0E0E0' },
-                                                        '&:hover fieldset': { borderColor: '#E0E0E0' },
-                                                        '&.Mui-focused fieldset': { borderColor: '#5E2CED', borderWidth: '1px' },
+                                                        height: 40,
+                                                        borderRadius: '10px',
+                                                        backgroundColor: '#fff !important',
+                                                        transition: 'all 0.2s ease-in-out',
+                                                        '& fieldset': { borderColor: '#E6E0F8 !important', borderWidth: '1px !important' },
+                                                        '&:hover fieldset': { borderColor: '#D9D0FF !important' },
+                                                        '&.Mui-focused fieldset': { borderColor: '#5E2CED !important', borderWidth: '1px !important' },
+                                                        '& .MuiOutlinedInput-input': {
+                                                            padding: '10px 12px',
+                                                            fontSize: '14px',
+                                                            boxShadow: 'none !important',
+                                                            outline: 'none !important',
+                                                            border: 'none !important',
+                                                            backgroundColor: 'transparent !important',
+                                                        }
                                                     }
                                                 }}
-                                            >
-                                                <MenuItem value="">
-                                                    <em>{__('Select page...', 'mycred')}</em>
-                                                </MenuItem>
-                                                {window.mycredLoyaltyWidgetData?.available_pages?.map((page) => (
-                                                    <MenuItem key={page.url} value={page.url}>
-                                                        {page.title}
-                                                    </MenuItem>
-                                                ))}
-                                            </TextField>
+                                            />
                                         </Box>
 
                                         <Box sx={{ mb: 3 }}>
@@ -337,29 +341,33 @@ export default function ContentSettings() {
                                                 {__('Login Redirect Page', 'mycred')}
                                             </Typography>
                                             <TextField
-                                                select
                                                 fullWidth
                                                 size="small"
+                                                type="url"
+                                                placeholder="https://..."
                                                 value={guestSettings.loginRedirect}
                                                 onChange={(e) => handleGuestChange('loginRedirect', e.target.value)}
                                                 sx={{
+                                                    minWidth: { xs: 220, sm: 240 },
                                                     '& .MuiOutlinedInput-root': {
-                                                        borderRadius: '8px',
-                                                        '& fieldset': { borderColor: '#E0E0E0' },
-                                                        '&:hover fieldset': { borderColor: '#E0E0E0' },
-                                                        '&.Mui-focused fieldset': { borderColor: '#5E2CED', borderWidth: '1px' },
+                                                        height: 40,
+                                                        borderRadius: '10px',
+                                                        backgroundColor: '#fff !important',
+                                                        transition: 'all 0.2s ease-in-out',
+                                                        '& fieldset': { borderColor: '#E6E0F8 !important', borderWidth: '1px !important' },
+                                                        '&:hover fieldset': { borderColor: '#D9D0FF !important' },
+                                                        '&.Mui-focused fieldset': { borderColor: '#5E2CED !important', borderWidth: '1px !important' },
+                                                        '& .MuiOutlinedInput-input': {
+                                                            padding: '10px 12px',
+                                                            fontSize: '14px',
+                                                            boxShadow: 'none !important',
+                                                            outline: 'none !important',
+                                                            border: 'none !important',
+                                                            backgroundColor: 'transparent !important',
+                                                        }
                                                     }
                                                 }}
-                                            >
-                                                <MenuItem value="">
-                                                    <em>{__('Select page...', 'mycred')}</em>
-                                                </MenuItem>
-                                                {window.mycredLoyaltyWidgetData?.available_pages?.map((page) => (
-                                                    <MenuItem key={page.url} value={page.url}>
-                                                        {page.title}
-                                                    </MenuItem>
-                                                ))}
-                                            </TextField>
+                                            />
                                         </Box>
 
                                         <Box sx={{ mt: 2 }}>

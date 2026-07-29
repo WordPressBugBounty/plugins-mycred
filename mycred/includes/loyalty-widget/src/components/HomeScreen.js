@@ -1,11 +1,12 @@
-import { useState, useEffect } from '@wordpress/element';
-import { __, sprintf } from '@wordpress/i18n';
 import LuxuryLayout from './preview/layouts/LuxuryLayout';
+import ModernLayout from './preview/layouts/ModernLayout';
+import { normalizeLayoutTemplate } from './preview/templatePresets';
 
 export default function HomeScreen({
     design,
     content,
     tabs,
+    faq,
     user,
     isGuest,
     isPro,
@@ -17,6 +18,7 @@ export default function HomeScreen({
     previewMode = false,
 }) {
     const borderRadius = design.borderRadius ?? 8;
+    const layoutTemplate = normalizeLayoutTemplate(design.layoutTemplate);
 
     const handlePrimaryAction = () => {
         const url = isGuest ? content.joinRedirect : content.dashboardRedirect;
@@ -27,26 +29,28 @@ export default function HomeScreen({
         if (content.loginRedirect) window.location.href = content.loginRedirect;
     };
 
-    useEffect(() => {
-        // Any other HomeScreen initialization can go here
-    }, [previewMode]);
+    const layoutProps = {
+        design,
+        content,
+        tabs,
+        faq,
+        isGuest,
+        user,
+        assetsUrl,
+        isPro,
+        ranksEnabled,
+        badgesEnabled,
+        onNavigate,
+        onClose,
+        onPrimaryAction: handlePrimaryAction,
+        onLoginClick: handleLoginClick,
+        borderRadius,
+        previewMode,
+    };
 
-    return (
-        <LuxuryLayout
-            design={{ ...design, layoutTemplate: 'luxury' }}
-            content={content}
-            tabs={tabs}
-            isGuest={isGuest}
-            user={user}
-            assetsUrl={assetsUrl}
-            isPro={isPro}
-            ranksEnabled={ranksEnabled}
-            badgesEnabled={badgesEnabled}
-            onNavigate={onNavigate}
-            onClose={onClose}
-            onPrimaryAction={handlePrimaryAction}
-            onLoginClick={handleLoginClick}
-            borderRadius={borderRadius}
-        />
-    );
+    if (layoutTemplate === 'modern') {
+        return <ModernLayout {...layoutProps} />;
+    }
+
+    return <LuxuryLayout {...layoutProps} />;
 }

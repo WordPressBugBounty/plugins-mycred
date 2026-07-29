@@ -161,7 +161,7 @@ const WidgetPreview = ({ settings = {}, activePreviewTab = 0, content = {} }) =>
                             ) : (
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <Typography sx={{ fontSize: '18px', fontWeight: 700, lineHeight: 1 }}>
-                                        {settings.logoText || 'myCred'}
+                                {settings.logoText || __('Reward Program', 'mycred')}
                                     </Typography>
                                 </Box>
                             )}
@@ -370,7 +370,7 @@ const WidgetPreview = ({ settings = {}, activePreviewTab = 0, content = {} }) =>
                         />
                     ) : (
                         <Typography sx={{ fontSize: '14px', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                            {settings.logoText || 'myCred rewards'}
+                            {settings.logoText || __('Rewards Hub', 'mycred')}
                         </Typography>
                     )}
                 </Box>

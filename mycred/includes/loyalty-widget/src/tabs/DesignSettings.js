@@ -23,6 +23,8 @@ import { usePreviewSettings } from '../context/PreviewSettingsContext';
 import { saveSectionSettings } from '../services/api';
 import { toast } from 'react-hot-toast';
 import ToggleSwitch from '../components/admin/ToggleSwitch';
+import { TEMPLATE_OPTIONS, getTemplatePreset, normalizeLayoutTemplate } from '../components/preview/templatePresets';
+import ViewQuiltIcon from '@mui/icons-material/ViewQuilt';
 
 const ColorInput = ({ label, value, onChange }) => {
     const [isFocused, setIsFocused] = useState(false);
@@ -125,7 +127,7 @@ const getDefaultDesignSettings = () => ({
     buttonTextColor: '#FFFFFF',
     showBranding: true,
     logoUrl: window.mycredLoyaltyWidgetData?.assets_url ? window.mycredLoyaltyWidgetData.assets_url + 'widget-logo.png' : '',
-    logoText: 'Reward Program',
+    logoText: __('Reward Program', 'mycred'),
     launcherRadius: 45,
     launcherAnimation: 'fade',
     layoutTemplate: 'luxury',
@@ -133,7 +135,7 @@ const getDefaultDesignSettings = () => ({
     headerImageUrl: window.mycredLoyaltyWidgetData?.assets_url ? window.mycredLoyaltyWidgetData.assets_url + 'mycred_widget_header.png' : '',
     headerOverlayOpacity: 0,
     headerSubtitle: __('Welcome to', 'mycred'),
-    programTitle: 'myCred Rewards',
+    programTitle: __('Rewards Hub', 'mycred'),
     borderRadius: 8,
     navLayout: 'list',
     heroImageUrl: window.mycredLoyaltyWidgetData?.assets_url ? window.mycredLoyaltyWidgetData.assets_url + 'default-logo1.svg' : '',
@@ -209,6 +211,32 @@ const DesignSettings = () => {
         updateDesign({ [field]: value });
     };
 
+    const handleSelectTemplate = (templateId) => {
+        const id = normalizeLayoutTemplate(templateId);
+        if (normalizeLayoutTemplate(settings.layoutTemplate) === id) {
+            return;
+        }
+        const preset = getTemplatePreset(id);
+        updateDesign({
+            ...preset,
+            // Keep user colors and images / copy when switching templates.
+            backgroundColor: settings.backgroundColor || preset.backgroundColor,
+            textColor: settings.textColor || preset.textColor,
+            buttonColor: settings.buttonColor || preset.buttonColor,
+            buttonTextColor: settings.buttonTextColor || preset.buttonTextColor,
+            logoUrl: settings.logoUrl,
+            logoText: settings.logoText,
+            showLogo: settings.showLogo,
+            headerImageUrl: settings.headerImageUrl,
+            headerSubtitle: settings.headerSubtitle,
+            programTitle: settings.programTitle,
+            heroImageUrl: settings.heroImageUrl,
+            showBranding: settings.showBranding,
+            launcherRadius: settings.launcherRadius,
+            launcherAnimation: settings.launcherAnimation,
+        });
+    };
+
     const handleUploadHeaderImage = () => {
         if (typeof wp === 'undefined' || !wp.media) return;
 
@@ -240,12 +268,16 @@ const DesignSettings = () => {
     const handleSave = async () => {
         setLoading(true);
         try {
-            const response = await saveSectionSettings('design', { ...settings, layoutTemplate: 'luxury' });
+            const payload = {
+                ...settings,
+                layoutTemplate: normalizeLayoutTemplate(settings.layoutTemplate),
+            };
+            const response = await saveSectionSettings('design', payload);
             if (response.success) {
                 toast.success(__('Settings saved successfully!', 'mycred'));
                 if (window.mycredLoyaltyWidgetData) {
                     if (!window.mycredLoyaltyWidgetData.settings) window.mycredLoyaltyWidgetData.settings = {};
-                    window.mycredLoyaltyWidgetData.settings.design = { ...settings, layoutTemplate: 'luxury' };
+                    window.mycredLoyaltyWidgetData.settings.design = payload;
                 }
             } else {
                 toast.error(response.message || __('Failed to save settings', 'mycred'));
@@ -263,6 +295,44 @@ const DesignSettings = () => {
                 {/* Left Column: Settings - 50% Width */}
                 <Box sx={{ flex: '1', minWidth: { xs: '100%', lg: '0' }, maxWidth: { xs: '100%', lg: '500px' } }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {/* Template picker */}
+                        <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+                            <SectionHeader
+                                icon={ViewQuiltIcon}
+                                title={__('Templates', 'mycred')}
+                                desc={__('Choose a home layout. Content and design options below apply to every template.', 'mycred')}
+                            />
+                            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5 }}>
+                                {TEMPLATE_OPTIONS.map((opt) => {
+                                    const selected = normalizeLayoutTemplate(settings.layoutTemplate) === opt.id;
+                                    return (
+                                        <Box
+                                            key={opt.id}
+                                            onClick={() => handleSelectTemplate(opt.id)}
+                                            sx={{
+                                                p: 2,
+                                                borderRadius: '12px',
+                                                border: selected ? '2px solid #5E2CED' : '1px solid #E0E0E0',
+                                                bgcolor: selected ? 'rgba(94,44,237,0.04)' : '#fff',
+                                                cursor: 'pointer',
+                                                transition: 'border-color 0.15s ease, background 0.15s ease',
+                                                '&:hover': {
+                                                    borderColor: selected ? '#5E2CED' : '#D9D0FF',
+                                                },
+                                            }}
+                                        >
+                                            <Typography sx={{ fontSize: 15, fontWeight: 700, color: '#1a1a1a', mb: 0.5 }}>
+                                                {__(opt.label, 'mycred')}
+                                            </Typography>
+                                            <Typography sx={{ fontSize: 12, color: '#666', lineHeight: 1.4 }}>
+                                                {__(opt.description, 'mycred')}
+                                            </Typography>
+                                        </Box>
+                                    );
+                                })}
+                            </Box>
+                        </Paper>
+
                         {/* Logo Settings */}
                         <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
                             <SectionHeader
@@ -391,7 +461,7 @@ const DesignSettings = () => {
                             <SectionHeader
                                 icon={AutoAwesomeIcon}
                                 title={__('Layout Settings', 'mycred')}
-                                desc={__('Customize the luxury widget header, tiers, and home layout', 'mycred')}
+                                desc={__('Customize the widget header and home layout', 'mycred')}
                             />
 
                             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 2 }}>

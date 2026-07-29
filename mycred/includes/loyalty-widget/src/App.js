@@ -7,12 +7,14 @@ import DesignSettings from './tabs/DesignSettings';
 import ContentSettings from './tabs/ContentSettings';
 import TabsSettings from './tabs/TabsSettings';
 import EventTriggersSettings from './tabs/EventTriggersSettings';
+import FaqSettings from './tabs/FaqSettings';
 import { PreviewSettingsProvider } from './context/PreviewSettingsContext';
 import SettingsIcon from '@mui/icons-material/Settings';
 import PaletteIcon from '@mui/icons-material/Palette';
 import ArticleIcon from '@mui/icons-material/Article';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import EventIcon from '@mui/icons-material/Event';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { Toaster } from 'react-hot-toast';
 
 // Create a theme instance matching the dashboard.
@@ -72,10 +74,23 @@ function a11yProps(index) {
 }
 
 export default function App() {
-    const [value, setValue] = useState(0);
+    const tabHashes = ['#general', '#design', '#content', '#tabs', '#faqs', '#event-triggers'];
+    
+    const getInitialTab = () => {
+        const hash = window.location.hash;
+        const index = tabHashes.indexOf(hash);
+        return index !== -1 ? index : 0;
+    };
+
+    const [value, setValue] = useState(getInitialTab);
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, tabHashes[newValue]);
+        } else {
+            window.location.hash = tabHashes[newValue];
+        }
     };
 
     return (
@@ -162,7 +177,8 @@ export default function App() {
                                 <Tab icon={<PaletteIcon sx={{ mr: 1.5 }} />} iconPosition="start" label={__('Design', 'mycred')} {...a11yProps(1)} />
                                 <Tab icon={<ArticleIcon sx={{ mr: 1.5 }} />} iconPosition="start" label={__('Content', 'mycred')} {...a11yProps(2)} />
                                 <Tab icon={<ViewListIcon sx={{ mr: 1.5 }} />} iconPosition="start" label={__('Tabs', 'mycred')} {...a11yProps(3)} />
-                                <Tab icon={<EventIcon sx={{ mr: 1.5 }} />} iconPosition="start" label={__('Event triggers', 'mycred')} {...a11yProps(4)} />
+                                <Tab icon={<HelpOutlineIcon sx={{ mr: 1.5 }} />} iconPosition="start" label={__('FAQs', 'mycred')} {...a11yProps(4)} />
+                                <Tab icon={<EventIcon sx={{ mr: 1.5 }} />} iconPosition="start" label={__('Event triggers', 'mycred')} {...a11yProps(5)} />
                             </Tabs>
     
                             <PreviewSettingsProvider>
@@ -180,6 +196,9 @@ export default function App() {
                                         <TabsSettings />
                                     </TabPanel>
                                     <TabPanel value={value} index={4}>
+                                        <FaqSettings />
+                                    </TabPanel>
+                                    <TabPanel value={value} index={5}>
                                         <EventTriggersSettings />
                                     </TabPanel>
                                 </Box>

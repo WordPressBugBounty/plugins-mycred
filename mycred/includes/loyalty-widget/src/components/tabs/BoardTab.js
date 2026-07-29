@@ -19,6 +19,7 @@ const getRankBadgeStyle = (rankName, accent) => getRankStyle(rankName, accent);
 
 export default function BoardTab({ settings, currentContent, user, onBack, onClose, previewMode = false, previewData }) {
     currentContent = currentContent || {};
+    const isRtl = document?.documentElement?.dir === 'rtl';
     // Addon feature flags
     const addons = window.mycredLoyaltyWidget?.addons || {};
     const ranksEnabled = !!addons.ranks_enabled;
@@ -167,8 +168,8 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
                             <Box
                                 component="img"
                                 src={item.top_badge_image}
-                                alt={item.top_badge_title || 'Badge'}
-                                title={item.top_badge_title || 'Badge'}
+                                alt={item.top_badge_title || __('Badge', 'mycred')}
+                                title={item.top_badge_title || __('Badge', 'mycred')}
                                 sx={{
                                     position: 'absolute',
                                     bottom: '-4px',
@@ -262,7 +263,7 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
             <Box sx={{ p: '20px 24px', position: 'relative' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <IconButton size="small" onClick={onBack} sx={{ color: headerText, p: 0 }}>
-                        <ArrowBackIcon sx={{ fontSize: '20px' }} />
+                        <ArrowBackIcon sx={{ fontSize: '20px', transform: isRtl ? 'scaleX(-1)' : 'none' }} />
                     </IconButton>
                     <Typography sx={{ fontSize: '16px', fontWeight: 600, color: headerText, fontFamily: "'Instrument Sans', sans-serif" }}>
                         {currentContent.boardMessage || __('Board', 'mycred')}
@@ -271,7 +272,7 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
                 <IconButton
                     size="small"
                     onClick={onClose}
-                    sx={{ position: 'absolute', right: '20px', top: '20px', color: headerText, p: 0 }}
+                    sx={{ position: 'absolute', insetInlineEnd: '20px', top: '20px', color: headerText, p: 0 }}
                 >
                     <CloseIcon sx={{ fontSize: '20px' }} />
                 </IconButton>

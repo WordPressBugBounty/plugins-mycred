@@ -84,7 +84,8 @@ export default function TabsSettings() {
         board: initialTabs.tabControls?.board !== undefined ? initialTabs.tabControls.board : true,
         logs: initialTabs.tabControls?.logs !== undefined ? initialTabs.tabControls.logs : true,
         badges: initialTabs.tabControls?.badges !== undefined ? initialTabs.tabControls.badges : true,
-        ranks: initialTabs.tabControls?.ranks !== undefined ? initialTabs.tabControls.ranks : true
+        ranks: initialTabs.tabControls?.ranks !== undefined ? initialTabs.tabControls.ranks : true,
+        faq: initialTabs.tabControls?.faq !== undefined ? initialTabs.tabControls.faq : true,
     });
 
     const [leaderboardSettings, setLeaderboardSettings] = useState({
@@ -188,6 +189,12 @@ export default function TabsSettings() {
                             description={__('Show the user activity and point logs', 'mycred')}
                             checked={tabControls.logs}
                             onChange={handleTabControlChange('logs')}
+                        />
+                        <ToggleOption
+                            title={__('FAQ (only on card based template)', 'mycred')}
+                            description={__('Show the FAQ pill on the Modern home header', 'mycred')}
+                            checked={tabControls.faq}
+                            onChange={handleTabControlChange('faq')}
                         />
                         <ToggleOption
                             title={__('Badges Tab', 'mycred')}

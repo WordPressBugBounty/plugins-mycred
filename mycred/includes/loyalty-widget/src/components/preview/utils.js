@@ -1,7 +1,7 @@
 import { Box, Typography, Paper } from '@mui/material';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
-export const MYCRED_BRANDING_URL = 'https://mycred.me/pricing/?utm_source=plugin&utm_medium=loyaltywidget';
+export const MYCRED_BRANDING_URL = 'https://mycred.me/?utm_source=plugin&utm_medium=mycred-loyaltywidget';
 
 export const hexToRgba = (hex, opacity) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);

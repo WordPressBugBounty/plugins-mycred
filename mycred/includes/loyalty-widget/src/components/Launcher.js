@@ -1,5 +1,6 @@
 import { Box, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { __ } from '@wordpress/i18n';
 
 export default function Launcher({ isOpen, onClick, settings }) {
     const design = settings.design || {};
@@ -55,6 +56,18 @@ export default function Launcher({ isOpen, onClick, settings }) {
                     gap: '10px',
                     boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                     cursor: 'pointer',
+                    '@keyframes shakeKeyframe': {
+                        '0%, 100%': { transform: 'translateX(0) rotate(0deg)' },
+                        '15%': { transform: 'translateX(-4px) rotate(-2deg)' },
+                        '30%': { transform: 'translateX(4px) rotate(2deg)' },
+                        '45%': { transform: 'translateX(-3px) rotate(-1.5deg)' },
+                        '60%': { transform: 'translateX(3px) rotate(1.5deg)' },
+                        '75%': { transform: 'translateX(-2px) rotate(-1deg)' },
+                        '90%': { transform: 'translateX(2px) rotate(1deg)' },
+                    },
+                    '&:hover': {
+                        animation: 'shakeKeyframe 0.45s ease-in-out',
+                    },
                 }}
             >
                 {design.showLogo && (
@@ -66,7 +79,7 @@ export default function Launcher({ isOpen, onClick, settings }) {
                     />
                 )}
                 <Typography sx={{ fontSize: '14px', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                    {design.logoText || 'myCred rewards'}
+                    {design.logoText || __('Rewards Hub', 'mycred')}
                 </Typography>
             </Box>
 

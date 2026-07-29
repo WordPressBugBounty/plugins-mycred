@@ -208,15 +208,15 @@ export default function LuxuryLayout({
     const btnTextColor = design.buttonTextColor || '#FFFFFF';
     const overlay = design.headerOverlayOpacity ?? 0.55;
     const headerImage = design.headerImageUrl || '';
-    const programTitle = design.programTitle || __('myCred Rewards', 'mycred');
+    const programTitle = design.programTitle || __('Rewards Hub', 'mycred');
     const tabControls = tabs.tabControls || {};
 
     const navItems = [
         { key: 'earn', show: tabControls.earn !== false, svg: 'earn-icon.svg', label: content.earnLabel || __('Earn', 'mycred'), subtitle: content.earnMessage },
         { key: 'redeem', show: tabControls.redeem !== false && isPro, svg: 'redeem-icon.svg', label: content.redeemLabel || __('Redeem', 'mycred'), subtitle: content.redeemMessage },
         { key: 'board', show: tabControls.board !== false, svg: 'board-icon.svg', label: content.boardLabel || __('Board', 'mycred'), subtitle: content.boardMessage },
-        { key: 'logs', show: tabControls.logs !== false, svg: 'logs-icon.svg', label: content.logsLabel || __('History', 'mycred'), subtitle: content.logsMessage },
-        { key: 'profile', show: tabControls.profile !== false, svg: 'profile-icon.svg', label: content.profileLabel || __('Profile', 'mycred'), subtitle: content.profileMessage },
+        { key: 'logs', show: tabControls.logs !== false && !isGuest, svg: 'logs-icon.svg', label: content.logsLabel || __('History', 'mycred'), subtitle: content.logsMessage },
+        { key: 'profile', show: tabControls.profile !== false && !isGuest, svg: 'profile-icon.svg', label: content.profileLabel || __('Profile', 'mycred'), subtitle: content.profileMessage },
         { key: 'ranks', show: ranksEnabled && tabControls.ranks !== false, icon: LeaderboardIcon, label: content.ranksLabel || __('Ranks', 'mycred'), subtitle: content.ranksMessage },
         { key: 'badges', show: badgesEnabled && tabControls.badges !== false, icon: EmojiEventsIcon, label: content.badgesLabel || __('Badges', 'mycred'), subtitle: content.badgesMessage },
     ].filter((item) => item.show);
@@ -427,7 +427,10 @@ export default function LuxuryLayout({
                         <Button fullWidth variant="contained" onClick={onPrimaryAction} sx={{
                             bgcolor: btnColor, color: btnTextColor, textTransform: 'none', boxShadow: 'none',
                             borderRadius: `${Math.max(8, borderRadius - 4)}px`, py: 1.5, fontWeight: 600,
-                            fontFamily: "'Instrument Sans', sans-serif", mb: 1.5, '&:hover': { bgcolor: btnColor, boxShadow: 'none' },
+                            fontFamily: "'Instrument Sans', sans-serif", mb: 1.5,
+                            fontSize: '15px !important', lineHeight: '1.4 !important',
+                            whiteSpace: 'normal', wordBreak: 'break-word', minHeight: '48px',
+                            '&:hover': { bgcolor: btnColor, boxShadow: 'none' },
                         }}>
                             {content.joinButtonText || __('Join now', 'mycred')}
                         </Button>

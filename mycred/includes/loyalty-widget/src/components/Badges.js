@@ -8,6 +8,7 @@ import { __ } from '@wordpress/i18n';
 
 export default function Badges({ settings, currentContent, onBack, onClose, previewMode = false, previewData }) {
     currentContent = currentContent || {};
+    const isRtl = document?.documentElement?.dir === 'rtl';
     const [badges, setBadges] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -35,7 +36,7 @@ export default function Badges({ settings, currentContent, onBack, onClose, prev
             <Box sx={{ p: '20px 24px', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <IconButton size="small" onClick={onBack} sx={{ color: '#fff', p: 0.5 }}>
-                        <ArrowBackIcon />
+                        <ArrowBackIcon sx={{ transform: isRtl ? 'scaleX(-1)' : 'none' }} />
                     </IconButton>
                     <Box>
                         <Typography sx={{ fontSize: '18px', fontWeight: 700, fontFamily: "'Instrument Sans', sans-serif" }}>
@@ -109,7 +110,7 @@ export default function Badges({ settings, currentContent, onBack, onClose, prev
                             <Typography sx={{
                                 fontSize: '15px',
                                 fontWeight: 800,
-                                color: '#1A1040',
+                                color: btnColor,
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.5px',
                                 fontFamily: "'Instrument Sans', sans-serif",
@@ -208,7 +209,7 @@ export default function Badges({ settings, currentContent, onBack, onClose, prev
                                             <Typography sx={{
                                                 fontSize: '15px',
                                                 fontWeight: 700,
-                                                color: isEarned ? '#1A1040' : '#8888A8',
+                                                color: isEarned ? btnColor : '#8888A8',
                                                 fontFamily: "'Instrument Sans', sans-serif",
                                                 mb: '6px',
                                             }}>
@@ -266,7 +267,7 @@ export default function Badges({ settings, currentContent, onBack, onClose, prev
                                                     <Typography sx={{
                                                         fontSize: '12px',
                                                         fontWeight: 700,
-                                                        color: isEarned ? '#1A1040' : '#A0A0B8',
+                                                        color: isEarned ? btnColor : '#A0A0B8',
                                                         fontFamily: "'Instrument Sans', sans-serif",
                                                     }}>
                                                         {level.reward_text}
