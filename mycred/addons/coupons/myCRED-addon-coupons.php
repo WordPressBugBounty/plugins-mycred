@@ -57,6 +57,9 @@ if ( ! class_exists( 'myCRED_Coupons_Module' ) ) :
 			add_action( 'mycred_add_menu',       array( $this, 'add_to_menu' ), $this->menu_pos );
 			add_action( 'admin_notices',         array( $this, 'warn_bad_expiration' ), $this->menu_pos );
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
+			add_action( 'rest_api_init',          array( $this, 'register_coupons_rest_routes' ) );
+			add_action( 'admin_enqueue_scripts',  array( $this, 'enqueue_react_coupons_list_scripts' ) );
+			add_action( 'all_admin_notices', array( $this, 'render_react_coupons_list_root' ) );
 
 		}
 
@@ -1179,6 +1182,302 @@ if ( ! class_exists( 'myCRED_Coupons_Module' ) ) :
 
 			return str_replace( '%coupon%', $log_entry->data, $content );
 
+		}
+
+		public function register_coupons_rest_routes() {
+			register_rest_route( 'mycred/v1', '/coupons', array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_coupons_rest' ),
+					'permission_callback' => array( $this, 'rest_permissions_check' ),
+				),
+			) );
+
+			register_rest_route( 'mycred/v1', '/coupons/bulk', array(
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'bulk_coupons_rest' ),
+					'permission_callback' => array( $this, 'rest_permissions_check' ),
+				),
+			) );
+
+			register_rest_route( 'mycred/v1', '/coupons/(?P<id>\d+)', array(
+				array(
+					'methods'             => 'DELETE',
+					'callback'            => array( $this, 'delete_coupon_rest' ),
+					'permission_callback' => array( $this, 'rest_permissions_check' ),
+				),
+			) );
+
+			register_rest_route( 'mycred/v1', '/coupons/(?P<id>\d+)/restore', array(
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'restore_coupon_rest' ),
+					'permission_callback' => array( $this, 'rest_permissions_check' ),
+				),
+			) );
+		}
+
+		public function rest_permissions_check() {
+			return current_user_can( 'edit_posts' );
+		}
+
+		public function prepare_coupon_for_rest( $post_id ) {
+			$post = get_post( $post_id );
+			if ( ! $post ) return null;
+
+			$coupon = mycred_get_coupon( $post_id );
+			$point_type_key  = $coupon->point_type ? $coupon->point_type : MYCRED_DEFAULT_TYPE_KEY;
+			$point_type_name = isset( $this->point_types[ $point_type_key ] ) ? $this->point_types[ $point_type_key ] : $point_type_key;
+
+			$mycred = mycred( $point_type_key );
+			$formatted_value = $mycred->format_creds( $coupon->value );
+
+			// Format usage log link
+			$page = MYCRED_SLUG;
+			if ( $point_type_key != MYCRED_DEFAULT_TYPE_KEY && array_key_exists( $point_type_key, $this->point_types ) ) {
+				$page .= '_' . $point_type_key;
+			}
+			$usage_url = add_query_arg( array( 'page' => $page, 'ref' => 'coupon', 'ref_id' => $post_id ), admin_url( 'admin.php' ) );
+
+			// Expiration details
+			$expires_status = 'never';
+			$expires_label  = 'Never';
+			$expires_date   = '';
+			if ( $coupon->expires !== false ) {
+				if ( $coupon->expires_unix < current_time( 'timestamp' ) ) {
+					$expires_status = 'expired';
+					$expires_label  = 'Expired';
+				} else {
+					$expires_status = 'active';
+					$expires_label  = sprintf( 'In %s', human_time_diff( $coupon->expires_unix ) );
+				}
+				$expires_date = date( get_option( 'date_format' ), $coupon->expires_unix );
+			}
+
+			return array(
+				'id'               => (int) $post->ID,
+				'code'             => $post->post_title,
+				'edit_url'         => admin_url( 'post.php?post=' . $post->ID . '&action=edit' ),
+				'value'            => (float) $coupon->value,
+				'formatted_value'  => $formatted_value,
+				'used'             => (int) $coupon->used,
+				'usage_url'        => $usage_url,
+				'max_global'       => (int) $coupon->max_global,
+				'max_user'         => (int) $coupon->max_user,
+				'expires_status'   => $expires_status,
+				'expires_label'    => $expires_label,
+				'expires_date'     => $expires_date,
+				'point_type'       => $point_type_key,
+				'point_type_name'  => $point_type_name,
+				'status'           => $post->post_status,
+				'date'             => $post->post_date,
+			);
+		}
+
+		public function get_coupons_rest( $request ) {
+			$status     = sanitize_text_field( $request->get_param( 'status' ) );
+			$search     = sanitize_text_field( $request->get_param( 'search' ) );
+			$point_type = sanitize_text_field( $request->get_param( 'point_type' ) );
+			$page       = max( 1, (int) $request->get_param( 'page' ) );
+			$per_page   = max( 1, (int) $request->get_param( 'per_page' ) );
+			if ( ! $per_page ) $per_page = 10;
+
+			$post_status = 'publish';
+			if ( $status === 'trash' ) {
+				$post_status = 'trash';
+			} elseif ( $status === 'all' ) {
+				$post_status = array( 'publish', 'draft', 'pending', 'private' );
+			}
+
+			$args = array(
+				'post_type'      => MYCRED_COUPON_KEY,
+				'post_status'    => $post_status,
+				'posts_per_page' => $per_page,
+				'paged'          => $page,
+				's'              => $search,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+			);
+
+			if ( ! empty( $point_type ) && $point_type !== 'all' ) {
+				$args['meta_query'] = array(
+					array(
+						'key'   => 'type',
+						'value' => $point_type,
+					)
+				);
+			}
+
+			$query = new WP_Query( $args );
+			$items = array();
+			foreach ( $query->posts as $post ) {
+				$items[] = $this->prepare_coupon_for_rest( $post->ID );
+			}
+
+			// Counts for tabs
+			$counts_raw    = wp_count_posts( MYCRED_COUPON_KEY );
+			$total_publish = (int) $counts_raw->publish;
+			$total_trash   = (int) $counts_raw->trash;
+			$total_all     = $total_publish + (int) $counts_raw->draft + (int) $counts_raw->pending + (int) $counts_raw->private;
+
+			$point_types_formatted = array();
+			foreach ( $this->point_types as $key => $name ) {
+				$point_types_formatted[] = array( 'key' => $key, 'name' => $name );
+			}
+
+			return rest_ensure_response( array(
+				'items'       => $items,
+				'total'       => (int) $query->found_posts,
+				'counts'      => array(
+					'all'     => $total_all,
+					'publish' => $total_publish,
+					'trash'   => $total_trash,
+				),
+				'point_types' => $point_types_formatted,
+			) );
+		}
+
+		public function delete_coupon_rest( $request ) {
+			$id        = absint( $request->get_param( 'id' ) );
+			$permanent = (bool) $request->get_param( 'permanent' );
+
+			if ( ! $id ) {
+				return new WP_Error( 'invalid_id', 'Invalid coupon ID.', array( 'status' => 400 ) );
+			}
+
+			if ( $permanent ) {
+				wp_delete_post( $id, true );
+			} else {
+				wp_trash_post( $id );
+			}
+
+			return rest_ensure_response( array( 'success' => true ) );
+		}
+
+		public function restore_coupon_rest( $request ) {
+			$id = absint( $request->get_param( 'id' ) );
+			if ( ! $id ) {
+				return new WP_Error( 'invalid_id', 'Invalid coupon ID.', array( 'status' => 400 ) );
+			}
+
+			wp_untrash_post( $id );
+			return rest_ensure_response( array( 'success' => true ) );
+		}
+
+		public function bulk_coupons_rest( $request ) {
+			$action = sanitize_text_field( $request->get_param( 'action' ) );
+			$ids    = $request->get_param( 'ids' );
+
+			if ( ! is_array( $ids ) || empty( $ids ) ) {
+				return new WP_Error( 'invalid_ids', 'No coupon IDs provided.', array( 'status' => 400 ) );
+			}
+
+			foreach ( $ids as $id ) {
+				$id = absint( $id );
+				if ( $action === 'trash' ) {
+					wp_trash_post( $id );
+				} elseif ( $action === 'restore' ) {
+					wp_untrash_post( $id );
+				} elseif ( $action === 'delete' ) {
+					wp_delete_post( $id, true );
+				}
+			}
+
+			return rest_ensure_response( array( 'success' => true ) );
+		}
+
+		public function enqueue_react_coupons_list_scripts() {
+			$screen    = get_current_screen();
+			$post_type = isset( $_GET['post_type'] ) ? sanitize_key( $_GET['post_type'] ) : ( $screen && isset( $screen->post_type ) ? $screen->post_type : '' );
+
+			if ( ! ( $screen && $screen->base === 'edit' && $post_type === MYCRED_COUPON_KEY ) ) {
+				return;
+			}
+
+			wp_enqueue_script(
+				'mycred-coupons-react',
+				plugins_url( 'addons/build/coupons.bundle.js', myCRED_THIS ),
+				array( 'wp-element', 'wp-i18n' ),
+				myCRED_COUPONS_VERSION,
+				true
+			);
+
+			$initial_items = array();
+			$total_count   = 0;
+			$counts        = array( 'all' => 0, 'publish' => 0, 'trash' => 0 );
+			$point_types   = array();
+
+			try {
+				$initial_coupons_res = $this->get_coupons_rest( new WP_REST_Request( 'GET', '/mycred/v1/coupons' ) );
+				if ( $initial_coupons_res && ! is_wp_error( $initial_coupons_res ) && method_exists( $initial_coupons_res, 'get_data' ) ) {
+					$initial_data  = $initial_coupons_res->get_data();
+					$initial_items = isset( $initial_data['items'] ) ? $initial_data['items'] : array();
+					$total_count   = isset( $initial_data['total'] ) ? $initial_data['total'] : 0;
+					$counts        = isset( $initial_data['counts'] ) ? $initial_data['counts'] : $counts;
+					$point_types   = isset( $initial_data['point_types'] ) ? $initial_data['point_types'] : $point_types;
+				}
+			} catch ( Throwable $e ) {}
+
+			wp_localize_script( 'mycred-coupons-react', 'mycredCouponsData', array(
+				'restUrl'        => esc_url_raw( rest_url( 'mycred/v1/' ) ),
+				'nonce'          => wp_create_nonce( 'wp_rest' ),
+				'initialCoupons' => $initial_items,
+				'totalCount'     => $total_count,
+				'counts'         => $counts,
+				'pointTypes'     => $point_types,
+				'addNewUrl'      => admin_url( 'post-new.php?post_type=' . MYCRED_COUPON_KEY ),
+			) );
+
+			echo '<style type="text/css">
+				body.post-type-mycred_coupon #wpbody-content > .wrap,
+				body.post-type-mycred_coupon #posts-filter,
+				body.post-type-mycred_coupon #screen-options-link-wrap,
+				body.post-type-mycred_coupon #screen-options-wrap,
+				body.post-type-mycred_coupon .screen-meta-toggle { display: none !important; }
+				#mycred-coupons-list-root { width: 100%; margin-top: 15px; display: block !important; }
+
+				/* Reset WP global input/select/button borders & outlines inside MUI root */
+				#mycred-coupons-list-root .MuiInputBase-input,
+				#mycred-coupons-list-root input[type="text"],
+				#mycred-coupons-list-root input[type="search"] {
+					border: none !important;
+					background: transparent !important;
+					box-shadow: none !important;
+					outline: none !important;
+				}
+				#mycred-coupons-list-root input:focus,
+				#mycred-coupons-list-root select:focus,
+				#mycred-coupons-list-root button:focus {
+					outline: 0 !important;
+					box-shadow: none !important;
+				}
+				#mycred-coupons-list-root a.MuiButton-root,
+				#mycred-coupons-list-root a.MuiButton-root:hover,
+				#mycred-coupons-list-root a.MuiButton-root:focus,
+				#mycred-coupons-list-root a.MuiButton-root:visited {
+					text-decoration: none !important;
+				}
+				#mycred-coupons-list-root a.MuiButton-containedPrimary,
+				#mycred-coupons-list-root a.MuiButton-containedPrimary:hover,
+				#mycred-coupons-list-root a.MuiButton-containedPrimary:focus,
+				#mycred-coupons-list-root a.MuiButton-containedPrimary:visited {
+					color: #ffffff !important;
+					background-color: #5e2ced !important;
+				}
+				#mycred-coupons-list-root a.MuiButton-containedPrimary * {
+					color: #ffffff !important;
+				}
+			</style>';
+		}
+
+		public function render_react_coupons_list_root() {
+			$screen    = get_current_screen();
+			$post_type = isset( $_GET['post_type'] ) ? sanitize_key( $_GET['post_type'] ) : ( $screen && isset( $screen->post_type ) ? $screen->post_type : '' );
+
+			if ( $screen && $screen->base === 'edit' && $post_type === MYCRED_COUPON_KEY ) {
+				echo '<div id="mycred-coupons-list-root"></div>';
+			}
 		}
 
 	}

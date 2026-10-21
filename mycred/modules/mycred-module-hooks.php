@@ -148,7 +148,7 @@ if ( ! class_exists( 'myCRED_Hooks_Module' ) ) :
 			// Video Views
 			$installed['video_view'] = array(
 				'title'         => __( '%plural% for viewing Videos', 'mycred' ),
-				'description'   => str_replace( '%shortcode%', '<a href="http://codex.mycred.me/shortcodes/mycred_video/" target="_blank">mycred_video</a>', __( 'Award %_plural% for watches videos embedded using the %shortcode% shortcode.', 'mycred' ) ),
+				'description'   => str_replace( '%shortcode%', '<a href="http://codex.mycred.me/shortcodes/mycred_video/" target="_blank">mycred_video</a>', __( 'Award %_plural% for watching videos embedded using the %shortcode% shortcode.', 'mycred' ) ),
 				'documentation' => 'http://codex.mycred.me/hooks/watching-videos/',
 				'callback'      => array( 'myCRED_Hook_Video_Views' )
 			);
@@ -249,6 +249,7 @@ if ( ! class_exists( 'myCRED_Hooks_Module' ) ) :
 		$option_id = apply_filters( 'mycred_option_id', 'mycred_pref_hooks' );
 
 			wp_enqueue_style( 'mycred-bootstrap-grid' );
+			wp_enqueue_style( 'mycred-select2-style' );
 
 			wp_localize_script(
 				'mycred-widgets',
@@ -258,12 +259,48 @@ if ( ! class_exists( 'myCRED_Hooks_Module' ) ) :
 					'option_id' => $option_id
 				)
 			);
+			wp_enqueue_script( 'mycred-select2-script' );
 			wp_enqueue_script( 'mycred-widgets' );
 			wp_enqueue_script( 'mycred-specific-content-script' );
 
 			if ( wp_is_mobile() )
 				wp_enqueue_script( 'jquery-touch-punch' );
 
+		}
+
+		/**
+		 * Scripts and Styles
+		 */
+		public function scripts_and_styles() {
+			wp_enqueue_style( 'mycred-select2-style' );
+			wp_enqueue_script( 'mycred-select2-script' );
+			wp_enqueue_script( 'mycred-specific-content-script' );
+			wp_enqueue_script(
+				'mycred-hooks',
+				plugins_url( 'assets/build/hooks.bundle.js', myCRED_THIS ),
+				array( 'jquery', 'wp-element', 'mycred-specific-content-script' ),
+				myCRED_VERSION,
+				true
+			);
+			
+			// Get all point types for dynamic switching
+			$types = mycred_get_types(true);
+			$pt_options = array();
+			foreach($types as $key => $label) {
+				$pt_options[$key] = $label;
+			}
+
+			wp_localize_script( 'mycred-hooks', 'myCredHooksData', array(
+				'ajaxurl'     => admin_url( 'admin-ajax.php' ),
+				'nonce'       => (string) wp_create_nonce( 'mycred-hooks-nonce' ),
+				'point_types' => ! empty( $pt_options ) ? $pt_options : array( MYCRED_DEFAULT_TYPE_KEY => 'Points' ),
+				'active_type' => (string) ( $this->mycred_type ? $this->mycred_type : MYCRED_DEFAULT_TYPE_KEY ),
+				'option_id'   => apply_filters( 'mycred_option_id', 'mycred_pref_hooks' ),
+				'level_cred'  => function_exists( 'level_cred_get_hooks_selector' )
+					? level_cred_get_hooks_selector( $this->mycred_type ? $this->mycred_type : MYCRED_DEFAULT_TYPE_KEY )
+					: array( 'enabled' => false, 'based' => false, 'options' => array() ),
+				'level_cred_selected' => isset( $_GET['id'] ) ? sanitize_text_field( wp_unslash( $_GET['id'] ) ) : '',
+			));
 		}
 
 		/**
@@ -275,6 +312,20 @@ if ( ! class_exists( 'myCRED_Hooks_Module' ) ) :
 
 			// Security
 			if ( ! $this->core->user_is_point_admin() ) wp_die( 'Access Denied' );
+
+			$this->scripts_and_styles();
+
+			mycred_render_admin_header();
+?>
+<div id="mycred-hooks-app"></div>
+<style>
+	#wpbody-content > .wrap { display: none; } 
+	#mycred-hooks-app { margin-top: 20px; }
+	#myCRED-wrap { display: none !important; }
+</style>
+<?php
+			// Early exit to prevent legacy PHP code from running
+			return;
 
 			$option_id = apply_filters( 'mycred_option_id', 'mycred_pref_hooks' );
 

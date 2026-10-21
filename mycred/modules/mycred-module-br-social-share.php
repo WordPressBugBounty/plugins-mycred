@@ -110,28 +110,34 @@ if ( ! class_exists( 'myCRED_Module_OB_Social_Share' ) ) :
                         <label>
                             <input type="radio" name="<?php echo esc_attr( $this->field_name( 'button_style' ) ); ?>" <?php echo $this->is_checked( 'button_style' ) ? 'checked' : ''; ?> value="button_style">Button Style
                         </label>
-                        <button type="button" class="mycred-social-icons mycred-social-icon-facebook"><a href="javascript:void(0)">facebook</a></button>
-                        <button type="button" class="mycred-social-icons mycred-social-icon-twitter"><a href="javascript:void(0)">twitter</a></button>
-                        <button type="button" class="mycred-social-icons mycred-social-icon-linkedin"><a href="javascript:void(0)">linkedin</a></button>
-                        <button type="button" class="mycred-social-icons mycred-social-icon-pinterest"><a href="javascript:void(0)">pinterest</a></button>
+                        <div class="mycred-social-wrapper">
+                            <button type="button" class="mycred-social-icons mycred-social-icon-facebook"><a href="javascript:void(0)">facebook</a></button>
+                            <button type="button" class="mycred-social-icons mycred-social-icon-twitter"><a href="javascript:void(0)">twitter</a></button>
+                            <button type="button" class="mycred-social-icons mycred-social-icon-linkedin"><a href="javascript:void(0)">linkedin</a></button>
+                            <button type="button" class="mycred-social-icons mycred-social-icon-pinterest"><a href="javascript:void(0)">pinterest</a></button>
+                        </div>
                     </div>
                     <div class="form-group clearfix">
                         <label>
                             <input type="radio" name="<?php echo esc_attr( $this->field_name( 'button_style' ) ); ?>" <?php echo $this->is_checked( 'icon_style' ) ? 'checked' : ''; ?> value="icon_style">Icon Style
                         </label>
-                        <a href="javascript:void(0)" class="mycred-social-icons mycred-social-icon-facebook"></a>
-                        <a href="javascript:void(0)" class="mycred-social-icons mycred-social-icon-twitter"></a>
-                        <a href="javascript:void(0)" class="mycred-social-icons mycred-social-icon-linkedin"></a>
-                        <a href="javascript:void(0)" class="mycred-social-icons mycred-social-icon-pinterest"></a>
+                        <div class="mycred-social-wrapper">
+                            <a href="javascript:void(0)" class="mycred-social-icons mycred-social-icon-facebook"></a>
+                            <a href="javascript:void(0)" class="mycred-social-icons mycred-social-icon-twitter"></a>
+                            <a href="javascript:void(0)" class="mycred-social-icons mycred-social-icon-linkedin"></a>
+                            <a href="javascript:void(0)" class="mycred-social-icons mycred-social-icon-pinterest"></a>
+                        </div>
                     </div>
                     <div class="form-group clearfix">
                         <label>
                             <input type="radio" name="<?php echo esc_attr( $this->field_name( 'button_style' ) ); ?>" <?php echo $this->is_checked( 'text_style' ) ? 'checked' : ''; ?> value="text_style">Text Style
                         </label>
-                        <button type="button" class="facebook social-text"><a href="javascript:void(0)">facebook</a></button>
-                        <button type="button" class="twitter social-text"><a href="javascript:void(0)">twitter</a></button>
-                        <button type="button" class="linkedin social-text"><a href="javascript:void(0)">linkedin</a></button>
-                        <button type="button" class="pinterest social-text"><a href="javascript:void(0)">pinterest</a></button>
+                        <div class="mycred-social-wrapper">
+                            <button type="button" class="facebook social-text"><a href="javascript:void(0)">facebook</a></button>
+                            <button type="button" class="twitter social-text"><a href="javascript:void(0)">twitter</a></button>
+                            <button type="button" class="linkedin social-text"><a href="javascript:void(0)">linkedin</a></button>
+                            <button type="button" class="pinterest social-text"><a href="javascript:void(0)">pinterest</a></button>
+                        </div>
                     </div>
                 </div>
             </div>

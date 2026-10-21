@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useCallback, useMemo } from '@wordpress/element';
-import { __ } from '@wordpress/i18n';
 
 const PreviewSettingsContext = createContext(null);
 
@@ -13,17 +12,16 @@ const getInitialSettings = () => {
         buttonTextColor: '#FFFFFF',
         showBranding: true,
         logoUrl: '',
-        logoText: __('Reward Program', 'mycred'),
+        logoText: 'Reward Program',
         launcherRadius: 45,
         launcherAnimation: 'fade',
         layoutTemplate: 'luxury',
         headerStyle: 'solid',
         headerImageUrl: window.mycredLoyaltyWidgetData?.assets_url ? window.mycredLoyaltyWidgetData.assets_url + 'mycred_widget_header.png' : '',
         headerOverlayOpacity: 0,
-        headerSubtitle: __('Welcome to', 'mycred'),
-        programTitle: __('Rewards Hub', 'mycred'),
+        headerSubtitle: 'Welcome to',
+        programTitle: 'Rewards Hub',
         borderRadius: 8,
-        showReferralOnHome: true,
         navLayout: 'grid',
         heroImageUrl: window.mycredLoyaltyWidgetData?.assets_url ? window.mycredLoyaltyWidgetData.assets_url + 'default-logo1.svg' : '',
         ...(data.design || {}),

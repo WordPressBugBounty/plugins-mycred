@@ -19,11 +19,67 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Frontend' ) ) :
 
         private function should_display_widget() {
             $settings = get_option( 'mycred_loyalty_widget_settings', array() );
-            if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) {
+            $general  = isset( $settings['general'] ) ? $settings['general'] : array();
+
+            // 1. Basic Enable Check
+            $is_enabled = isset( $general['enableWidget'] ) ? $general['enableWidget'] : false;
+            if ( ! $is_enabled ) {
                 return false;
             }
 
-            return myCRED_Loyalty_Widget_API::visitor_can_see_widget( $settings );
+            // 2. Visibility Check
+            $visibility = isset( $general['visibility'] ) ? $general['visibility'] : 'all';
+            
+            if ( $visibility === 'logged_in' && ! is_user_logged_in() ) {
+                return false;
+            }
+            if ( $visibility === 'guests' && is_user_logged_in() ) {
+                return false;
+            }
+            if ( $visibility === 'roles' ) {
+                if ( ! is_user_logged_in() ) {
+                    return false; // Guests don't have roles
+                }
+                $allowed_roles = isset( $general['visibilityRoles'] ) && is_array( $general['visibilityRoles'] ) ? $general['visibilityRoles'] : array();
+                if ( empty( $allowed_roles ) ) {
+                    return false; // If roles selected but none checked, show to none
+                }
+                $user = wp_get_current_user();
+                $has_role = false;
+                foreach ( $user->roles as $role ) {
+                    if ( in_array( $role, $allowed_roles ) ) {
+                        $has_role = true;
+                        break;
+                    }
+                }
+                if ( ! $has_role ) {
+                    return false;
+                }
+            }
+
+            // 3. Scheduling Check
+            if ( ! empty( $general['enableDateRange'] ) ) {
+                $now = current_time( 'timestamp' );
+                
+                // Date Check
+                $start_date = ! empty( $general['campaignStart'] ) ? strtotime( $general['campaignStart'] ) : 0;
+                $end_date   = ! empty( $general['campaignEnd'] ) ? strtotime( $general['campaignEnd'] . ' 23:59:59' ) : PHP_INT_MAX;
+
+                if ( $now < $start_date || $now > $end_date ) {
+                    return false;
+                }
+
+                // Time Check (Optional refined check if within dates)
+                $start_time = ! empty( $general['startTime'] ) ? $general['startTime'] : '00:00';
+                $end_time   = ! empty( $general['endTime'] ) ? $general['endTime'] : '23:59';
+                
+                $current_time_str = current_time( 'H:i' );
+                if ( $current_time_str < $start_time || $current_time_str > $end_time ) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public function enqueue_scripts() {
@@ -203,10 +259,29 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Frontend' ) ) :
                                 if ( isset( $installed[ $hook_id ] ) ) {
                                     $raw_title = $installed[ $hook_id ]['title'];
                                     
-                                    // Get hook amount
                                     $amount = 0;
+                                    $formatted_amount = '';
+                                    $amount_parts = array();
                                     if ( isset( $hook_prefs['hook_prefs'][ $hook_id ] ) ) {
-                                        $amount = $this->get_hook_amount( $hook_prefs['hook_prefs'][ $hook_id ] );
+                                        $hook_pref = $hook_prefs['hook_prefs'][ $hook_id ];
+                                        if ( 'affiliate' === $hook_id ) {
+                                            $amount_parts = $this->get_affiliate_amount_parts( $hook_pref, $mycred_obj );
+                                            $formatted_amount = ! empty( $amount_parts )
+                                                ? implode( ' / ', wp_list_pluck( $amount_parts, 'formatted' ) )
+                                                : $mycred_obj->format_creds( 0 );
+                                            $amount = ! empty( $amount_parts[0]['amount'] ) ? $amount_parts[0]['amount'] : 0;
+                                        } elseif ( 'product_referral' === $hook_id ) {
+                                            $amount_parts = $this->get_product_referral_amount_parts( $hook_pref, $mycred_obj );
+                                            $formatted_amount = ! empty( $amount_parts )
+                                                ? implode( ' / ', wp_list_pluck( $amount_parts, 'formatted' ) )
+                                                : $mycred_obj->format_creds( 0 );
+                                            $amount = ! empty( $amount_parts[0]['amount'] ) ? $amount_parts[0]['amount'] : 0;
+                                        } else {
+                                            $amount = $this->get_hook_amount( $hook_pref );
+                                            $formatted_amount = $mycred_obj->format_creds( $amount );
+                                        }
+                                    } else {
+                                        $formatted_amount = $mycred_obj->format_creds( 0 );
                                     }
 
                                     $active_hooks[] = array(
@@ -216,7 +291,8 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Frontend' ) ) :
                                         'title'            => $mycred_obj->template_tags_general( $raw_title ),
                                         'raw_title'        => $raw_title,
                                         'amount'           => $amount,
-                                        'formatted_amount' => $mycred_obj->format_creds( $amount ),
+                                        'formatted_amount' => $formatted_amount,
+                                        'amount_parts'     => $amount_parts,
                                         'singular'         => $mycred_obj->singular(),
                                         'plural'           => $mycred_obj->plural(),
                                     );
@@ -385,10 +461,52 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Frontend' ) ) :
 
         private function get_hook_category( $hook_id ) {
             $hook_id = strtolower( $hook_id );
-            if ( strpos( $hook_id, 'woocommerce' ) !== false ) return 'woocommerce';
+            if ( strpos( $hook_id, 'woocommerce' ) !== false || 'product_referral' === $hook_id ) return 'woocommerce';
             if ( strpos( $hook_id, 'buddypress' ) !== false || strpos( $hook_id, 'bp_' ) === 0 ) return 'buddypress';
             if ( strpos( $hook_id, 'bbpress' ) !== false || strpos( $hook_id, 'forum' ) !== false ) return 'forum';
             return 'wordpress';
+        }
+
+        private function get_affiliate_amount_parts( $prefs, $mycred_obj ) {
+            $parts = array();
+            if ( ! empty( $prefs['visit']['creds'] ) && $prefs['visit']['creds'] != 0 ) {
+                $parts[] = array(
+                    'key'       => 'visit',
+                    'label'     => __( 'Visit', 'mycred' ),
+                    'amount'    => $prefs['visit']['creds'],
+                    'formatted' => $mycred_obj->format_creds( $prefs['visit']['creds'] ),
+                );
+            }
+            if ( ! empty( $prefs['signup']['creds'] ) && $prefs['signup']['creds'] != 0 ) {
+                $parts[] = array(
+                    'key'       => 'signup',
+                    'label'     => __( 'Signup', 'mycred' ),
+                    'amount'    => $prefs['signup']['creds'],
+                    'formatted' => $mycred_obj->format_creds( $prefs['signup']['creds'] ),
+                );
+            }
+            return $parts;
+        }
+
+        private function get_product_referral_amount_parts( $prefs, $mycred_obj ) {
+            $parts = array();
+            if ( ! empty( $prefs['referrer']['creds'] ) && $prefs['referrer']['creds'] != 0 ) {
+                $parts[] = array(
+                    'key'       => 'referrer',
+                    'label'     => __( 'Referrer', 'mycred' ),
+                    'amount'    => $prefs['referrer']['creds'],
+                    'formatted' => $mycred_obj->format_creds( $prefs['referrer']['creds'] ),
+                );
+            }
+            if ( ! empty( $prefs['referee']['creds'] ) && $prefs['referee']['creds'] != 0 ) {
+                $parts[] = array(
+                    'key'       => 'referee',
+                    'label'     => __( 'Friend', 'mycred' ),
+                    'amount'    => $prefs['referee']['creds'],
+                    'formatted' => $mycred_obj->format_creds( $prefs['referee']['creds'] ),
+                );
+            }
+            return $parts;
         }
 
         public function render_widget_root() {

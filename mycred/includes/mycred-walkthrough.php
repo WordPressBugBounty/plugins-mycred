@@ -30,8 +30,10 @@ if ( ! class_exists( 'myCRED_walkthroug' ) ) :
 		 */
 		public function load() {
 
+            $tour_js = myCRED_ROOT_DIR . 'assets/js/tourguide.min.js';
+            $tour_ver = file_exists( $tour_js ) ? myCRED_VERSION . '.' . filemtime( $tour_js ) : myCRED_VERSION;
             wp_register_style( 'mycred-tourguide-style', plugins_url( 'assets/css/tourguide.css', myCRED_THIS ),    array(), myCRED_VERSION , 'all' );
-            wp_register_script( 'mycred-tourguide-script', plugins_url( 'assets/js/tourguide.min.js', myCRED_THIS ), array( 'jquery' ), myCRED_VERSION , true );
+            wp_register_script( 'mycred-tourguide-script', plugins_url( 'assets/js/tourguide.min.js', myCRED_THIS ), array( 'jquery' ), $tour_ver , true );
 
 			$step = isset( $_GET['mycred_tour_guide'] ) ? intval($_GET['mycred_tour_guide']) : '';
 
@@ -62,8 +64,11 @@ if ( ! class_exists( 'myCRED_walkthroug' ) ) :
 				'mycred-tourguide-script',
 				'mycred_tour_guide',
 				array(
-					'step' => $step,
-					'redirect_url' => $redirect_url
+					'step'         => $step,
+					'redirect_url' => $redirect_url,
+					'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
+					'nonce'        => wp_create_nonce( 'mycred-complete-tour-guide' ),
+					'completed'    => function_exists( 'mycred_is_tour_guide_completed' ) ? (bool) mycred_is_tour_guide_completed() : false,
 				)
 			);
 

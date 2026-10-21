@@ -22,9 +22,13 @@ export const fixtureMemberUser = {
 };
 
 export const fixtureHooks = [
-    { id: 'registration', title: __('Register an account', 'mycred'), points: 50, category: 'wordpress', plural: __('points', 'mycred'), singular: __('point', 'mycred') },
-    { id: 'daily_login', title: __('Daily login', 'mycred'), points: 10, category: 'wordpress', plural: __('points', 'mycred'), singular: __('point', 'mycred') },
-    { id: 'woocommerce_purchase', title: __('Place an order', 'mycred'), points: 100, category: 'woocommerce', plural: __('points', 'mycred'), singular: __('point', 'mycred') },
+    { id: 'registration', title: __('Register an account', 'mycred'), amount: 50, formatted_amount: '50', category: 'wordpress', plural: __('points', 'mycred'), singular: __('point', 'mycred') },
+    { id: 'affiliate', title: __('Referrals', 'mycred'), amount: 1, formatted_amount: '1 / 10', category: 'wordpress', plural: __('points', 'mycred'), singular: __('point', 'mycred'), amount_parts: [
+        { key: 'visit', label: __('Visit', 'mycred'), amount: 1, formatted: '1' },
+        { key: 'signup', label: __('Signup', 'mycred'), amount: 10, formatted: '10' },
+    ] },
+    { id: 'daily_login', title: __('Daily login', 'mycred'), amount: 10, formatted_amount: '10', category: 'wordpress', plural: __('points', 'mycred'), singular: __('point', 'mycred') },
+    { id: 'woocommerce_purchase', title: __('Place an order', 'mycred'), amount: 100, formatted_amount: '100', category: 'woocommerce', plural: __('points', 'mycred'), singular: __('point', 'mycred') },
 ];
 
 export const fixtureLeaderboard = [

@@ -5,7 +5,6 @@ import { __ } from '@wordpress/i18n';
 
 export default function EarnTab({ settings, currentContent, user, activeHooks, onBack, onClose }) {
     currentContent = currentContent || {};
-    const isRtl = document?.documentElement?.dir === 'rtl';
     const eventtriggers = settings.eventtriggers || {};
     const design = settings.design || {};
     const btnColor = design.buttonColor || '#5E2CED';
@@ -58,7 +57,7 @@ export default function EarnTab({ settings, currentContent, user, activeHooks, o
             <Box sx={{ p: '20px 24px', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <IconButton size="small" onClick={onBack} sx={{ color: '#fff', p: 0.5 }}>
-                        <ArrowBackIcon sx={{ transform: isRtl ? 'scaleX(-1)' : 'none' }} />
+                        <ArrowBackIcon />
                     </IconButton>
                     <Box>
                         <Typography sx={{ fontSize: '18px', fontWeight: 700 }}>
@@ -116,7 +115,7 @@ export default function EarnTab({ settings, currentContent, user, activeHooks, o
                                     <Typography sx={{ fontSize: '20px' }}>⭐</Typography>
                                 </Box>
                                 <Box sx={{ flex: 1 }}>
-                                    <Typography sx={{ fontSize: '14px', fontWeight: 600, color: btnColor, mb: 0.5 }}>
+                                    <Typography sx={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
                                         {getHookLabel(hook)}
                                     </Typography>
                                     <Typography sx={{ fontSize: '12px', color: '#666' }}>

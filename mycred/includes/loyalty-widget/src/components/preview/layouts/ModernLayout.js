@@ -63,7 +63,7 @@ const ActionCard = ({ iconSrc, icon, label, accent, iconColor = '#1a1a1a', onCli
     </Paper>
 );
 
-const MoreRow = ({ iconSrc, icon: Icon, title, subtitle, accent, iconColor = '#666', onClick }) => (
+const MoreRow = ({ iconSrc, icon: Icon, title, subtitle, accent, onClick }) => (
     <Box
         onClick={onClick}
         sx={{
@@ -86,18 +86,18 @@ const MoreRow = ({ iconSrc, icon: Icon, title, subtitle, accent, iconColor = '#6
                 width: 38,
                 height: 38,
                 borderRadius: '50%',
-                bgcolor: hexToRgba(iconColor, 0.12),
+                bgcolor: '#F0F0F0',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
-                color: iconColor,
+                color: '#666',
             }}
         >
             {iconSrc ? (
-                <Box sx={{ ...themedSvgIconSx(iconSrc, 18), color: iconColor }} />
+                <Box sx={{ ...themedSvgIconSx(iconSrc, 18), color: '#666' }} />
             ) : Icon ? (
-                <Icon sx={{ fontSize: 18, color: iconColor }} />
+                <Icon sx={{ fontSize: 18 }} />
             ) : null}
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -353,10 +353,10 @@ export default function ModernLayout({
 
                     <Box sx={{ position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1.5, pr: 0.5 }}>
                         <Box>
-                            <Typography sx={{ fontSize: 13, fontWeight: 400, opacity: 0.92, fontFamily: "'Instrument Sans', sans-serif" }}>
+                            <Typography color="inherit" sx={{ fontSize: 13, fontWeight: 400, opacity: 0.92, fontFamily: "'Instrument Sans', sans-serif" }}>
                                 {headerSubtitle}
                             </Typography>
-                            <Typography sx={{ fontSize: 26, fontWeight: 700, lineHeight: 1.2, letterSpacing: '-0.02em', mt: 0.25, fontFamily: "'Instrument Sans', sans-serif" }}>
+                            <Typography color="inherit" sx={{ fontSize: 26, fontWeight: 700, lineHeight: 1.2, letterSpacing: '-0.02em', mt: 0.25, fontFamily: "'Instrument Sans', sans-serif" }}>
                                 {programTitle}
                             </Typography>
                         </Box>
@@ -383,7 +383,7 @@ export default function ModernLayout({
                     </Box>
                 </Box>
 
-                <Typography sx={{
+                <Typography color="inherit" sx={{
                     position: 'absolute',
                     left: 48,
                     right: 48,
@@ -767,7 +767,6 @@ export default function ModernLayout({
                                     title={item.label}
                                     subtitle={item.subtitle}
                                     accent={btnColor}
-                                    iconColor={bgColor}
                                     onClick={() => onNavigate?.(item.key)}
                                 />
                             </Fragment>

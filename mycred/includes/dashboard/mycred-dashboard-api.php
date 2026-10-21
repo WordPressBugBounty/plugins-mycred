@@ -502,9 +502,13 @@ if ( ! class_exists( 'myCRED_Dashboard_API' ) ) :
                 $point_type = sanitize_key( $point_type );
             }
 
-            $range_key  = $request->get_param( 'range' );
+            $range_key  = mycred_dashboard_clamp_range_for_plan( $request->get_param( 'range' ) );
             $start_arg  = $request->get_param( 'start' );
             $end_arg    = $request->get_param( 'end' );
+            if ( ! mycred_dashboard_is_pro_active() ) {
+                $start_arg = null;
+                $end_arg   = null;
+            }
             list( $start_ts, $end_ts ) = mycred_dashboard_resolve_range_bounds( $range_key, $start_arg, $end_arg );
 
             $nocache = $request->get_param( 'nocache' );
@@ -523,11 +527,6 @@ if ( ! class_exists( 'myCRED_Dashboard_API' ) ) :
             if ( $point_type && ! empty( $available_types ) && ! isset( $available_types[ $point_type ] ) ) {
                 return new WP_Error( 'invalid_point_type', __( 'Invalid point type.', 'mycred' ), array( 'status' => 400 ) );
             }
-
-            $range_key = $request->get_param( 'range' );
-            $start_arg = $request->get_param( 'start' );
-            $end_arg   = $request->get_param( 'end' );
-            list( $start_ts, $end_ts ) = mycred_dashboard_resolve_range_bounds( $range_key, $start_arg, $end_arg );
 
             $log_table = $wpdb->prefix . 'myCRED_log' ;
 
@@ -557,7 +556,6 @@ if ( ! class_exists( 'myCRED_Dashboard_API' ) ) :
             global $wpdb;
 
             $requested_pt = $request->get_param( 'point_type' );
-            $requested_range = $request->get_param( 'range' );
             $point_type = $requested_pt;
             if ( ! $point_type ) {
                 $point_type = 'mycred_default';
@@ -569,9 +567,13 @@ if ( ! class_exists( 'myCRED_Dashboard_API' ) ) :
                 $point_type = sanitize_key( $point_type );
             }
 
-            $range_key = $request->get_param( 'range' );
+            $range_key = mycred_dashboard_clamp_range_for_plan( $request->get_param( 'range' ) );
             $start_arg = $request->get_param( 'start' );
             $end_arg = $request->get_param( 'end' );
+            if ( ! mycred_dashboard_is_pro_active() ) {
+                $start_arg = null;
+                $end_arg   = null;
+            }
             list( $start_ts, $end_ts ) = mycred_dashboard_resolve_range_bounds( $range_key, $start_arg, $end_arg );
 
             $nocache = $request->get_param( 'nocache' );
@@ -585,7 +587,8 @@ if ( ! class_exists( 'myCRED_Dashboard_API' ) ) :
                 }
             }
 
-            if ( $requested_range === 'custom' ) {
+            $requested_range = $range_key;
+            if ( mycred_dashboard_is_pro_active() && 'custom' === $request->get_param( 'range' ) ) {
                 $start = $request->get_param( 'start' );
                 $end = $request->get_param( 'end' );
                 if ( $start && $end ) {

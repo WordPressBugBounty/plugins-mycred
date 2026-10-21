@@ -32,7 +32,7 @@ if ( ! class_exists( 'myCRED_Banking_Service_Central' ) ) :
 		public function run() {
 
 			add_filter( 'mycred_add', array( $this, 'mycred_add' ), 1, 3 );
-			add_action( 'wp_ajax_get_bank_accounts', array( $this, 'get_bank_accounts' ) );
+			add_action( 'wp_ajax_get_bank_accounts_' . $this->mycred_type, array( $this, 'get_bank_accounts' ) );
 
 		}
 
@@ -105,13 +105,11 @@ if ( ! class_exists( 'myCRED_Banking_Service_Central' ) ) :
 
 			$prefs = $this->prefs;
 
-			if ( ! empty( $this->prefs['bank_id'] ) )
+			if ( ! empty( $this->prefs['bank_id'] ) ) {
 				$user = get_userdata( $this->prefs['bank_id'] );
+			}
 
 			$settings = mycred_get_banking_addon_settings( NULL, $this->core->cred_id );
-
-			if ( ! empty( $settings['active'] ) && in_array( 'central', $settings['active'] ) ) {
-				
 ?>
 <div class="row">
 	<div class="col-xs-12">
@@ -119,7 +117,7 @@ if ( ! class_exists( 'myCRED_Banking_Service_Central' ) ) :
 			<div class="col-sm-4">
 				<div class="form-group">
 					<label for="<?php echo esc_attr( $this->field_id( 'bank_id' ) ); ?>"><?php esc_html_e( 'Select Central Deposit Account', 'mycred' ); ?></label>
-					<select name="<?php echo esc_attr( $this->field_name( 'bank_id' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'bank_id' ) ); ?>" class="form-control mycred-ui-form mycred_bank_id_select2" style="width:100%;">
+					<select name="<?php echo esc_attr( $this->field_name( 'bank_id' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'bank_id' ) ); ?>" class="form-control mycred-ui-form mycred_bank_id_select2" style="width:100%;" data-nonce="<?php echo esc_attr( wp_create_nonce( 'mycred_get_bank_accounts_' . $this->mycred_type ) ); ?>">
 						<?php if ( ! empty( $this->prefs['bank_id'] ) ): ?>
 						<option value="<?php echo esc_attr( $user->ID );?>" selected="selected">
 							<?php echo esc_html( '#'. $user->ID .' - '. $user->display_name . ' (' . $user->user_email . ')' );?>
@@ -142,10 +140,7 @@ if ( ! class_exists( 'myCRED_Banking_Service_Central' ) ) :
 	</div>
 </div>
 <?php
-
 				do_action( 'mycred_banking_central', $this );
-
-			}
 
 		}
 

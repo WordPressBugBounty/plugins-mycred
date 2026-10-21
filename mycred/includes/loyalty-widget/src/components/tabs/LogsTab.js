@@ -12,7 +12,6 @@ import { getLogs } from '../../services/frontend-api';
 
 export default function LogsTab({ settings, currentContent, user, onBack, onClose, previewMode = false, previewData }) {
     currentContent = currentContent || {};
-    const isRtl = document?.documentElement?.dir === 'rtl';
     const [logs, setLogs] = useState([]);
     const [pointLabel, setPointLabel] = useState(__('Points', 'mycred'));
     const [loading, setLoading] = useState(true);
@@ -71,7 +70,7 @@ export default function LogsTab({ settings, currentContent, user, onBack, onClos
                 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <IconButton size="small" onClick={onBack} sx={{ color: '#fff', p: 0.5, bgcolor: 'rgba(255,255,255,0.1)', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}>
-                            <ArrowBackIcon fontSize="small" sx={{ transform: isRtl ? 'scaleX(-1)' : 'none' }} />
+                            <ArrowBackIcon fontSize="small" />
                         </IconButton>
                         <Box sx={{ lineHeight: 1 }}>
                             <Typography sx={{ fontSize: '18px', fontWeight: 600, fontFamily: "'Instrument Sans', sans-serif" }}>
@@ -108,7 +107,7 @@ export default function LogsTab({ settings, currentContent, user, onBack, onClos
             }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <IconButton size="small" onClick={onBack} sx={{ color: '#fff', p: 0.5 }}>
-                        <ArrowBackIcon fontSize="small" sx={{ transform: isRtl ? 'scaleX(-1)' : 'none' }} />
+                        <ArrowBackIcon fontSize="small" />
                     </IconButton>
                     <Typography sx={{ fontSize: '18px', fontWeight: 600, fontFamily: "'Instrument Sans', sans-serif", mt: 0.5 }}>
                         {currentContent.logsMessage || __('Point History', 'mycred')}
@@ -136,7 +135,7 @@ export default function LogsTab({ settings, currentContent, user, onBack, onClos
                         onClick={() => setSelectedType(b.type)}
                         sx={{
                             bgcolor: selectedType === b.type ? btnColor : 'rgba(94, 44, 237, 0.05)',
-                            color: selectedType === b.type ? '#fff' : btnColor,
+                            color: selectedType === b.type ? '#fff' : '#2D1572',
                             fontWeight: 600,
                             fontFamily: "'Instrument Sans', sans-serif",
                             '&:hover': {
@@ -204,7 +203,7 @@ export default function LogsTab({ settings, currentContent, user, onBack, onClos
                                         <Typography sx={{
                                             fontSize: '15px',
                                             fontWeight: 600,
-                                            color: btnColor,
+                                            color: '#2D1572',
                                             fontFamily: "'Instrument Sans', sans-serif",
                                             lineHeight: 1.2,
                                             mb: 0.5,

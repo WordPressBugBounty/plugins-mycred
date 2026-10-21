@@ -39,6 +39,10 @@ if (!class_exists('buyCRED_Pending_Payments')):
 			add_action('mycred_init', array($this, 'module_init'), $this->menu_pos);
 			add_action('mycred_admin_init', array($this, 'module_admin_init'), $this->menu_pos);
 
+			add_action('rest_api_init', array($this, 'register_pending_payments_rest_routes'));
+			add_action('admin_enqueue_scripts', array($this, 'enqueue_react_pending_list_scripts'));
+			add_action('all_admin_notices', array($this, 'render_react_pending_list_root'));
+
 		}
 
 		/**
@@ -71,12 +75,17 @@ if (!class_exists('buyCRED_Pending_Payments')):
 			global $buycred_instance;
 
 			// Intercept payment cancellations
-			if (isset($_REQUEST['buycred-cancel']) && isset($_REQUEST['_token']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['_token'])), 'buycred-cancel-pending-payment')) {
+			if (isset($_REQUEST['buycred-cancel']) && isset($_REQUEST['_token'])) {
 
-				// Get pending payment object
 				$pending_payment_id = sanitize_text_field(wp_unslash($_REQUEST['buycred-cancel']));
 
-				// Move item to trash
+				// Verify nonce is bound to this specific transaction
+				if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['_token'] ) ), 'buycred-cancel-pending-payment-' . $pending_payment_id ) ) {
+					wp_safe_redirect( remove_query_arg( array( 'buycred-cancel', '_token' ) ) );
+					exit;
+				}
+
+				// Move item to trash (ownership check is inside buycred_trash_pending_payment)
 				buycred_trash_pending_payment($pending_payment_id);
 
 				// Redirect
@@ -130,20 +139,20 @@ if (!class_exists('buyCRED_Pending_Payments')):
 
 				$pending_id = absint($_GET['credit']);
 
-				if ($this->core->user_is_point_editor()) {
+			if ($this->core->user_is_point_editor()) {
 
-					$url = remove_query_arg(array('credit', 'token'));
+						$base_url = admin_url('admin.php?page=mycred-gateways');
 
-					if (buycred_complete_pending_payment($pending_id)) {
-						$url = add_query_arg(array('credited' => 1), $url);
-					} else {
-						$url = add_query_arg(array('credited' => 0), $url);
+						if (buycred_complete_pending_payment($pending_id)) {
+							$url = add_query_arg(array('credited' => 1), $base_url);
+						} else {
+							$url = add_query_arg(array('credited' => 0), $base_url);
+						}
+
+						wp_safe_redirect($url);
+						exit;
+
 					}
-
-					wp_safe_redirect($url);
-					exit;
-
-				}
 
 			}
 
@@ -256,12 +265,7 @@ if (!class_exists('buyCRED_Pending_Payments')):
 		public function add_to_menu()
 		{
 
-			mycred_add_main_submenu(
-				__('Pending Payments', 'mycred'),
-				__('Pending Payments', 'mycred'),
-				$this->core->get_point_editor_capability(),
-				'edit.php?post_type=' . MYCRED_BUY_KEY
-			);
+			// Merged into buyCred Gateways React shell interface
 
 		}
 
@@ -420,7 +424,7 @@ if (!class_exists('buyCRED_Pending_Payments')):
 				// Add option to "Pay Out" now
 				if ($this->core->user_is_point_editor())
 					$actions['credit'] = '<a href="' . esc_url(add_query_arg(array(
-						'post_type' => $post->post_type,
+						'post_type' => MYCRED_BUY_KEY,
 						'credit' => $post->ID,
 						'token' => wp_create_nonce('buycred-payout-pending')
 					), admin_url('edit.php'))) . '">' . __('Pay Out', 'mycred') . '</a>';
@@ -540,15 +544,11 @@ if (!class_exists('buyCRED_Pending_Payments')):
 		 */
 		public function metabox_pending_actions($post)
 		{
-
-			$payout_url = add_query_arg(array(
-				'post_type' => $post->post_type,
-				'credit' => $post->ID,
-				'token' => wp_create_nonce('buycred-payout-pending')
-			), admin_url('edit.php'));
-
-			$delete_url = get_delete_post_link($post->ID);
-
+			$delete_url  = get_delete_post_link($post->ID);
+			$rest_url    = rest_url('mycred/v1/buycred-payments/' . $post->ID . '/credit');
+			$nonce       = wp_create_nonce('wp_rest');
+			$redirect_ok   = admin_url('admin.php?page=mycred-gateways&credited=1');
+			$redirect_fail = admin_url('admin.php?page=mycred-gateways&credited=0');
 			?>
 			<div class="submitbox mycred-metabox" id="submitpost">
 				<div id="minor-publishing">
@@ -558,8 +558,16 @@ if (!class_exists('buyCRED_Pending_Payments')):
 
 					<div id="minor-publishing-actions">
 
-						<div><a href="<?php echo esc_url($payout_url); ?>"
-								class="button button-secondary button-block"><?php esc_html_e('Pay Out', 'mycred'); ?></a></div>
+						<div>
+							<button type="button" id="buycred-metabox-payout"
+								class="button button-secondary button-block"
+								data-rest="<?php echo esc_url($rest_url); ?>"
+								data-nonce="<?php echo esc_attr($nonce); ?>"
+								data-redirect-ok="<?php echo esc_url($redirect_ok); ?>"
+								data-redirect-fail="<?php echo esc_url($redirect_fail); ?>">
+								<?php esc_html_e('Pay Out', 'mycred'); ?>
+							</button>
+						</div>
 						<div><a href="<?php echo esc_url($delete_url); ?>"
 								class="button button-secondary button-block"><?php esc_html_e('Trash', 'mycred'); ?></a></div>
 
@@ -579,6 +587,31 @@ if (!class_exists('buyCRED_Pending_Payments')):
 					<div class="clear"></div>
 				</div>
 			</div>
+			<script>
+			(function() {
+				var btn = document.getElementById('buycred-metabox-payout');
+				if (!btn) return;
+				btn.addEventListener('click', function() {
+					btn.disabled = true;
+					btn.textContent = '<?php echo esc_js(__('Processing...', 'mycred')); ?>';
+					fetch(btn.dataset.rest, {
+						method: 'POST',
+						headers: { 'X-WP-Nonce': btn.dataset.nonce }
+					})
+					.then(function(r) { return r.json().then(function(d) { return {ok: r.ok, data: d}; }); })
+					.then(function(res) {
+						if (res.ok) {
+							window.location.href = btn.dataset.redirectOk;
+						} else {
+							window.location.href = btn.dataset.redirectFail;
+						}
+					})
+					.catch(function() {
+						window.location.href = btn.dataset.redirectFail;
+					});
+				});
+			})();
+			</script>
 			<?php
 
 		}
@@ -642,8 +675,10 @@ if (!class_exists('buyCRED_Pending_Payments')):
 							<label for="buycred-pending-payment-point_type"><?php esc_html_e('Point Type', 'mycred'); ?></label>
 							<?php
 
+							$buycred_types = isset( $this->core->buy_creds['types'] ) ? $this->core->buy_creds['types'] : array();
+
 							// Just one point type is set for sale. No need for a dropdown menu
-							if (count($this->core->buy_creds['types']) == 1) {
+							if ( is_array( $buycred_types ) && count( $buycred_types ) == 1 ) {
 
 								?>
 								<p class="form-control-static"><?php echo esc_html($mycred->plural()); ?></p>
@@ -661,7 +696,7 @@ if (!class_exists('buyCRED_Pending_Payments')):
 									class="form-control">
 									<?php
 
-									foreach ($this->core->buy_creds['types'] as $point_type) {
+									foreach ($buycred_types as $point_type) {
 
 										echo '<option value="' . esc_attr($point_type) . '"';
 										if ($pending_payment->point_type == $point_type)
@@ -737,7 +772,7 @@ if (!class_exists('buyCRED_Pending_Payments')):
 		public function metabox_pending_comments($post)
 		{
 
-			$comments = get_comments(array('post_id' => $post->ID));
+			$comments = get_comments(array('post_id' => $post->ID, 'type__in' => array('buycred')));
 
 			echo '<ul class="history">';
 
@@ -798,6 +833,359 @@ if (!class_exists('buyCRED_Pending_Payments')):
 				$this->add_comment($post_id, sprintf(__('Pending payment updated by %s', 'mycred'), $user->user_login));
 			}
 
+		}
+
+		/**
+		 * Enqueue React Pending Payments List Bundle
+		 */
+		public function enqueue_react_pending_list_scripts()
+		{
+			$screen    = get_current_screen();
+			$post_type = isset($_GET['post_type']) ? sanitize_key($_GET['post_type']) : ($screen && isset($screen->post_type) ? $screen->post_type : '');
+
+			if (!$screen || $screen->base !== 'edit' || $post_type !== MYCRED_BUY_KEY) {
+				return;
+			}
+
+			$bundle_path = myCRED_ROOT_DIR . 'addons/build/buycred-pending.bundle.js';
+			$bundle_url  = plugins_url( 'addons/build/buycred-pending.bundle.js', myCRED_THIS );
+
+			if (!file_exists($bundle_path)) {
+				return;
+			}
+
+			wp_enqueue_script(
+				'mycred-buycred-pending-react',
+				$bundle_url,
+				array('wp-element', 'wp-i18n'),
+				filemtime($bundle_path),
+				true
+			);
+
+			$rest_url = rest_url('mycred/v1/buycred-payments');
+
+			// Initial data
+			$initial_items = array();
+			$total_count   = 0;
+			$counts        = array('all' => 0, 'trash' => 0);
+
+			try {
+				$req = new WP_REST_Request('GET', '/mycred/v1/buycred-payments');
+				$res = $this->get_pending_payments_rest($req);
+				if ($res && !is_wp_error($res) && method_exists($res, 'get_data')) {
+					$data          = $res->get_data();
+					$initial_items = isset($data['items']) ? $data['items'] : array();
+					$total_count   = isset($data['total']) ? $data['total'] : 0;
+					$counts        = isset($data['counts']) ? $data['counts'] : $counts;
+				}
+			} catch (Exception $e) {}
+
+			wp_localize_script('mycred-buycred-pending-react', 'mycredPendingPaymentsData', array(
+				'restUrl'     => $rest_url,
+				'nonce'       => wp_create_nonce('wp_rest'),
+				'initialData' => array(
+					'items'  => $initial_items,
+					'total'  => $total_count,
+					'counts' => $counts
+				),
+				'proPromoImageUrl' => plugins_url( 'assets/images/test.png', myCRED_THIS )
+			));
+
+			echo '<style type="text/css">
+				body.post-type-buycred_payment #wpbody-content > .wrap,
+				body.post-type-buycred_payment #posts-filter { display: none !important; }
+				body.post-type-buycred_payment #screen-options-link-wrap,
+				body.post-type-buycred_payment #screen-options-wrap,
+				body.post-type-buycred_payment .screen-meta-toggle { display: none !important; }
+				#mycred-buycred-pending-list-root { width: 100%; margin-top: 15px; display: block !important; }
+				
+				/* Reset WP global input/select/button borders & outlines inside MUI root */
+				#mycred-buycred-pending-list-root .MuiInputBase-input,
+				#mycred-buycred-pending-list-root input[type="text"],
+				#mycred-buycred-pending-list-root input[type="search"] {
+					border: none !important;
+					background: transparent !important;
+					box-shadow: none !important;
+					outline: none !important;
+				}
+				#mycred-buycred-pending-list-root input:focus,
+				#mycred-buycred-pending-list-root select:focus,
+				#mycred-buycred-pending-list-root button:focus {
+					outline: 0 !important;
+					box-shadow: none !important;
+				}
+				
+				/* Fix button text color & link state overrides from WP admin links */
+				#mycred-buycred-pending-list-root a.MuiButton-root,
+				#mycred-buycred-pending-list-root a.MuiButton-root:hover,
+				#mycred-buycred-pending-list-root a.MuiButton-root:focus,
+				#mycred-buycred-pending-list-root a.MuiButton-root:visited {
+					text-decoration: none !important;
+				}
+				#mycred-buycred-pending-list-root a.MuiButton-containedPrimary,
+				#mycred-buycred-pending-list-root a.MuiButton-containedPrimary:hover,
+				#mycred-buycred-pending-list-root a.MuiButton-containedPrimary:focus,
+				#mycred-buycred-pending-list-root a.MuiButton-containedPrimary:visited {
+					color: #ffffff !important;
+					background-color: #5e2ced !important;
+				}
+				#mycred-buycred-pending-list-root a.MuiButton-containedPrimary * {
+					color: #ffffff !important;
+				}
+			</style>';
+		}
+
+		/**
+		 * Render React Root Container
+		 */
+		public function render_react_pending_list_root()
+		{
+			$screen    = get_current_screen();
+			$post_type = isset($_GET['post_type']) ? sanitize_key($_GET['post_type']) : ($screen && isset($screen->post_type) ? $screen->post_type : '');
+
+			if ($screen && $screen->base === 'edit' && $post_type === MYCRED_BUY_KEY) {
+				echo '<div id="mycred-buycred-pending-list-root"></div>';
+			}
+		}
+
+		/**
+		 * Register REST API Routes for buyCred Pending Payments
+		 */
+		public function register_pending_payments_rest_routes()
+		{
+			register_rest_route('mycred/v1', '/buycred-payments', array(
+				'methods'             => 'GET',
+				'callback'            => array($this, 'get_pending_payments_rest'),
+				'permission_callback' => function () {
+					return current_user_can($this->core->get_point_editor_capability());
+				}
+			));
+
+			register_rest_route('mycred/v1', '/buycred-payments/bulk', array(
+				'methods'             => 'POST',
+				'callback'            => array($this, 'bulk_pending_payments_rest'),
+				'permission_callback' => function () {
+					return current_user_can($this->core->get_point_editor_capability());
+				}
+			));
+
+			register_rest_route('mycred/v1', '/buycred-payments/(?P<id>\d+)', array(
+				array(
+					'methods'             => 'DELETE',
+					'callback'            => array($this, 'delete_pending_payment_rest'),
+					'permission_callback' => function () {
+						return current_user_can($this->core->get_point_editor_capability());
+					}
+				),
+				array(
+					'methods'             => 'POST',
+					'callback'            => array($this, 'restore_pending_payment_rest'),
+					'permission_callback' => function () {
+						return current_user_can($this->core->get_point_editor_capability());
+					}
+				)
+			));
+
+			register_rest_route('mycred/v1', '/buycred-payments/(?P<id>\d+)/credit', array(
+				'methods'             => 'POST',
+				'callback'            => array($this, 'credit_pending_payment_rest'),
+				'permission_callback' => function () {
+					return current_user_can($this->core->get_point_editor_capability());
+				}
+			));
+		}
+
+		/**
+		 * REST GET Handler
+		 */
+		public function get_pending_payments_rest($request)
+		{
+			global $mycred_modules;
+
+			$status   = $request->get_param('status') ? sanitize_key($request->get_param('status')) : 'all';
+			$search   = $request->get_param('search') ? sanitize_text_field($request->get_param('search')) : '';
+			$page     = $request->get_param('page') ? absint($request->get_param('page')) : 1;
+			$per_page = $request->get_param('per_page') ? absint($request->get_param('per_page')) : 10;
+
+			$post_status = ($status === 'trash') ? 'trash' : array('publish', 'pending', 'draft', 'future', 'private');
+
+			$args = array(
+				'post_type'      => MYCRED_BUY_KEY,
+				'post_status'    => $post_status,
+				'posts_per_page' => $per_page,
+				'paged'          => $page,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+			);
+
+			if (!empty($search)) {
+				$args['s'] = $search;
+			}
+
+			$query = new WP_Query($args);
+			$items = array();
+
+			$installed_gateways = isset($mycred_modules['solo']['buycred']) ? $mycred_modules['solo']['buycred']->get() : array();
+
+			foreach ($query->posts as $post) {
+				$buyer_id     = (int) mycred_get_post_meta($post->ID, 'from', true);
+				$buyer_user   = get_userdata($buyer_id);
+				$buyer_name   = ($buyer_user && isset($buyer_user->display_name)) ? $buyer_user->display_name : ($buyer_id ? "ID: {$buyer_id}" : 'Guest');
+				$buyer_avatar = get_avatar_url($buyer_id, array('size' => 40));
+
+				$type   = mycred_get_post_meta($post->ID, 'point_type', true);
+				$mycred = mycred($type);
+				$amount = mycred_get_post_meta($post->ID, 'amount', true);
+				$cost   = mycred_get_post_meta($post->ID, 'cost', true);
+				$curr   = mycred_get_post_meta($post->ID, 'currency', true);
+				$gw_id  = mycred_get_post_meta($post->ID, 'gateway', true);
+
+				$gw_title = isset($installed_gateways[$gw_id]) ? $installed_gateways[$gw_id]['title'] : $gw_id;
+				$type_label = isset($this->point_types[$type]) ? $this->point_types[$type] : $type;
+
+				$items[] = array(
+					'id'               => $post->ID,
+					'title'            => $post->post_title ? $post->post_title : "#{$post->ID}",
+					'edit_url'         => admin_url('post.php?post=' . $post->ID . '&action=edit'),
+					'buyer_id'         => $buyer_id,
+					'buyer_name'       => $buyer_name,
+					'buyer_avatar'     => $buyer_avatar,
+					'amount'           => $amount,
+					'formatted_amount' => $mycred->format_creds($amount),
+					'cost'             => $cost,
+					'currency'         => $curr,
+					'gateway'          => $gw_id,
+					'gateway_title'    => $gw_title,
+					'point_type'       => $type,
+					'point_type_label' => $type_label,
+					'date'             => get_the_date('M j, Y, g:i a', $post),
+					'status'           => $post->post_status,
+					'comments_count'   => get_comments_number($post->ID)
+				);
+			}
+
+			// Counts
+			$count_all   = wp_count_posts(MYCRED_BUY_KEY);
+			$total_buy   = isset($count_all->{MYCRED_BUY_KEY}) ? (int) $count_all->{MYCRED_BUY_KEY} : 0;
+			$total_pub   = isset($count_all->publish) ? (int) $count_all->publish : 0;
+			$total_trash = isset($count_all->trash) ? (int) $count_all->trash : 0;
+
+			return rest_ensure_response(array(
+				'items'  => $items,
+				'total'  => (int) $query->found_posts,
+				'counts' => array(
+					'all'     => $total_buy + $total_pub,
+					'publish' => $total_buy + $total_pub,
+					'trash'   => $total_trash
+				)
+			));
+		}
+
+		/**
+		 * REST Pay Out / Credit Handler
+		 */
+		public function credit_pending_payment_rest($request)
+		{
+			$id = absint($request->get_param('id'));
+
+			$pending_payment = buycred_get_pending_payment( $id );
+			if ( $pending_payment === false ) {
+				return new WP_Error('credit_failed', 'Pending payment object not found.', array('status' => 400));
+			}
+
+			$gateway = buycred_gateway( $pending_payment->gateway_id );
+			if ( $gateway === false ) {
+				return new WP_Error('credit_failed', 'Gateway instance not found for ID: ' . $pending_payment->gateway_id, array('status' => 400));
+			}
+
+			// Complete Payment
+			$mycred = mycred( $pending_payment->point_type );
+			$reference  = 'buy_creds_with_' . $pending_payment->gateway_id;
+			$sales_data = array(
+				'to'       => $pending_payment->recipient_id,
+				'from'     => $pending_payment->buyer_id,
+				'amount'   => $pending_payment->amount,
+				'cost'     => $pending_payment->cost,
+				'currency' => $pending_payment->currency,
+				'ctype'    => $pending_payment->point_type
+			);
+			$data       = array( 'ref_type' => 'user', 'txn_id' => $pending_payment->transaction_id, 'sales_data' => implode( '|', $sales_data ) );
+			$has_entry  = $mycred->has_entry( $reference, $pending_payment->buyer_id, $pending_payment->recipient_id, $data, $pending_payment->point_type );
+
+			// Try direct add_creds
+			if (buycred_complete_pending_payment($id)) {
+				return rest_ensure_response(array('success' => true, 'message' => __('Pending payment successfully credited.', 'mycred')));
+			}
+
+			return new WP_Error('credit_failed', __('Failed to credit pending payment.', 'mycred'), array('status' => 400));
+		}
+
+		/**
+		 * REST Delete / Trash Handler
+		 */
+		public function delete_pending_payment_rest($request)
+		{
+			$id        = absint($request->get_param('id'));
+			$force     = filter_var($request->get_param('force'), FILTER_VALIDATE_BOOLEAN);
+			$post      = get_post($id);
+
+			if (!$post || $post->post_type !== MYCRED_BUY_KEY) {
+				return new WP_Error('not_found', __('Payment not found.', 'mycred'), array('status' => 404));
+			}
+
+			if ($force) {
+				wp_delete_post($id, true);
+			} else {
+				wp_trash_post($id);
+			}
+
+			return rest_ensure_response(array('success' => true));
+		}
+
+		/**
+		 * REST Restore Handler
+		 */
+		public function restore_pending_payment_rest($request)
+		{
+			$id   = absint($request->get_param('id'));
+			$post = get_post($id);
+
+			if (!$post || $post->post_type !== MYCRED_BUY_KEY) {
+				return new WP_Error('not_found', __('Payment not found.', 'mycred'), array('status' => 404));
+			}
+
+			wp_untrash_post($id);
+
+			return rest_ensure_response(array('success' => true));
+		}
+
+		/**
+		 * REST Bulk Actions Handler
+		 */
+		public function bulk_pending_payments_rest($request)
+		{
+			$ids         = $request->get_param('ids');
+			$bulk_action = sanitize_key($request->get_param('bulk_action'));
+
+			if (!is_array($ids) || empty($ids)) {
+				return new WP_Error('invalid_ids', __('No items selected.', 'mycred'), array('status' => 400));
+			}
+
+			foreach ($ids as $id) {
+				$id   = absint($id);
+				$post = get_post($id);
+				if (!$post || $post->post_type !== MYCRED_BUY_KEY) continue;
+
+				if ($bulk_action === 'trash') {
+					wp_trash_post($id);
+				} elseif ($bulk_action === 'restore') {
+					wp_untrash_post($id);
+				} elseif ($bulk_action === 'delete') {
+					wp_delete_post($id, true);
+				}
+			}
+
+			return rest_ensure_response(array('success' => true));
 		}
 
 	}

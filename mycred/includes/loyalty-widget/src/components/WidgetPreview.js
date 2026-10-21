@@ -161,7 +161,7 @@ const WidgetPreview = ({ settings = {}, activePreviewTab = 0, content = {} }) =>
                             ) : (
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <Typography sx={{ fontSize: '18px', fontWeight: 700, lineHeight: 1 }}>
-                                {settings.logoText || __('Reward Program', 'mycred')}
+                                        {settings.logoText || 'myCred'}
                                     </Typography>
                                 </Box>
                             )}
@@ -297,8 +297,8 @@ const WidgetPreview = ({ settings = {}, activePreviewTab = 0, content = {} }) =>
                         {(settings.tabControls?.earn !== false) && <NavButton svgSrc={assetsUrl + 'earn-icon.svg'} label={currentContent.earnLabel || __('Earn', 'mycred')} color={btnColor} textColor={btnTextColor} />}
                         {(settings.tabControls?.redeem !== false && isPro) && <NavButton svgSrc={assetsUrl + 'redeem-icon.svg'} label={currentContent.redeemLabel || __('Redeem', 'mycred')} color={btnColor} textColor={btnTextColor} />}
                         {(settings.tabControls?.board !== false) && <NavButton svgSrc={assetsUrl + 'board-icon.svg'} label={currentContent.boardLabel || __('Board', 'mycred')} color={btnColor} textColor={btnTextColor} />}
-                        {(settings.tabControls?.logs !== false) && <NavButton svgSrc={assetsUrl + 'logs-icon.svg'} label={currentContent.logsLabel || __('History', 'mycred')} color={btnColor} textColor={btnTextColor} />}
-                        {(settings.tabControls?.profile !== false) && <NavButton svgSrc={assetsUrl + 'profile-icon.svg'} label={currentContent.profileLabel || __('Profile', 'mycred')} color={btnColor} textColor={btnTextColor} />}
+                        {(settings.tabControls?.logs !== false && !isGuest) && <NavButton svgSrc={assetsUrl + 'logs-icon.svg'} label={currentContent.logsLabel || __('History', 'mycred')} color={btnColor} textColor={btnTextColor} />}
+                        {(settings.tabControls?.profile !== false && !isGuest) && <NavButton svgSrc={assetsUrl + 'profile-icon.svg'} label={currentContent.profileLabel || __('Profile', 'mycred')} color={btnColor} textColor={btnTextColor} />}
                         {(settings.tabControls?.ranks !== false) && <NavButton icon={LeaderboardIcon} label={currentContent.ranksLabel || __('Ranks', 'mycred')} color={btnColor} textColor={btnTextColor} />}
                         {(settings.tabControls?.badges !== false) && <NavButton icon={EmojiEventsIcon} label={currentContent.badgesLabel || __('Badges', 'mycred')} color={btnColor} textColor={btnTextColor} />}
                     </Box>
@@ -370,7 +370,7 @@ const WidgetPreview = ({ settings = {}, activePreviewTab = 0, content = {} }) =>
                         />
                     ) : (
                         <Typography sx={{ fontSize: '14px', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                            {settings.logoText || __('Rewards Hub', 'mycred')}
+                            {settings.logoText || 'Rewards Hub'}
                         </Typography>
                     )}
                 </Box>

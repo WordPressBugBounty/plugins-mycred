@@ -33,8 +33,6 @@ if ( ! defined( 'myCRED_VERSION' ) ) exit;
         public function run() {
 
             add_action( 'template_redirect', array( $this, 'specific_content_loading_author' ), 9999 );
-            add_action( 'wp_ajax_mycred_specific_posts_for_users_author', array( $this, 'mycred_specific_posts_for_users_author' ) );
-            add_action( 'wp_ajax_nopriv_mycred_specific_posts_for_users_author', array( $this, 'mycred_specific_posts_for_users_author' ) );
 
         }
 
@@ -109,13 +107,14 @@ if ( ! defined( 'myCRED_VERSION' ) ) exit;
         
         public function mycred_specific_posts_for_users_author() {
 
-            $post_type_author = isset( $_POST['post_type_author'] ) ? sanitize_text_field( $_POST['post_type_author'] ) : '';
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_send_json_error( 'Access Denied' );
+            }
 
-            $prefs = $this->prefs;
-            $posts_complete_data = $this->mycred_specific_view_content_arrange_data( $prefs );
+            $post_type_author = isset( $_POST['post_type_author'] ) ? sanitize_text_field( wp_unslash( $_POST['post_type_author'] ) ) : '';
+
             $types = get_post_types( ['public' => true], 'objects' );
             $exclude = array( 'attachment', 'elementor_library' );
-            $selected_posts = array();
 
             foreach ( $types as $key => $type ) {
                 if ( ! in_array( $type->name, $exclude ) ) {
@@ -180,6 +179,17 @@ if ( ! defined( 'myCRED_VERSION' ) ) exit;
 
         }
 
+        public function select_posts_field_name( $hook_index ) {
+
+            $option_id = 'mycred_pref_hooks';
+            if ( ! $this->is_main_type ) {
+                $option_id = $option_id . '_' . $this->mycred_type;
+            }
+
+            return $option_id . '[hook_prefs][' . $this->id . '][select_posts][' . $hook_index . '][]';
+
+        }
+
         public function preferences() {
 
             $prefs = $this->prefs;
@@ -192,7 +202,7 @@ if ( ! defined( 'myCRED_VERSION' ) ) exit;
                     array(
                         'creds' => 10,
                         'log' => __('%plural% for viewing a specific content (Author)', 'mycred'),
-                        'post_types' => '0', // Use string to match HTML select value
+                        'post_types' => 'post',
                         'select_posts' => array()
                     )
                 );
@@ -239,7 +249,7 @@ if ( ! defined( 'myCRED_VERSION' ) ) exit;
                                 $selected_options = array_unique($selected_options_ids);
 
                                 $options_args = array(
-                                    'name' => 'mycred_pref_hooks[hook_prefs][view_contents_specific_author][select_posts][' . esc_attr($hook) . '][]',
+                                    'name' => $this->select_posts_field_name( $hook ),
                                     'id'   => 'contents_specific_author_' . esc_attr($hook),
                                     'class' => 'form-control post-options-author',
                                     'multiple' => 'multiple'
@@ -357,6 +367,12 @@ if ( ! defined( 'myCRED_VERSION' ) ) exit;
             mycred_update_option( 'view_contents_specific_author', $new_data );
             return $new_data;
         }
+    }
+
+    add_action( 'wp_ajax_mycred_specific_posts_for_users_author', 'mycred_ajax_specific_posts_for_users_author' );
+    function mycred_ajax_specific_posts_for_users_author() {
+        $hook = new myCRED_Hook_View_Contents_Specific_Author( array() );
+        $hook->mycred_specific_posts_for_users_author();
     }
 
 endif;

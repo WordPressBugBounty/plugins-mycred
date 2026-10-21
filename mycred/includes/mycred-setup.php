@@ -35,6 +35,9 @@ if ( ! class_exists( 'myCRED_Setup' ) ) :
 			// Add general settings
 			add_option( 'mycred_version', myCRED_VERSION );
 			add_option( 'mycred_key',     wp_generate_password( 12, true, true ) );
+			if ( ! get_option( 'mycred_tour_guide_completed' ) ) {
+				add_option( 'mycred_needs_onboarding', 1 );
+			}
 
 			// Add loyalty widget default settings for fresh install
 			add_option( 'mycred_loyalty_widget_settings', array(
@@ -49,17 +52,13 @@ if ( ! class_exists( 'myCRED_Setup' ) ) :
 
 			$addon_prefs = array(
 				'installed' => $installed_addons,
-				'active'    => array_keys( $installed_addons ),
+				'active'    => array(),
 			);
 
-			// Add add-ons settings
+			// Store add-on catalog without enabling anything. Built-ins are enabled
+			// from onboarding Manual Setup or Skip Setup.
 			if ( false === get_option( 'mycred_pref_addons', false ) ) {
 				add_option( 'mycred_pref_addons', $addon_prefs );
-			} else {
-				$existing = get_option( 'mycred_pref_addons', array() );
-				if ( empty( $existing['active'] ) ) {
-					mycred_update_option( 'mycred_pref_addons', $addon_prefs );
-				}
 			}
 
 			// Add hooks settings

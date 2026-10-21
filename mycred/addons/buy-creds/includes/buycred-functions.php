@@ -387,6 +387,9 @@ if ( ! function_exists( 'buycred_get_pending_payment_id' ) ) :
 		}
 		else {
 			$post_id = absint( $payment_id );
+			if ( get_post_type( $post_id ) !== 'buycred_payment' ) {
+				return false;
+			}
 		}
 
 		return $post_id;
@@ -526,7 +529,7 @@ if ( ! function_exists( 'buycred_get_cancel_transaction_url' ) ) :
 			$base = esc_url_raw( wp_unslash( $_REQUEST['return_to'] ) );
 
 		if ( $transaction_id !== NULL )
-			$url = add_query_arg( array( 'buycred-cancel' => $transaction_id, '_token' => wp_create_nonce( 'buycred-cancel-pending-payment' ) ), $base );
+			$url = add_query_arg( array( 'buycred-cancel' => $transaction_id, '_token' => wp_create_nonce( 'buycred-cancel-pending-payment-' . $transaction_id ) ), $base );
 		else
 			$url = $base;
 
@@ -641,6 +644,14 @@ if ( ! function_exists( 'buycred_trash_pending_payment' ) ) :
 
 		$pending_payment = buycred_get_pending_payment( $payment_id );
 		if ( $pending_payment === false ) return false;
+
+		// Authorization: if a user is logged in, they must own the payment or have delete capabilities
+		$current_user_id = get_current_user_id();
+		if ( $current_user_id > 0 ) {
+			if ( (int) $pending_payment->buyer_id !== $current_user_id && ! current_user_can( 'delete_post', $pending_payment->payment_id ) ) {
+				return false;
+			}
+		}
 
 		mycred_delete_user_meta( $pending_payment->buyer_id, 'buycred_pending_payments' );
 

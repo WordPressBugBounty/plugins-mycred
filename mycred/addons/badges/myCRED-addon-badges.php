@@ -161,6 +161,9 @@ if ( ! class_exists( 'myCRED_Badge_Module' ) ) :
             add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_front_scripts' ) );
 
             add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
+            add_action( 'rest_api_init', array( $this, 'register_badges_rest_routes' ) );
+            add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_react_badges_list_scripts' ) );
+            add_action( 'all_admin_notices', array( $this, 'render_react_badges_list_root' ) );
 
         }
 
@@ -2169,6 +2172,670 @@ if ( ! class_exists( 'myCRED_Badge_Module' ) ) :
 
             return $content;
 
+        }
+
+        /**
+         * Register Badges REST API Routes
+         */
+        public function register_badges_rest_routes() {
+            register_rest_route( 'mycred/v1', '/badges', array(
+                array(
+                    'methods'             => 'GET',
+                    'callback'            => array( $this, 'get_badges_rest' ),
+                    'permission_callback' => array( $this, 'rest_permissions_check' ),
+                ),
+            ) );
+
+            register_rest_route( 'mycred/v1', '/badges/bulk', array(
+                array(
+                    'methods'             => 'POST',
+                    'callback'            => array( $this, 'bulk_badges_rest' ),
+                    'permission_callback' => array( $this, 'rest_permissions_check' ),
+                ),
+            ) );
+
+            register_rest_route( 'mycred/v1', '/badges/(?P<id>\d+)', array(
+                array(
+                    'methods'             => 'POST',
+                    'callback'            => array( $this, 'update_badge_rest' ),
+                    'permission_callback' => array( $this, 'rest_permissions_check' ),
+                ),
+                array(
+                    'methods'             => 'DELETE',
+                    'callback'            => array( $this, 'delete_badge_rest' ),
+                    'permission_callback' => array( $this, 'rest_permissions_check' ),
+                ),
+            ) );
+
+            register_rest_route( 'mycred/v1', '/badges/(?P<id>\d+)/copy', array(
+                array(
+                    'methods'             => 'POST',
+                    'callback'            => array( $this, 'copy_badge_rest' ),
+                    'permission_callback' => array( $this, 'rest_permissions_check' ),
+                ),
+            ) );
+
+            register_rest_route( 'mycred/v1', '/badges/(?P<id>\d+)/restore', array(
+                array(
+                    'methods'             => 'POST',
+                    'callback'            => array( $this, 'restore_badge_rest' ),
+                    'permission_callback' => array( $this, 'rest_permissions_check' ),
+                ),
+            ) );
+
+            // Achievement Types REST routes
+            register_rest_route( 'mycred/v1', '/achievement-types', array(
+                array(
+                    'methods'             => 'GET',
+                    'callback'            => array( $this, 'get_achievement_types_rest' ),
+                    'permission_callback' => array( $this, 'rest_permissions_check' ),
+                ),
+                array(
+                    'methods'             => 'POST',
+                    'callback'            => array( $this, 'create_achievement_type_rest' ),
+                    'permission_callback' => array( $this, 'rest_permissions_check' ),
+                ),
+            ) );
+
+            register_rest_route( 'mycred/v1', '/achievement-types/bulk', array(
+                array(
+                    'methods'             => 'POST',
+                    'callback'            => array( $this, 'bulk_achievement_types_rest' ),
+                    'permission_callback' => array( $this, 'rest_permissions_check' ),
+                ),
+            ) );
+
+            register_rest_route( 'mycred/v1', '/achievement-types/(?P<id>\d+)', array(
+                array(
+                    'methods'             => 'POST',
+                    'callback'            => array( $this, 'update_achievement_type_rest' ),
+                    'permission_callback' => array( $this, 'rest_permissions_check' ),
+                ),
+                array(
+                    'methods'             => 'DELETE',
+                    'callback'            => array( $this, 'delete_achievement_type_rest' ),
+                    'permission_callback' => array( $this, 'rest_permissions_check' ),
+                ),
+            ) );
+        }
+
+        public function rest_permissions_check() {
+            return current_user_can( 'edit_posts' );
+        }
+
+        public function prepare_badge_for_rest( $badge_id ) {
+            $post = get_post( $badge_id );
+            if ( ! $post ) return null;
+
+            $badge = mycred_get_badge( $badge_id );
+            $main_image_url = '';
+            if ( $badge && ! empty( $badge->main_image_url ) ) {
+                $main_image_url = $badge->main_image_url;
+            } elseif ( $badge && ! empty( $badge->main_image ) ) {
+                if ( strpos( $badge->main_image, '://' ) !== false ) {
+                    $main_image_url = $badge->main_image;
+                } elseif ( is_numeric( $badge->main_image ) ) {
+                    $main_image_url = wp_get_attachment_url( $badge->main_image );
+                }
+            }
+
+            $requirements_html = mycred_display_badge_requirements( $badge_id );
+            $category_name = mycred_get_badge_type( $badge_id );
+            $term_ids = wp_get_post_terms( $post->ID, MYCRED_BADGE_CATEGORY, array( 'fields' => 'ids' ) );
+            $category_ids = ( ! empty( $term_ids ) && ! is_wp_error( $term_ids ) ) ? array_map( 'intval', $term_ids ) : array();
+
+            return array(
+                'id'                => (int) $post->ID,
+                'title'             => $post->post_title,
+                'slug'              => $post->post_name,
+                'edit_url'          => admin_url( 'post.php?post=' . $post->ID . '&action=edit' ),
+                'view_url'          => get_permalink( $post->ID ),
+                'image_url'         => $main_image_url ? $main_image_url : '',
+                'image_html'        => ( $badge && ! empty( $badge->main_image ) ) ? $badge->main_image : '',
+                'requirements_html' => $requirements_html,
+                'earnedby'          => $badge ? (int) $badge->earnedby : 0,
+                'category_name'     => $category_name ? $category_name : '',
+                'category_id'       => ! empty( $category_ids ) ? $category_ids[0] : 0,
+                'category_ids'      => $category_ids,
+                'status'            => $post->post_status,
+                'password'          => $post->post_password,
+                'manual_badge'      => ( (int) get_post_meta( $post->ID, 'manual_badge', true ) === 1 ),
+                'open_badge'        => ( $badge && ! empty( $badge->open_badge ) ) ? true : false,
+                'date'              => $post->post_date,
+            );
+        }
+
+        public function get_badges_rest( $request ) {
+            $status   = $request->get_param( 'status' ) ? sanitize_text_field( $request->get_param( 'status' ) ) : 'all';
+            $search   = $request->get_param( 'search' ) ? sanitize_text_field( $request->get_param( 'search' ) ) : '';
+            $category = $request->get_param( 'category' ) ? sanitize_text_field( $request->get_param( 'category' ) ) : 'all';
+            $page     = $request->get_param( 'page' ) ? absint( $request->get_param( 'page' ) ) : 1;
+            $per_page = $request->get_param( 'per_page' ) ? absint( $request->get_param( 'per_page' ) ) : 10;
+
+            $post_status = ( $status === 'all' ) ? array( 'publish', 'draft', 'private' ) : ( ( $status === 'trash' ) ? 'trash' : $status );
+
+            $args = array(
+                'post_type'      => MYCRED_BADGE_KEY,
+                'post_status'    => $post_status,
+                'posts_per_page' => $per_page,
+                'paged'          => $page,
+                's'              => $search,
+                'orderby'        => 'date',
+                'order'          => 'DESC',
+            );
+
+            if ( $category !== 'all' && ! empty( $category ) ) {
+                $args['tax_query'] = array(
+                    array(
+                        'taxonomy' => MYCRED_BADGE_CATEGORY,
+                        'field'    => 'slug',
+                        'terms'    => $category,
+                    ),
+                );
+            }
+
+            $query = new WP_Query( $args );
+            $items = array();
+            if ( $query->have_posts() ) {
+                foreach ( $query->posts as $post ) {
+                    $items[] = $this->prepare_badge_for_rest( $post->ID );
+                }
+            }
+
+            // Counts
+            $count_publish = (int) wp_count_posts( MYCRED_BADGE_KEY )->publish;
+            $count_draft   = (int) wp_count_posts( MYCRED_BADGE_KEY )->draft;
+            $count_trash   = (int) wp_count_posts( MYCRED_BADGE_KEY )->trash;
+            $count_all     = $count_publish + $count_draft;
+
+            // Categories
+            $terms = get_terms( array(
+                'taxonomy'   => MYCRED_BADGE_CATEGORY,
+                'hide_empty' => false,
+            ) );
+            $categories_list = array();
+            if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+                foreach ( $terms as $term ) {
+                    $categories_list[] = array(
+                        'id'   => $term->term_id,
+                        'name' => $term->name,
+                        'slug' => $term->slug,
+                    );
+                }
+            }
+
+            return rest_ensure_response( array(
+                'items'      => $items,
+                'total'      => $query->found_posts,
+                'counts'     => array(
+                    'all'     => $count_all,
+                    'publish' => $count_publish,
+                    'trash'   => $count_trash,
+                ),
+                'categories' => $categories_list,
+            ) );
+        }
+
+        public function delete_badge_rest( $request ) {
+            $id        = absint( $request['id'] );
+            $permanent = $request->get_param( 'permanent' );
+
+            if ( $permanent ) {
+                $result = wp_delete_post( $id, true );
+            } else {
+                $result = wp_trash_post( $id );
+            }
+
+            if ( $result ) {
+                return rest_ensure_response( array( 'success' => true ) );
+            }
+
+            return new WP_Error( 'delete_failed', 'Could not delete badge.', array( 'status' => 400 ) );
+        }
+
+        public function restore_badge_rest( $request ) {
+            $id     = absint( $request['id'] );
+            $result = wp_untrash_post( $id );
+
+            if ( $result ) {
+                return rest_ensure_response( array( 'success' => true ) );
+            }
+
+            return new WP_Error( 'restore_failed', 'Could not restore badge.', array( 'status' => 400 ) );
+        }
+
+        public function bulk_badges_rest( $request ) {
+            $action = sanitize_text_field( $request->get_param( 'action' ) );
+            $ids    = $request->get_param( 'ids' );
+
+            if ( ! is_array( $ids ) || empty( $ids ) ) {
+                return new WP_Error( 'invalid_ids', 'No badge IDs provided.', array( 'status' => 400 ) );
+            }
+
+            foreach ( $ids as $id ) {
+                $id = absint( $id );
+                if ( $action === 'trash' ) {
+                    wp_trash_post( $id );
+                } elseif ( $action === 'restore' ) {
+                    wp_untrash_post( $id );
+                } elseif ( $action === 'delete' ) {
+                    wp_delete_post( $id, true );
+                }
+            }
+
+            return rest_ensure_response( array( 'success' => true ) );
+        }
+
+        public function update_badge_rest( $request ) {
+            $id = absint( $request['id'] );
+            $post = get_post( $id );
+            if ( ! $post || $post->post_type !== MYCRED_BADGE_KEY ) {
+                return new WP_Error( 'not_found', 'Badge not found', array( 'status' => 404 ) );
+            }
+
+            $post_data = array( 'ID' => $id );
+            if ( $request->has_param( 'title' ) ) {
+                $post_data['post_title'] = sanitize_text_field( $request->get_param( 'title' ) );
+            }
+            if ( $request->has_param( 'slug' ) ) {
+                $slug = sanitize_title( $request->get_param( 'slug' ) );
+                if ( ! empty( $slug ) ) {
+                    $post_data['post_name'] = $slug;
+                }
+            }
+            if ( $request->has_param( 'status' ) ) {
+                $status = sanitize_key( $request->get_param( 'status' ) );
+                if ( in_array( $status, array( 'publish', 'draft', 'pending', 'private' ), true ) ) {
+                    $post_data['post_status'] = $status;
+                }
+            }
+            if ( $request->has_param( 'password' ) ) {
+                $post_data['post_password'] = sanitize_text_field( $request->get_param( 'password' ) );
+            }
+            if ( $request->has_param( 'date' ) ) {
+                $date = sanitize_text_field( $request->get_param( 'date' ) );
+                if ( ! empty( $date ) ) {
+                    $post_data['post_date']     = $date;
+                    $post_data['post_date_gmt'] = get_gmt_from_date( $date );
+                }
+            }
+
+            if ( count( $post_data ) > 1 ) {
+                wp_update_post( $post_data );
+            }
+
+            if ( $request->has_param( 'category_ids' ) ) {
+                $cat_ids = $request->get_param( 'category_ids' );
+                if ( is_array( $cat_ids ) ) {
+                    wp_set_object_terms( $id, array_map( 'intval', $cat_ids ), MYCRED_BADGE_CATEGORY );
+                } else {
+                    wp_set_object_terms( $id, array(), MYCRED_BADGE_CATEGORY );
+                }
+            } elseif ( $request->has_param( 'category_id' ) ) {
+                $cat_id = absint( $request->get_param( 'category_id' ) );
+                if ( $cat_id > 0 ) {
+                    wp_set_object_terms( $id, array( $cat_id ), MYCRED_BADGE_CATEGORY );
+                } else {
+                    wp_set_object_terms( $id, array(), MYCRED_BADGE_CATEGORY );
+                }
+            }
+
+            if ( $request->has_param( 'manual_badge' ) ) {
+                $manual = (bool) $request->get_param( 'manual_badge' );
+                mycred_update_post_meta( $id, 'manual_badge', $manual ? 1 : 0 );
+            }
+
+            return rest_ensure_response( array(
+                'success' => true,
+                'item'    => $this->prepare_badge_for_rest( $id ),
+            ) );
+        }
+
+        public function copy_badge_rest( $request ) {
+            $id = absint( $request['id'] );
+            $original = get_post( $id );
+            if ( ! $original || $original->post_type !== MYCRED_BADGE_KEY ) {
+                return new WP_Error( 'not_found', 'Badge not found', array( 'status' => 404 ) );
+            }
+
+            $new_post_args = array(
+                'post_title'   => $original->post_title . ' ' . __( '(Copy)', 'mycred' ),
+                'post_content' => $original->post_content,
+                'post_excerpt' => $original->post_excerpt,
+                'post_status'  => 'draft',
+                'post_type'    => MYCRED_BADGE_KEY,
+                'post_author'  => get_current_user_id(),
+            );
+
+            $new_id = wp_insert_post( $new_post_args );
+            if ( is_wp_error( $new_id ) ) {
+                return new WP_Error( 'copy_failed', $new_id->get_error_message(), array( 'status' => 400 ) );
+            }
+
+            // Copy all post meta
+            $meta = get_post_custom( $id );
+            if ( ! empty( $meta ) ) {
+                foreach ( $meta as $key => $values ) {
+                    if ( in_array( $key, array( '_edit_lock', '_edit_last' ), true ) ) continue;
+                    foreach ( $values as $value ) {
+                        add_post_meta( $new_id, $key, maybe_unserialize( $value ) );
+                    }
+                }
+            }
+
+            // Copy all terms
+            $taxonomies = get_object_taxonomies( MYCRED_BADGE_KEY );
+            foreach ( $taxonomies as $taxonomy ) {
+                $terms = wp_get_object_terms( $id, $taxonomy, array( 'fields' => 'ids' ) );
+                if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
+                    wp_set_object_terms( $new_id, $terms, $taxonomy );
+                }
+            }
+
+            return rest_ensure_response( array(
+                'success' => true,
+                'item'    => $this->prepare_badge_for_rest( $new_id ),
+                'message' => __( 'Badge copied successfully!', 'mycred' ),
+            ) );
+        }
+
+        public function get_achievement_types_rest( $request ) {
+            $search   = sanitize_text_field( $request->get_param( 'search' ) );
+            $page     = max( 1, (int) $request->get_param( 'page' ) );
+            $per_page = max( 1, (int) $request->get_param( 'per_page' ) );
+            if ( ! $per_page ) $per_page = 10;
+
+            $args = array(
+                'taxonomy'   => MYCRED_BADGE_CATEGORY,
+                'hide_empty' => false,
+            );
+
+            if ( ! empty( $search ) ) {
+                $args['name__like'] = $search;
+            }
+
+            $all_terms = get_terms( $args );
+            if ( is_wp_error( $all_terms ) ) {
+                $all_terms = array();
+            }
+
+            $total = count( $all_terms );
+            $offset = ( $page - 1 ) * $per_page;
+            $paged_terms = array_slice( $all_terms, $offset, $per_page );
+
+            $items = array();
+            foreach ( $paged_terms as $term ) {
+                $parent_name = '';
+                if ( $term->parent ) {
+                    $parent_term = get_term( $term->parent, MYCRED_BADGE_CATEGORY );
+                    if ( $parent_term && ! is_wp_error( $parent_term ) ) {
+                        $parent_name = $parent_term->name;
+                    }
+                }
+
+                $items[] = array(
+                    'id'          => $term->term_id,
+                    'name'        => $term->name,
+                    'slug'        => $term->slug,
+                    'description' => $term->description,
+                    'parent'      => $term->parent,
+                    'parent_name' => $parent_name,
+                    'count'       => $term->count,
+                    'edit_url'    => admin_url( 'term.php?taxonomy=' . MYCRED_BADGE_CATEGORY . '&tag_ID=' . $term->term_id . '&post_type=' . MYCRED_BADGE_KEY ),
+                );
+            }
+
+            return rest_ensure_response( array(
+                'items' => $items,
+                'total' => $total,
+            ) );
+        }
+
+        public function create_achievement_type_rest( $request ) {
+            $name        = sanitize_text_field( $request->get_param( 'name' ) );
+            $slug        = sanitize_title( $request->get_param( 'slug' ) );
+            $description = sanitize_textarea_field( $request->get_param( 'description' ) );
+            $parent      = absint( $request->get_param( 'parent' ) );
+
+            if ( empty( $name ) ) {
+                return new WP_Error( 'missing_name', 'Name is required.', array( 'status' => 400 ) );
+            }
+
+            $args = array( 'description' => $description, 'parent' => $parent );
+            if ( ! empty( $slug ) ) {
+                $args['slug'] = $slug;
+            }
+
+            $result = wp_insert_term( $name, MYCRED_BADGE_CATEGORY, $args );
+            if ( is_wp_error( $result ) ) {
+                return new WP_Error( 'insert_failed', $result->get_error_message(), array( 'status' => 400 ) );
+            }
+
+            $term = get_term( $result['term_id'], MYCRED_BADGE_CATEGORY );
+            return rest_ensure_response( array(
+                'success' => true,
+                'item'    => array(
+                    'id'          => $term->term_id,
+                    'name'        => $term->name,
+                    'slug'        => $term->slug,
+                    'description' => $term->description,
+                    'parent'      => $term->parent,
+                    'count'       => $term->count,
+                ),
+            ) );
+        }
+
+        public function update_achievement_type_rest( $request ) {
+            $id          = absint( $request->get_param( 'id' ) );
+            $name        = sanitize_text_field( $request->get_param( 'name' ) );
+            $slug        = sanitize_title( $request->get_param( 'slug' ) );
+            $description = sanitize_textarea_field( $request->get_param( 'description' ) );
+            $parent      = absint( $request->get_param( 'parent' ) );
+
+            if ( ! $id || ! get_term( $id, MYCRED_BADGE_CATEGORY ) ) {
+                return new WP_Error( 'invalid_term', 'Term not found.', array( 'status' => 404 ) );
+            }
+
+            $args = array();
+            if ( ! empty( $name ) ) $args['name'] = $name;
+            if ( isset( $slug ) ) $args['slug'] = $slug;
+            if ( isset( $description ) ) $args['description'] = $description;
+            if ( isset( $parent ) ) $args['parent'] = $parent;
+
+            $result = wp_update_term( $id, MYCRED_BADGE_CATEGORY, $args );
+            if ( is_wp_error( $result ) ) {
+                return new WP_Error( 'update_failed', $result->get_error_message(), array( 'status' => 400 ) );
+            }
+
+            return rest_ensure_response( array( 'success' => true ) );
+        }
+
+        public function delete_achievement_type_rest( $request ) {
+            $id = absint( $request->get_param( 'id' ) );
+            if ( ! $id ) {
+                return new WP_Error( 'invalid_id', 'Invalid term ID.', array( 'status' => 400 ) );
+            }
+
+            $result = wp_delete_term( $id, MYCRED_BADGE_CATEGORY );
+            if ( is_wp_error( $result ) ) {
+                return new WP_Error( 'delete_failed', $result->get_error_message(), array( 'status' => 400 ) );
+            }
+
+            return rest_ensure_response( array( 'success' => true ) );
+        }
+
+        public function bulk_achievement_types_rest( $request ) {
+            $ids = $request->get_param( 'ids' );
+            if ( ! is_array( $ids ) || empty( $ids ) ) {
+                return new WP_Error( 'invalid_ids', 'No IDs provided.', array( 'status' => 400 ) );
+            }
+
+            foreach ( $ids as $id ) {
+                wp_delete_term( absint( $id ), MYCRED_BADGE_CATEGORY );
+            }
+
+            return rest_ensure_response( array( 'success' => true ) );
+        }
+
+        public function enqueue_react_badges_list_scripts() {
+            $screen    = get_current_screen();
+            $post_type = isset( $_GET['post_type'] ) ? sanitize_key( $_GET['post_type'] ) : ( $screen && isset( $screen->post_type ) ? $screen->post_type : '' );
+            $taxonomy  = isset( $_GET['taxonomy'] ) ? sanitize_key( $_GET['taxonomy'] ) : ( $screen && isset( $screen->taxonomy ) ? $screen->taxonomy : '' );
+
+            $is_badges_list       = ( $screen && $screen->base === 'edit' && $post_type === MYCRED_BADGE_KEY && empty( $taxonomy ) );
+            $is_achievement_types = ( $screen && $screen->base === 'edit-tags' && $taxonomy === MYCRED_BADGE_CATEGORY );
+
+            if ( ! $is_badges_list && ! $is_achievement_types ) {
+                return;
+            }
+
+            wp_enqueue_script(
+                'mycred-badges-react',
+                plugins_url( 'addons/build/badges.bundle.js', myCRED_THIS ),
+                array( 'wp-element', 'wp-i18n' ),
+                myCRED_BADGE_VERSION,
+                true
+            );
+
+            if ( $is_badges_list ) {
+                $initial_items = array();
+                $total_count   = 0;
+                $counts        = array( 'all' => 0, 'publish' => 0, 'trash' => 0 );
+                $categories    = array();
+
+                try {
+                    $initial_badges_res = $this->get_badges_rest( new WP_REST_Request( 'GET', '/mycred/v1/badges' ) );
+                    if ( $initial_badges_res && ! is_wp_error( $initial_badges_res ) && method_exists( $initial_badges_res, 'get_data' ) ) {
+                        $initial_data  = $initial_badges_res->get_data();
+                        $initial_items = isset( $initial_data['items'] ) ? $initial_data['items'] : array();
+                        $total_count   = isset( $initial_data['total'] ) ? $initial_data['total'] : 0;
+                        $counts        = isset( $initial_data['counts'] ) ? $initial_data['counts'] : $counts;
+                        $categories    = isset( $initial_data['categories'] ) ? $initial_data['categories'] : $categories;
+                    }
+                } catch ( Throwable $e ) {}
+
+                wp_localize_script( 'mycred-badges-react', 'mycredBadgesData', array(
+                    'restUrl'            => esc_url_raw( rest_url( 'mycred/v1/' ) ),
+                    'nonce'              => wp_create_nonce( 'wp_rest' ),
+                    'initialBadges'      => $initial_items,
+                    'totalCount'         => $total_count,
+                    'counts'             => $counts,
+                    'categories'         => $categories,
+                    'addNewUrl'          => admin_url( 'post-new.php?post_type=' . MYCRED_BADGE_KEY ),
+                    'isOpenBadgeEnabled' => (bool) $this->open_badge,
+                ) );
+
+                // Hide standard WP wrap and prevent WP global input & link overrides on MUI
+                echo '<style type="text/css">
+                    body.post-type-mycred_badge #wpbody-content > .wrap,
+                    body.post-type-mycred_badge #posts-filter { display: none !important; }
+                    body.post-type-mycred_badge #screen-options-link-wrap,
+                    body.post-type-mycred_badge #screen-options-wrap,
+                    body.post-type-mycred_badge .screen-meta-toggle { display: none !important; }
+                    #mycred-badges-list-root { width: 100%; margin-top: 15px; display: block !important; }
+                    
+                    /* Reset WP global input/select/button borders & outlines inside MUI root */
+                    #mycred-badges-list-root .MuiInputBase-input,
+                    #mycred-badges-list-root input[type="text"],
+                    #mycred-badges-list-root input[type="search"] {
+                        border: none !important;
+                        background: transparent !important;
+                        box-shadow: none !important;
+                        outline: none !important;
+                    }
+                    #mycred-badges-list-root input:focus,
+                    #mycred-badges-list-root select:focus,
+                    #mycred-badges-list-root button:focus {
+                        outline: 0 !important;
+                        box-shadow: none !important;
+                    }
+                    
+                    /* Fix button text color & link state overrides from WP admin links */
+                    #mycred-badges-list-root a.MuiButton-root,
+                    #mycred-badges-list-root a.MuiButton-root:hover,
+                    #mycred-badges-list-root a.MuiButton-root:focus,
+                    #mycred-badges-list-root a.MuiButton-root:visited {
+                        text-decoration: none !important;
+                    }
+                    #mycred-badges-list-root a.MuiButton-containedPrimary,
+                    #mycred-badges-list-root a.MuiButton-containedPrimary:hover,
+                    #mycred-badges-list-root a.MuiButton-containedPrimary:focus,
+                    #mycred-badges-list-root a.MuiButton-containedPrimary:visited {
+                        color: #ffffff !important;
+                        background-color: #5e2ced !important;
+                    }
+                    #mycred-badges-list-root a.MuiButton-containedPrimary * {
+                        color: #ffffff !important;
+                    }
+                </style>';
+            } elseif ( $is_achievement_types ) {
+                $initial_types_res = $this->get_achievement_types_rest( new WP_REST_Request( 'GET', '/mycred/v1/achievement-types' ) );
+                $initial_data = $initial_types_res->get_data();
+
+                wp_localize_script( 'mycred-badges-react', 'mycredAchievementTypesData', array(
+                    'restUrl'      => esc_url_raw( rest_url( 'mycred/v1/' ) ),
+                    'nonce'        => wp_create_nonce( 'wp_rest' ),
+                    'initialItems' => $initial_data['items'],
+                    'totalCount'   => $initial_data['total'],
+                ) );
+
+                echo '<style type="text/css">
+                    body.taxonomy-mycred_badge_category #wpbody-content > .wrap,
+                    body.taxonomy-mycred_badge_category #posts-filter,
+                    body.taxonomy-mycred_badge_category #col-container,
+                    body.taxonomy-mycred_badge_category #screen-options-link-wrap,
+                    body.taxonomy-mycred_badge_category #screen-options-wrap,
+                    body.taxonomy-mycred_badge_category .screen-meta-toggle { display: none !important; }
+                    #mycred-achievement-types-root { width: 100%; margin-top: 15px; display: block !important; }
+
+                    /* Reset WP global input/select/button borders & outlines inside MUI root */
+                    #mycred-achievement-types-root .MuiInputBase-input,
+                    #mycred-achievement-types-root input[type="text"],
+                    #mycred-achievement-types-root input[type="search"] {
+                        border: none !important;
+                        background: transparent !important;
+                        box-shadow: none !important;
+                        outline: none !important;
+                    }
+                    #mycred-achievement-types-root input:focus,
+                    #mycred-achievement-types-root select:focus,
+                    #mycred-achievement-types-root button:focus {
+                        outline: 0 !important;
+                        box-shadow: none !important;
+                    }
+                    #mycred-achievement-types-root a.MuiButton-root,
+                    #mycred-achievement-types-root a.MuiButton-root:hover,
+                    #mycred-achievement-types-root a.MuiButton-root:focus,
+                    #mycred-achievement-types-root a.MuiButton-root:visited {
+                        text-decoration: none !important;
+                    }
+                    #mycred-achievement-types-root a.MuiButton-containedPrimary,
+                    #mycred-achievement-types-root a.MuiButton-containedPrimary:hover,
+                    #mycred-achievement-types-root a.MuiButton-containedPrimary:focus,
+                    #mycred-achievement-types-root a.MuiButton-containedPrimary:visited {
+                        color: #ffffff !important;
+                        background-color: #5e2ced !important;
+                    }
+                    #mycred-achievement-types-root a.MuiButton-containedPrimary * {
+                        color: #ffffff !important;
+                    }
+                </style>';
+            }
+        }
+
+        public function render_react_badges_list_root() {
+            $screen    = get_current_screen();
+            $post_type = isset( $_GET['post_type'] ) ? sanitize_key( $_GET['post_type'] ) : ( $screen && isset( $screen->post_type ) ? $screen->post_type : '' );
+            $taxonomy  = isset( $_GET['taxonomy'] ) ? sanitize_key( $_GET['taxonomy'] ) : ( $screen && isset( $screen->taxonomy ) ? $screen->taxonomy : '' );
+
+            $is_badges_list       = ( $screen && $screen->base === 'edit' && $post_type === MYCRED_BADGE_KEY && empty( $taxonomy ) );
+            $is_achievement_types = ( $screen && $screen->base === 'edit-tags' && $taxonomy === MYCRED_BADGE_CATEGORY );
+
+            if ( $is_badges_list ) {
+                echo '<div id="mycred-badges-list-root"></div>';
+            } elseif ( $is_achievement_types ) {
+                echo '<div id="mycred-achievement-types-root"></div>';
+            }
         }
 
         public function flush_rewrite_rules_for_badges() {

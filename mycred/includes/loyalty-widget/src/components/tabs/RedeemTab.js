@@ -9,7 +9,6 @@ import { useState, useEffect } from '@wordpress/element';
 export default function RedeemTab({ settings, currentContent, onBack, onClose, previewMode = false, previewData }) {
     const [coupons, setCoupons]   = useState([]);
     const [loading, setLoading]   = useState(true);
-    const isRtl = document?.documentElement?.dir === 'rtl';
 
     currentContent = currentContent || {};
     const design    = settings.design || {};
@@ -61,7 +60,7 @@ export default function RedeemTab({ settings, currentContent, onBack, onClose, p
                     {icon}
                 </Box>
                 <Typography sx={{
-                    fontSize: '14px', fontWeight: 700, color: accentColor,
+                    fontSize: '14px', fontWeight: 700, color: '#1A1040',
                     fontFamily: "'Instrument Sans', sans-serif",
                 }}>
                     {title}
@@ -75,7 +74,7 @@ export default function RedeemTab({ settings, currentContent, onBack, onClose, p
                         <Typography sx={{ fontSize: '12px', color: '#7A7A9A', fontFamily: "'Instrument Sans', sans-serif" }}>
                             {row.label}
                         </Typography>
-                        <Typography sx={{ fontSize: '13px', fontWeight: 700, color: accentColor, fontFamily: "'Instrument Sans', sans-serif" }}>
+                        <Typography sx={{ fontSize: '13px', fontWeight: 700, color: '#1A1040', fontFamily: "'Instrument Sans', sans-serif" }}>
                             {row.value}
                         </Typography>
                     </Box>
@@ -100,7 +99,7 @@ export default function RedeemTab({ settings, currentContent, onBack, onClose, p
             <Box sx={{ p: '20px 24px', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <IconButton size="small" onClick={onBack} sx={{ color: '#fff', p: 0.5 }}>
-                        <ArrowBackIcon sx={{ transform: isRtl ? 'scaleX(-1)' : 'none' }} />
+                        <ArrowBackIcon />
                     </IconButton>
                     <Box>
                         <Typography sx={{ fontSize: '18px', fontWeight: 700, fontFamily: "'Instrument Sans', sans-serif" }}>
@@ -203,7 +202,7 @@ export default function RedeemTab({ settings, currentContent, onBack, onClose, p
                                     {/* Text */}
                                     <Box sx={{ flex: 1, minWidth: 0 }}>
                                         <Typography sx={{
-                                            fontSize: '13px', fontWeight: 700, color: btnColor,
+                                            fontSize: '13px', fontWeight: 700, color: '#1A1040',
                                             fontFamily: "'Instrument Sans', sans-serif",
                                             mb: '2px',
                                             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -229,7 +228,7 @@ export default function RedeemTab({ settings, currentContent, onBack, onClose, p
                                     {/* Amount + status */}
                                     <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
                                         <Typography sx={{
-                                            fontSize: '15px', fontWeight: 800, color: btnColor,
+                                            fontSize: '15px', fontWeight: 800, color: '#1A1040',
                                             fontFamily: "'Instrument Sans', sans-serif",
                                         }}>
                                             {coupon.formatted_amount}

@@ -38,16 +38,17 @@ if ( ! defined( 'myCRED_VERSION' ) ) exit;
                 add_action( 'template_redirect', array( $this, 'specific_content_loading' ), 9990 );
             }
 
-            add_action( 'wp_ajax_mycred_specific_posts_for_users', array( $this, 'mycred_specific_posts_for_users' ) );
-            add_action( 'wp_ajax_nopriv_mycred_specific_posts_for_users', array( $this, 'mycred_specific_posts_for_users' ) );
-            
         }
 
         
         public function mycred_specific_posts_for_users() {
 
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_send_json_error( 'Access Denied' );
+            }
+
             // Get the post type from the AJAX request
-            $post_type = isset( $_POST['post_type'] ) ? sanitize_text_field( $_POST['post_type'] ) : '';
+            $post_type = isset( $_POST['post_type'] ) ? sanitize_text_field( wp_unslash( $_POST['post_type'] ) ) : '';
 
             // Check if the post type is valid
             if ( empty( $post_type ) ) {
@@ -72,21 +73,17 @@ if ( ! defined( 'myCRED_VERSION' ) ) exit;
                 'order'          => 'ASC',
             ]);
 
-            // If no posts are found, return an error
-            if ( empty( $posts ) ) {
-                wp_send_json_error( 'No posts found.' );
+            $formatted_posts = array();
+            if ( ! empty( $posts ) ) {
+                $formatted_posts = array_map( function( $post ) {
+                    return [
+                        'ID'    => $post->ID,
+                        'title' => get_the_title( $post->ID ),
+                        'link'  => get_permalink( $post->ID ),
+                    ];
+                }, $posts );
             }
 
-            // Prepare the data for the response
-            $formatted_posts = array_map( function( $post ) {
-                return [
-                    'ID'    => $post->ID,
-                    'title' => get_the_title( $post->ID ),
-                    'link'  => get_permalink( $post->ID ),
-                ];
-            }, $posts );
-
-            // Send the successful response with the posts data
             wp_send_json_success( $formatted_posts );
         }
 
@@ -183,6 +180,17 @@ if ( ! defined( 'myCRED_VERSION' ) ) exit;
 
         }
 
+        public function select_posts_field_name( $hook_index ) {
+
+            $option_id = 'mycred_pref_hooks';
+            if ( ! $this->is_main_type ) {
+                $option_id = $option_id . '_' . $this->mycred_type;
+            }
+
+            return $option_id . '[hook_prefs][' . $this->id . '][select_posts][' . $hook_index . '][]';
+
+        }
+
        public function preferences() {
 
             global $post;
@@ -195,7 +203,7 @@ if ( ! defined( 'myCRED_VERSION' ) ) exit;
                 : [[
                     'creds'    => 10,
                     'log'      => __( '%plural% for viewing a specific content (Member)', 'mycred' ),
-                    'post_types'   => '0',
+                    'post_types'   => 'post',
                     'select_posts' => array()
                 ]];
 
@@ -242,7 +250,7 @@ if ( ! defined( 'myCRED_VERSION' ) ) exit;
                                     $selected_options = array_unique($selected_options_ids);
 
                                     $options_args = [
-                                        'name'     => 'mycred_pref_hooks[hook_prefs][view_contents_specific][select_posts][' . esc_attr( $hook ) . '][]',
+                                        'name'     => $this->select_posts_field_name( $hook ),
                                         'id'       => 'contents_specific_' . esc_attr( $hook ), 
                                         'class'    => 'form-control post-options-member',
                                         'multiple' => 'multiple'
@@ -364,4 +372,11 @@ if ( ! defined( 'myCRED_VERSION' ) ) exit;
         }
 
   }
+
+    add_action( 'wp_ajax_mycred_specific_posts_for_users', 'mycred_ajax_specific_posts_for_users' );
+    function mycred_ajax_specific_posts_for_users() {
+        $hook = new myCRED_Hook_View_Contents_Specific( array() );
+        $hook->mycred_specific_posts_for_users();
+    }
+
 endif;

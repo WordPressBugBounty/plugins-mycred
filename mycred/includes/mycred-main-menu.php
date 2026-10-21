@@ -69,6 +69,8 @@ if ( ! class_exists( 'myCRED_Main_Menu' ) ):
 
             }
 
+
+
 			mycred_add_main_submenu(
 				__( 'About', 'mycred' ),
 				__( 'About', 'mycred' ),

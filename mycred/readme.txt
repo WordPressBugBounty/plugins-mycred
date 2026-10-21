@@ -3,34 +3,99 @@ Contributors: mycred,wpexpertsio
 Tags: badges, loyalty program, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 7.1
-Stable tag: 3.2.6
+Stable tag: 4.0.0
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-myCred is a flexible WordPress loyalty points and gamification plugin for points, badges, ranks, referrals, and WooCommerce rewards.
+myCred is a powerful AI-powered WordPress loyalty points and gamification plugin for points, badges, ranks, and WooCommerce rewards.
 
 == Description ==
 
-[myCred](https://mycred.me/?utm_source=wp_org&utm_medium=read_me) is a powerful WordPress loyalty points and WordPress gamification plugin. Its a flexible points-based gamification and rewards system for WordPress and WooCommerce. Build and manage points, badges, ranks, referrals, and digital rewards from one points platform. Create customer loyalty points campaigns, run a WooCommerce points rewards program, launch a referral programs points plugin system, or use myCred as a scalable points rewards plugin for engagement and retention.
+[myCred](https://mycred.me/?utm_source=wp_org&utm_medium=read_me) is a powerful AI-powered WordPress loyalty points and gamification plugin. It's a flexible points-based gamification and rewards system for WordPress and WooCommerce. Build and manage points, badges, ranks, referrals, and digital rewards from one platform. Create customer loyalty points campaigns, run a WooCommerce points rewards program, launch a referral points program, or use myCred as a scalable points and rewards solution for engagement and retention.
 
-The new [**myCred AI Assistant (Experiment)**](https://codex.mycred.me/docs/toolkit/mycred-ai-assistant?utm_source=wp_org&utm_medium=read_me&utm_campaign=ai-assistant) transforms how you manage it via the WordPress AI ecosystem. Skip the admin screens and use natural language to create point types, deploy hooks, adjust balances, and view summaries. Built on WordPress AI, it translates your commands into action instantly.
+Manage myCred with AI using the new [**myCred AI Assistant**](https://codex.mycred.me/docs/toolkit/mycred-ai-assistant?utm_source=wp_org&utm_medium=read_me&utm_campaign=ai-assistant). Built on the WordPress AI ecosystem, it lets you use natural language for common myCred tasks instead of navigating multiple admin screens. Create point types, suggest and deploy hooks, adjust user points, check balances, view point summaries, suggest and create ranks and badges, update general settings, and enable add-ons through conversational commands. The AI assistant of myCred translates plain-language instructions into structured actions.
 
-[Addons](https://mycred.me/store/?utm_source=wp_org&utm_medium=read_me) | [Documentation](https://codex.mycred.me/?utm_source=wp_org&utm_medium=read_me) | [Demo](https://demo.mycred.me/?utm_source=wp_org&utm_medium=read_me) | [Treasures](https://mycred.me/treasure/?utm_source=wp_org&utm_medium=read_me) | [Pricing](https://mycred.me/pricing/?utm_source=wp_org&utm_medium=read_me) | [AI Assistant (Experiment)](https://mycred.me/blog/ai-assistant-for-wordpress-gamification-and-loyalty/?utm_source=wp_org&utm_medium=read_me&utm_campaign=ai-assistant)
+A first-run **Onboarding** wizard helps you build that program before you use the rest of the admin. Start with AI and describe the rewards program you want, or pick a ready-made template from your website type, platform, and goal. myCred proposes a point type, earning hooks, and add-ons. Nothing is saved until you review and confirm it.
+
+[Addons](https://mycred.me/store/?utm_source=wp_org&utm_medium=read_me) | [Documentation](https://codex.mycred.me/?utm_source=wp_org&utm_medium=read_me) | [Demo](https://demo.mycred.me/?utm_source=wp_org&utm_medium=read_me) | [Treasures](https://mycred.me/treasure/?utm_source=wp_org&utm_medium=read_me) | [Pricing](https://mycred.me/pricing/?utm_source=wp_org&utm_medium=read_me) | [AI Assistant](https://mycred.me/blog/ai-assistant-for-wordpress-gamification-and-loyalty/?utm_source=wp_org&utm_medium=read_me&utm_campaign=ai-assistant)
 
 [youtube https://www.youtube.com/watch?v=-M19tzYo1jo]
 
-myCred is a complete membership points system plugin designed to help websites build loyalty points engines with points, badges, ranks, and WooCommerce points rewards.
+myCred is a complete membership loyalty points system plugin designed to help websites build loyalty points engines with points, badges, ranks, and WooCommerce points rewards. With the myCred AI Assistant, you can also manage common loyalty and gamification tasks using natural language, making it easier to configure and work with your points system.
 
-Reward users with points for purchases, referrals, logins, comments, course completion, memberships, and community participation through flexible points-based gamification rules.
+Reward users with points for purchases, referrals, logins, comments, course completion, memberships, and community participation through flexible points-based gamification rules. Use AI assistance to create point types, suggest and deploy hooks, adjust user points, check balances, and view point summaries without navigating multiple admin screens.
 
-Whether you run an eCommerce store, membership points platform, or community, myCred works as a reliable WooCommerce loyalty points program plugin to increase points-driven engagement and repeat activity.
+Whether you run an eCommerce store, membership points platform, or community, myCred works as a reliable WooCommerce loyalty points program plugin for driving points-based engagement and repeat activity. The AI Assistant adds a conversational way to manage your myCred setup through the WordPress AI ecosystem.
 
-This flexible WooCommerce points and WordPress gamification plugin allows you to reward customers with points-based cash back mechanism, loyalty points, gamification WooCommerce points rewards, community points leaderboard rankings, and points-based cashback monetization incentives. It also works as a complete points-driven gamification solution for businesses looking to improve user points retention.
+This flexible WooCommerce points and WordPress gamification plugin lets you reward customers with points-based cashback mechanisms, loyalty points, WooCommerce points rewards, community points, leaderboard rankings, and points-based monetization incentives. It also provides an AI-assisted approach to managing key points and gamification tasks, helping businesses build and maintain engaging points-based loyalty and retention programs.
 
-== Introducing myCred AI Assistant (Experiment) ==
+== AI Assistant for myCred ==
 
-Manage your WordPress loyalty points setup with natural language—create point types, deploy hooks, adjust points, check balances, and view summaries. The [**myCred AI Assistant (Experiment)**](https://codex.mycred.me/docs/toolkit/mycred-ai-assistant?utm_source=wp_org&utm_medium=read_me&utm_campaign=ai-assistant), part of the [myCred Addons](https://wordpress.org/plugins/mycred-toolkit/?utm_source=wp_org&utm_medium=read_me), replaces admin screen navigation by translating your plain-language commands into instant structured actions within myCred.
+= Manage Your Loyalty Program With Natural Language =
+
+The myCred AI Assistant gives you a conversational way to manage your WordPress loyalty and gamification setup.
+
+Create point types, get suggestions for hooks, adjust user points, check balances, view point summaries, suggest and create ranks and badges, update settings, and enable add-ons. Plain-language instructions are turned into structured myCred actions, and changes are confirmed before they are saved.
+
+= What Can You Ask the myCred AI Assistant? =
+
+You can use prompts such as:
+
+- Create a new point type called Credits for my membership program.
+- Suggest hooks I can use to reward users for registering and logging in.
+- Adjust this user's points balance according to my requirements.
+- Suggest ranks for a community site, then create them after I confirm the point thresholds.
+- Create badges for course completions and daily logins.
+- Turn on the Badges add-on and update the general settings for my point type.
+
+= Built on the WordPress AI Ecosystem =
+
+The myCred AI Assistant is built using the WP AI Client, Connectors API, and Abilities API. It connects to a configured AI provider and turns natural-language instructions into structured actions within myCred.
+
+= AI Assistant for Faster myCred Management =
+
+- **AI Assistant:** Manage common myCred tasks using natural language instead of navigating multiple admin screens.
+- **Create Point Types with AI:** Ask the AI Assistant to create point types based on your requirements.
+- **AI-Powered Hook Suggestions:** Get hook suggestions and deploy relevant hooks through conversational instructions.
+- **Manage User Points:** Use natural language to adjust user points and check balances.
+- **Suggest and Create Ranks:** Ask for a rank progression for your site type, review the point thresholds, and create the ranks after you confirm.
+- **Suggest and Create Badges:** Get badge ideas with manual or automatic earning rules, then create the ones you approve.
+- **Update Settings with AI:** Read and update general settings, list add-ons, and enable or disable an add-on from the chat.
+- **Install myCred Addons:** Ask the assistant to install and activate the free myCred Addons plugin when an add-on needs it. It asks you to confirm first.
+- **AI Provider Support:** Connect myCred with a supported AI provider through WordPress Connectors.
+
+= Getting Started With myCred AI Assistant =
+
+Setting up the AI Assistant requires a few steps.
+
+1. **Use WordPress 7.0 or Later**
+The AI Assistant relies on the WordPress AI capabilities available in this version.
+
+2. **Install the WordPress AI Plugin**
+Go to Settings > Connectors in your WordPress dashboard and install the WordPress AI Plugin from the Connectors screen.
+
+3. **Connect Your AI Provider**
+WordPress Connectors supports AI connectors such as Anthropic, Google, and OpenAI. Select your preferred connector.
+
+4. **Open myCred > AI Assistant**
+The AI Assistant is included in myCred. After your provider is connected, open myCred > AI Assistant to manage points, hooks, ranks, badges, settings, and add-ons in chat.
+
+== myCred Onboarding ==
+
+The Onboarding wizard opens on a new myCred install and walks you through a loyalty program before you use the rest of the admin.
+
+= Set up with AI =
+
+Describe what members should do, how they earn points, and where those points are spent. Choose a website type, platform, and primary goal, and add an optional prompt. AI prepares a proposal, explains what it understood, and waits for your approval. You can edit the point type, earning hooks, and add-ons, then apply only what you confirm. If AI is unavailable, continue with a ready-made template instead.
+
+= Start with a ready-made setup =
+
+Pick a website type, platform, and primary goal, such as an eCommerce store on WooCommerce that rewards product reviews. myCred fills in a predefined point type, hooks, and add-ons for that combination. You still review and confirm every item before it is saved.
+
+Both paths finish on a confirmation screen once the selected setup is applied. You can change any of those settings later from the myCred admin.
+
+myCred includes an AI-enabled onboarding wizard and an AI Assistant that lets site admins use plain-language prompts to set up this loyalty plugin. The AI token quota resets on a monthly basis. Read our [Privacy Policy](https://mycred.me/privacy-policy/) and [Terms & Conditions](https://mycred.me/terms-and-conditions/) for full disclosure.
 
 == Why myCred for Points and Rewards and WordPress Gamification Plugin? ==
 
@@ -45,7 +110,8 @@ Whether you need a loyalty rewards plugin, a referral points plugin, WordPress g
 == Features ==
 
 ✔ Powerful points and rewards management system
-✔ One-click (experimental) AI assistant based on Abilities API for quick administration
+✔ One-click (experimental) AI assistant based on Abilities API for points, hooks, ranks, badges, settings, and add-ons
+✔ Guided Onboarding wizard with AI setup and a ready-made template
 ✔ Built-in badges and rank engine for points and rewards
 ✔ Advanced WooCommerce rewards and points functionality
 ✔ Flexible referral programs & WordPress gamification plugin support with points rewards
@@ -262,7 +328,7 @@ myCred is integrated with a large number of popular learning management systems,
 - [LearnPress](https://thimpress.com/product/mycred-add-on-for-learnpress/) (Paid third-party integration).
 
 
-== MYCRED’S INTEGRATION WITH YOUR FAVORITE PAGE BUILDERS: ==
+== MYCRED'S INTEGRATION WITH YOUR FAVORITE PAGE BUILDERS: ==
 - [myCred Elementor](https://www.mycred.me/store/mycred-elementor/)
 - [myCred Beaver Builder](https://www.mycred.me/store/mycred-beaver-builder/)
 - [myCred for WPBakery Page Builder](https://www.mycred.me/store/mycred-for-wpbakery-page-builder/)
@@ -275,7 +341,7 @@ myCred is integrated with a large number of popular learning management systems,
 - [myCred for Rating Form](https://www.mycred.me/store/mycred-for-rating-form/)
 - [Explore to find out more...](https://www.mycred.me/product-category/freebies/)
 
-== MYCRED’S THIRD-PARTY BRIDGES PLUGINS: ==
+== MYCRED'S THIRD-PARTY BRIDGES PLUGINS: ==
 
 - [Stripe - buyCred Gateway](https://www.mycred.me/store/buycred-stripe/)
 - [Easy Digital Downloads - myCred Gateway](https://www.mycred.me/store/mycred-for-easy-digital-downloads/)
@@ -286,12 +352,12 @@ myCred is integrated with a large number of popular learning management systems,
 - [myCred for Users Ultra](https://www.mycred.me/store/mycred-for-users-ultra/)
 - [myCred for User Pro](https://www.mycred.me/store/mycred-for-user-pro/)
 
-== MYCRED’S GAMIFICATION PLUGINS: ==
+== MYCRED'S GAMIFICATION PLUGINS: ==
 
 - [myCred PacMan](https://www.mycred.me/store/mycred-pacman/)
 - [Wheel of Fortune Add-On](https://www.mycred.me/store/wheel-of-fortune-add-on/)
 
-== MYCRED’S ENHANCEMENT PLUGINS: ==
+== MYCRED'S ENHANCEMENT PLUGINS: ==
 
 - [myCred WooCommerce Plus](https://www.mycred.me/store/mycred-woocommerce-plus/)
 - [myCred Email Digest](https://mycred.me/store/mycred-email-digest/)
@@ -326,6 +392,14 @@ You can either submit a [customization request](https://mycred.me/customize/requ
 == 3rd Party Services ==
 * MUI - https://mui.com/material-ui/
 
+= myCred AI =
+
+myCred includes an AI-enabled onboarding wizard and an AI Assistant that lets site admins use plain-language prompts to set up this loyalty plugin. These features connect to the myCred AI service (https://ai-api.wpexperts.io/) only when a site administrator uses them.
+
+The plugin sends the site URL and the administrator's prompt. Onboarding also sends the selected website type, platform, and goal. The first connection sends the site admin email and display name so a token quota can be assigned to the site. The AI token quota resets on a monthly basis.
+
+This service is provided by myCred. Read our [Privacy Policy](https://mycred.me/privacy-policy/) and [Terms & Conditions](https://mycred.me/terms-and-conditions/) for full disclosure.
+
 == Installation ==
 
 = myCRED Guides =
@@ -348,10 +422,10 @@ You can either submit a [customization request](https://mycred.me/customize/requ
 Yes. myCred lets you configure automatic points for actions like purchases, registrations, daily logins, referrals, and more. These points feed into your loyalty program and can be redeemed for rewards or benefits.
 
 = How do points work in myCred? =
-Points are tracked in each user’s balance. You set events or triggers that award or deduct points. Every transaction is logged so users and admins can see exactly how points were earned.
+Points are tracked in each user's balance. You set events or triggers that award or deduct points. Every transaction is logged so users and admins can see exactly how points were earned.
 
 = Are transaction histories available for points and rewards? =
-Yes. Each user’s point activities are recorded in a dedicated log. Users and admins can view how points were earned or spent, showing triggers, dates, and related actions.
+Yes. Each user's point activities are recorded in a dedicated log. Users and admins can view how points were earned or spent, showing triggers, dates, and related actions.
 
 = Does myCred support multiple types of points? =
 myCred allows unlimited point types. You can create separate point systems for different loyalty or reward scenarios and manage them independently. 
@@ -360,7 +434,16 @@ myCred allows unlimited point types. You can create separate point systems for d
 You can white-label myCred to rename points or rewards to match your loyalty program theme (e.g., “Store Coins” or “Rewards Credits”).
 
 = How do I start a loyalty and rewards program in WooCommerce with myCred? =
-Install myCred and enable the WooCommerce add-on. Then set up point triggers for purchases and other actions, configure what rewards users can redeem with points, and display balances with shortcodes or blocks. 
+Install myCred and enable the WooCommerce add-on. Then set up point triggers for purchases and other actions, configure what rewards users can redeem with points, and display balances with shortcodes or blocks.
+
+= Does myCred have an AI Assistant? =
+Yes. myCred includes an experimental AI Assistant that lets administrators interact with their loyalty and gamification setup using natural-language prompts.
+
+= What can the myCred AI Assistant do? =
+It can create point types, suggest and deploy hooks, adjust user points, check balances, and provide point summaries.
+
+= Which AI service does the onboarding wizard and AI Assistant use? =
+Both features use the myCred AI service. Site administrators send plain-language prompts from the WordPress admin, and the AI token quota resets on a monthly basis. Read the [Privacy Policy](https://mycred.me/privacy-policy/) and [Terms & Conditions](https://mycred.me/terms-and-conditions/) for full disclosure. 
 
 
 == Screenshots ==
@@ -376,6 +459,9 @@ Install myCred and enable the WooCommerce add-on. Then set up point triggers for
 9. **General Settings** - Global settings for loyalty points, rewards plugin behavior, and badges.
 
 == Upgrade Notice ==
+
+= 4.0.0 =
+Redesigned the myCred admin backend. Added a first-run Onboarding wizard and expanded the AI Assistant with ranks, badges, settings, and add-ons. Existing points, hooks, badges, ranks, and settings are preserved.
 
 = 3.2.0 =
 Merged the built-in Add-ons and Toolkit pages into a single unified Add-ons page.
@@ -616,6 +702,11 @@ New features and Bug fixes.
 The banking module have been replaced by Central deposite module, and interest related functionality has been removed. If you are using simple interest or compound interest related functionality, you will fine the respective functionalities missing after the update.
 
 == Changelog ==
+
+= 4.0.0 =
+- **NEW** - Redesigned the myCred admin backend with a unified interface for Settings, Hooks, Logs, Tools, Badges, Ranks, Loyalty Widget, and built-in add-ons (WooCommerce, Coupons, Banking, and Email Notices).
+- **NEW** - Added a first-run Onboarding wizard. Set up with AI or a ready-made template, then review the point type, hooks, and add-ons before anything is applied.
+- **NEW** - Expanded the AI Assistant so it can suggest and create ranks and badges, update general settings, enable or disable add-ons, and install the free myCred Addons plugin after you confirm.
 
 = 3.2.6 =
 - **NEW** - Compatible with WP 7.1.

@@ -110,6 +110,9 @@ if ( ! class_exists( 'myCRED_Ranks_Module' ) ) :
 
 			add_action( 'pre_get_posts',                            array( $this, 'adjust_wp_query' ), 20 );
 			add_action( 'mycred_admin_enqueue',                     array( $this, 'enqueue_scripts' ), $this->menu_pos );
+			add_action( 'rest_api_init',                            array( $this, 'register_ranks_rest_routes' ) );
+			add_action( 'admin_enqueue_scripts',                    array( $this, 'enqueue_react_ranks_list_scripts' ) );
+			add_action( 'all_admin_notices',                         array( $this, 'render_react_ranks_list_root' ) );
 
 			// Instances to update ranks
 			add_action( 'transition_post_status',                   array( $this, 'post_status_change' ), 99, 3 );
@@ -149,7 +152,7 @@ if ( ! class_exists( 'myCRED_Ranks_Module' ) ) :
 			add_filter( 'submenu_file',                       array( $this, 'subparent_file' ), 10, 2 );
 			add_filter( 'admin_url',                          array( $this, 'replace_add_new_rank_url' ), 10, 3 );
 
-			add_action( 'restrict_manage_posts', 			  array( $this, 'add_search_filters' ), 10 );
+			// add_action( 'restrict_manage_posts', 			  array( $this, 'add_search_filters' ), 10 );
 			add_filter( 'post_row_actions',                   array( $this, 'adjust_row_actions' ), 10, 2 );
 
 			add_filter( 'post_updated_messages',              array( $this, 'post_updated_messages' ) );
@@ -2082,15 +2085,340 @@ if ( ! class_exists( 'myCRED_Ranks_Module' ) ) :
 		 * @since 2.7.1
 		 * @version 1.0
 		 */
-		public function add_search_filters( $post_type ){
+		public function register_ranks_rest_routes() {
+			register_rest_route( 'mycred/v1', '/ranks', array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_ranks_rest' ),
+					'permission_callback' => array( $this, 'rest_permissions_check' ),
+				),
+			) );
 
-			if( MYCRED_RANK_KEY !== $post_type ) return;
-			
-			if ( ! empty( $_GET['ctype'] ) ) :?>
-			<input type="hidden" name="ctype" value="<?php echo esc_attr( $_GET['ctype'] );?>">
-			<?php 
-			endif;
+			register_rest_route( 'mycred/v1', '/ranks/bulk', array(
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'bulk_ranks_rest' ),
+					'permission_callback' => array( $this, 'rest_permissions_check' ),
+				),
+			) );
 
+			register_rest_route( 'mycred/v1', '/ranks/(?P<id>\d+)', array(
+				array(
+					'methods'             => 'DELETE',
+					'callback'            => array( $this, 'delete_rank_rest' ),
+					'permission_callback' => array( $this, 'rest_permissions_check' ),
+				),
+			) );
+
+			register_rest_route( 'mycred/v1', '/ranks/(?P<id>\d+)/restore', array(
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'restore_rank_rest' ),
+					'permission_callback' => array( $this, 'rest_permissions_check' ),
+				),
+			) );
+		}
+
+		public function rest_permissions_check() {
+			return current_user_can( 'edit_posts' );
+		}
+
+		public function prepare_rank_for_rest( $post_id ) {
+			$post = get_post( $post_id );
+			if ( ! $post ) return null;
+
+			$type = mycred_get_post_meta( $post_id, 'ctype', true );
+			if ( empty( $type ) ) {
+				$type = MYCRED_DEFAULT_TYPE_KEY;
+			}
+
+			$point_type_name = isset( $this->point_types[ $type ] ) ? $this->point_types[ $type ] : $type;
+
+			$min = mycred_get_post_meta( $post_id, 'mycred_rank_min', true );
+			$max = mycred_get_post_meta( $post_id, 'mycred_rank_max', true );
+
+			$min_label = ( empty( $min ) && (int) $min !== 0 ) ? 'Any Value' : (string) $min;
+			$max_label = ( empty( $max ) ) ? 'Any Value' : (string) $max;
+
+			// Logo thumbnail
+			$logo_html = mycred_get_rank_logo( $post_id, 'thumbnail' );
+			$thumbnail_id = get_post_thumbnail_id( $post_id );
+			$raw_logo_url = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, 'thumbnail' ) : '';
+
+			$users_count = (int) mycred_count_users_with_rank( $post_id );
+
+			return array(
+				'id'               => (int) $post->ID,
+				'title'            => $post->post_title,
+				'edit_url'         => admin_url( 'post.php?post=' . $post->ID . '&action=edit&ctype=' . $type ),
+				'logo_html'        => $logo_html ? $logo_html : '',
+				'logo_url'         => $raw_logo_url ? $raw_logo_url : '',
+				'min'              => $min_label,
+				'max'              => $max_label,
+				'users_count'      => $users_count,
+				'point_type'       => $type,
+				'point_type_name'  => $point_type_name,
+				'status'           => $post->post_status,
+				'date'             => $post->post_date,
+			);
+		}
+
+		public function get_ranks_rest( $request ) {
+			$ctype      = sanitize_text_field( $request->get_param( 'ctype' ) );
+			$status     = sanitize_text_field( $request->get_param( 'status' ) );
+			$search     = sanitize_text_field( $request->get_param( 'search' ) );
+			$page       = max( 1, (int) $request->get_param( 'page' ) );
+			$per_page   = max( 1, (int) $request->get_param( 'per_page' ) );
+			if ( ! $per_page ) $per_page = 10;
+
+			// Unhook pre_get_posts filter during REST fetch to prevent filter conflicts
+			remove_action( 'pre_get_posts', array( $this, 'adjust_wp_query' ), 20 );
+
+			$post_status = 'publish';
+			if ( $status === 'trash' ) {
+				$post_status = 'trash';
+			} elseif ( $status === 'all' ) {
+				$post_status = array( 'publish', 'draft', 'pending', 'private' );
+			}
+
+			$args = array(
+				'post_type'      => MYCRED_RANK_KEY,
+				'post_status'    => $post_status,
+				'posts_per_page' => $per_page,
+				'paged'          => $page,
+				's'              => $search,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+			);
+
+			if ( ! empty( $ctype ) && $ctype !== 'all' ) {
+				if ( $ctype === MYCRED_DEFAULT_TYPE_KEY || $ctype === 'mycred' ) {
+					$args['meta_query'] = array(
+						'relation' => 'OR',
+						array(
+							'key'     => 'ctype',
+							'value'   => array( MYCRED_DEFAULT_TYPE_KEY, 'mycred', '' ),
+							'compare' => 'IN',
+						),
+						array(
+							'key'     => 'ctype',
+							'compare' => 'NOT EXISTS',
+						),
+					);
+				} else {
+					$args['meta_query'] = array(
+						array(
+							'key'     => 'ctype',
+							'value'   => $ctype,
+							'compare' => '=',
+						)
+					);
+				}
+			}
+
+			$query = new WP_Query( $args );
+			$items = array();
+			foreach ( $query->posts as $post ) {
+				$items[] = $this->prepare_rank_for_rest( $post->ID );
+			}
+
+			// Tab Counts
+			$count_args = array(
+				'post_type'      => MYCRED_RANK_KEY,
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+			);
+			if ( ! empty( $ctype ) && $ctype !== 'all' ) {
+				if ( $ctype === MYCRED_DEFAULT_TYPE_KEY || $ctype === 'mycred' ) {
+					$count_args['meta_query'] = array(
+						'relation' => 'OR',
+						array(
+							'key'     => 'ctype',
+							'value'   => array( MYCRED_DEFAULT_TYPE_KEY, 'mycred', '' ),
+							'compare' => 'IN',
+						),
+						array(
+							'key'     => 'ctype',
+							'compare' => 'NOT EXISTS',
+						),
+					);
+				} else {
+					$count_args['meta_query'] = array( array( 'key' => 'ctype', 'value' => $ctype ) );
+				}
+			}
+
+			$all_posts     = get_posts( array_merge( $count_args, array( 'post_status' => array( 'publish', 'draft', 'pending', 'private' ) ) ) );
+			$publish_posts = get_posts( array_merge( $count_args, array( 'post_status' => 'publish' ) ) );
+			$trash_posts   = get_posts( array_merge( $count_args, array( 'post_status' => 'trash' ) ) );
+
+			// Re-hook pre_get_posts filter
+			add_action( 'pre_get_posts', array( $this, 'adjust_wp_query' ), 20 );
+
+			$point_types_formatted = array();
+			foreach ( $this->point_types as $key => $name ) {
+				$point_types_formatted[] = array( 'key' => $key, 'name' => $name );
+			}
+
+			return rest_ensure_response( array(
+				'items'       => $items,
+				'total'       => (int) $query->found_posts,
+				'counts'      => array(
+					'all'     => count( $all_posts ),
+					'publish' => count( $publish_posts ),
+					'trash'   => count( $trash_posts ),
+				),
+				'point_types' => $point_types_formatted,
+			) );
+		}
+
+		public function delete_rank_rest( $request ) {
+			$id        = absint( $request->get_param( 'id' ) );
+			$permanent = (bool) $request->get_param( 'permanent' );
+
+			if ( ! $id ) {
+				return new WP_Error( 'invalid_id', 'Invalid rank ID.', array( 'status' => 400 ) );
+			}
+
+			if ( $permanent ) {
+				wp_delete_post( $id, true );
+			} else {
+				wp_trash_post( $id );
+			}
+
+			return rest_ensure_response( array( 'success' => true ) );
+		}
+
+		public function restore_rank_rest( $request ) {
+			$id = absint( $request->get_param( 'id' ) );
+			if ( ! $id ) {
+				return new WP_Error( 'invalid_id', 'Invalid rank ID.', array( 'status' => 400 ) );
+			}
+
+			wp_untrash_post( $id );
+			return rest_ensure_response( array( 'success' => true ) );
+		}
+
+		public function bulk_ranks_rest( $request ) {
+			$action = sanitize_text_field( $request->get_param( 'action' ) );
+			$ids    = $request->get_param( 'ids' );
+
+			if ( ! is_array( $ids ) || empty( $ids ) ) {
+				return new WP_Error( 'invalid_ids', 'No rank IDs provided.', array( 'status' => 400 ) );
+			}
+
+			foreach ( $ids as $id ) {
+				$id = absint( $id );
+				if ( $action === 'trash' ) {
+					wp_trash_post( $id );
+				} elseif ( $action === 'restore' ) {
+					wp_untrash_post( $id );
+				} elseif ( $action === 'delete' ) {
+					wp_delete_post( $id, true );
+				}
+			}
+
+			return rest_ensure_response( array( 'success' => true ) );
+		}
+
+		public function enqueue_react_ranks_list_scripts() {
+			$screen    = get_current_screen();
+			$post_type = isset( $_GET['post_type'] ) ? sanitize_key( $_GET['post_type'] ) : ( $screen && isset( $screen->post_type ) ? $screen->post_type : '' );
+
+			if ( ! ( $screen && $screen->base === 'edit' && $post_type === MYCRED_RANK_KEY ) ) {
+				return;
+			}
+
+			wp_enqueue_script(
+				'mycred-ranks-react',
+				plugins_url( 'addons/build/ranks.bundle.js', myCRED_THIS ),
+				array( 'wp-element', 'wp-i18n' ),
+				myCRED_RANKS_VERSION,
+				true
+			);
+
+			$current_ctype = isset( $_GET['ctype'] ) ? sanitize_key( $_GET['ctype'] ) : MYCRED_DEFAULT_TYPE_KEY;
+			if ( ! array_key_exists( $current_ctype, $this->point_types ) ) {
+				$current_ctype = MYCRED_DEFAULT_TYPE_KEY;
+			}
+
+			$initial_items = array();
+			$total_count   = 0;
+			$counts        = array( 'all' => 0, 'publish' => 0, 'trash' => 0 );
+			$point_types   = array();
+
+			try {
+				$request = new WP_REST_Request( 'GET', '/mycred/v1/ranks' );
+				$request->set_param( 'ctype', $current_ctype );
+				$initial_ranks_res = $this->get_ranks_rest( $request );
+				if ( $initial_ranks_res && ! is_wp_error( $initial_ranks_res ) && method_exists( $initial_ranks_res, 'get_data' ) ) {
+					$initial_data  = $initial_ranks_res->get_data();
+					$initial_items = isset( $initial_data['items'] ) ? $initial_data['items'] : array();
+					$total_count   = isset( $initial_data['total'] ) ? $initial_data['total'] : 0;
+					$counts        = isset( $initial_data['counts'] ) ? $initial_data['counts'] : $counts;
+					$point_types   = isset( $initial_data['point_types'] ) ? $initial_data['point_types'] : $point_types;
+				}
+			} catch ( Throwable $e ) {}
+
+			wp_localize_script( 'mycred-ranks-react', 'mycredRanksData', array(
+				'restUrl'       => esc_url_raw( rest_url( 'mycred/v1/' ) ),
+				'nonce'         => wp_create_nonce( 'wp_rest' ),
+				'initialRanks'  => $initial_items,
+				'totalCount'    => $total_count,
+				'counts'        => $counts,
+				'pointTypes'    => $point_types,
+				'currentCtype'  => $current_ctype,
+				'addNewUrl'     => admin_url( 'post-new.php?post_type=' . MYCRED_RANK_KEY . '&ctype=' . $current_ctype ),
+			) );
+
+			echo '<style type="text/css">
+				body.post-type-mycred_rank #wpbody-content > .wrap,
+				body.post-type-mycred_rank #posts-filter,
+				body.post-type-mycred_rank #screen-options-link-wrap,
+				body.post-type-mycred_rank #screen-options-wrap,
+				body.post-type-mycred_rank .screen-meta-toggle { display: none !important; }
+				#mycred-ranks-list-root { width: 100%; margin-top: 15px; display: block !important; }
+
+				/* Reset WP global input/select/button borders & outlines inside MUI root */
+				#mycred-ranks-list-root .MuiInputBase-input,
+				#mycred-ranks-list-root input[type="text"],
+				#mycred-ranks-list-root input[type="search"] {
+					border: none !important;
+					background: transparent !important;
+					box-shadow: none !important;
+					outline: none !important;
+				}
+				#mycred-ranks-list-root input:focus,
+				#mycred-ranks-list-root select:focus,
+				#mycred-ranks-list-root button:focus {
+					outline: 0 !important;
+					box-shadow: none !important;
+				}
+				#mycred-ranks-list-root a.MuiButton-root,
+				#mycred-ranks-list-root a.MuiButton-root:hover,
+				#mycred-ranks-list-root a.MuiButton-root:focus,
+				#mycred-ranks-list-root a.MuiButton-root:visited {
+					text-decoration: none !important;
+				}
+				#mycred-ranks-list-root a.MuiButton-containedPrimary,
+				#mycred-ranks-list-root a.MuiButton-containedPrimary:hover,
+				#mycred-ranks-list-root a.MuiButton-containedPrimary:focus,
+				#mycred-ranks-list-root a.MuiButton-containedPrimary:visited {
+					color: #ffffff !important;
+					background-color: #5e2ced !important;
+				}
+				#mycred-ranks-list-root a.MuiButton-containedPrimary * {
+					color: #ffffff !important;
+				}
+			</style>';
+		}
+
+		public function render_react_ranks_list_root() {
+			$screen    = get_current_screen();
+			$post_type = isset( $_GET['post_type'] ) ? sanitize_key( $_GET['post_type'] ) : ( $screen && isset( $screen->post_type ) ? $screen->post_type : '' );
+
+			if ( $screen && $screen->base === 'edit' && $post_type === MYCRED_RANK_KEY ) {
+				echo '<div id="mycred-ranks-list-root"></div>';
+			}
 		}
 
 	}

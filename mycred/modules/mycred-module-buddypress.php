@@ -470,7 +470,7 @@ if ( ! class_exists( 'myCRED_BuddyPress_Module' ) ) :
 	<?php do_action( 'mycred_bp_before_settings', $this ); ?>
 
 		<div class="row">
-			<div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+			<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
 				<div class="form-group">
 					<label for="<?php echo esc_attr( $this->field_id( 'balance_location' ) ); ?>"><?php echo esc_html( $this->core->template_tags_general( __( '%singular% Balance', 'mycred' ) ) ); ?></label>
 					<select name="<?php echo esc_attr( $this->field_name( 'balance_location' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'balance_location' ) ); ?>" class="form-control"><?php
@@ -487,7 +487,7 @@ if ( ! class_exists( 'myCRED_BuddyPress_Module' ) ) :
 					</div>
 				</div>
 			</div>
-			<div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+			<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
 				<div class="form-group">
 					<label for="<?php echo esc_attr( $this->field_id( 'balance_template' ) ); ?>"><?php esc_html_e( 'Template', 'mycred' ); ?></label>
 					<input type="text" name="<?php echo esc_attr( $this->field_name( 'balance_template' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'balance_template' ) ); ?>" value="<?php echo esc_attr( $settings['balance_template'] ); ?>" class="form-control" />
@@ -497,7 +497,7 @@ if ( ! class_exists( 'myCRED_BuddyPress_Module' ) ) :
 		</div>
 
 		<div class="row">
-			<div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+			<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
 				<div class="form-group">
 					<label for="<?php echo esc_attr( $this->field_id( 'history_location' ) ); ?>"><?php echo esc_html( $this->core->template_tags_general( __( '%plural% History', 'mycred' ) ) ); ?></label>
 					<select name="<?php echo esc_attr( $this->field_name( 'history_location' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'history_location' ) ); ?>" class="form-control"> <?php
@@ -512,14 +512,14 @@ if ( ! class_exists( 'myCRED_BuddyPress_Module' ) ) :
 					<label for="<?php echo esc_attr( $this->field_id( array( 'visibility' => 'history' ) ) ); ?>"><input type="checkbox" name="<?php echo esc_attr( $this->field_name( array( 'visibility' => 'history' ) ) ); ?>" id="<?php echo esc_attr( $this->field_id( array( 'visibility' => 'history' ) ) ); ?>" <?php checked( $settings['visibility']['history'], 1 ); ?> value="1" /> <?php echo esc_html( $this->core->template_tags_general( __( 'Members can view each others %_plural% history.', 'mycred' ) ) ); ?></label>
 				</div>
 			</div>
-			<div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+			<div class="col-lg-3 col-md-3 col-sm-3 col-xs-3">
 				<div class="form-group">
 					<label for="<?php echo esc_attr( $this->field_id( array( 'history_menu_title' => 'me' ) ) ); ?>"><?php esc_html_e( 'Menu Title', 'mycred' ); ?></label>
 					<input type="text" name="<?php echo esc_attr( $this->field_name( array( 'history_menu_title' => 'me' ) ) ); ?>" id="<?php echo esc_attr( $this->field_id( array( 'history_menu_title' => 'me' ) ) ); ?>" value="<?php echo esc_attr( $settings['history_menu_title']['me'] ); ?>" class="form-control" />
 					<p><span class="description"><?php esc_html_e( 'Title shown to me', 'mycred' ); ?></span></p>
 				</div>
 			</div>
-			<div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+			<div class="col-lg-3 col-md-3 col-sm-3 col-xs-3">
 				<div class="form-group">
 					<label>&nbsp;</label>
 					<input type="text" name="<?php echo esc_attr( $this->field_name( array( 'history_menu_title' => 'others' ) ) ); ?>" id="<?php echo esc_attr( $this->field_id( array( 'history_menu_title' => 'others' ) ) ); ?>" value="<?php echo esc_attr( $settings['history_menu_title']['others'] ); ?>" class="form-control" />
@@ -529,21 +529,21 @@ if ( ! class_exists( 'myCRED_BuddyPress_Module' ) ) :
 		</div>
 
 		<div class="row">
-			<div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+			<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
 				<div class="form-group">
 					<label for="<?php echo esc_attr( $this->field_id( 'history_menu_pos' ) ); ?>"><?php esc_html_e( 'Menu Position', 'mycred' ); ?></label>
 					<input type="text" name="<?php echo esc_attr( $this->field_name( 'history_menu_pos' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'history_menu_pos' ) ); ?>" value="<?php echo esc_attr( $settings['history_menu_pos'] ); ?>" class="form-control" />
 					<p><span class="description"><?php printf( '%s %s', esc_html__( 'Current menu positions:', 'mycred' ) , esc_html( implode( ', ', $bp_nav_positions ) ) ); ?></span></p>
 				</div>
 			</div>
-			<div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+			<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
 				<div class="form-group">
 					<label for="<?php echo esc_attr( $this->field_id( 'history_url' ) ); ?>"><?php esc_html_e( 'History URL slug', 'mycred' ); ?></label>
 					<input type="text" name="<?php echo esc_attr( $this->field_name( 'history_url' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'history_url' ) ); ?>" value="<?php echo esc_attr( $settings['history_url'] ); ?>" class="form-control" />
 					<p><span class="description"><?php esc_html_e( 'The history page slug. Must be URL friendly.', 'mycred' ); ?></span></p>
 				</div>
 			</div>
-			<div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+			<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
 				<div class="form-group">
 					<label for="<?php echo esc_attr( $this->field_id( 'history_num' ) ); ?>"><?php esc_html_e( 'Number of history entries to show', 'mycred' ); ?></label>
 					<input type="text" name="<?php echo esc_attr( $this->field_name( 'history_num' ) ); ?>" id="<?php echo esc_attr( $this->field_id( 'history_num' ) ); ?>" value="<?php echo esc_attr( $settings['history_num'] ); ?>" class="form-control" />

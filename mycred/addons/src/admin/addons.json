@@ -170,18 +170,6 @@
         "type": "builtin"
     },
     {
-        "title": "AI Assistant",
-        "description": "A powerful AI Assistant powered by WordPress AI Core to help manage myCred data using natural language chats.",
-        "slug": "ai-assistant",
-        "dependency": "mycred/mycred.php",
-        "dependencyName": "myCred",
-        "category": "Enhancements",
-        "settingUrl": "wp-admin/admin.php?page=mycred-ai-assistant",
-        "addonUrl": "https://codex.mycred.me/docs/toolkit/mycred-ai-assistant",
-        "type": "free",
-        "source": "toolkit"
-    },
-    {
         "title": "BuddyBoss",
         "description": "myCred BuddyBoss is a myCred integrated add-on that allows you to reward myCred points based on BuddyBoss events.",
         "slug": "mycred-buddyboss",
@@ -1206,7 +1194,7 @@
         "description": "Birthdays Plus is a fun and interactive way to reward myCred points to your users on their birthday.",
         "slug": "mycred-birthday-plus",
         "dependency": "mycred/mycred.php",
-        "dependencyName": "Birthday Plus",
+        "dependencyName": "myCred",
         "category": "Enhancements",
         "settingUrl": "wp-admin/admin.php?page=mycred-hooks",
         "addonUrl": "https://codex.mycred.me/chapter-iv/enhancements/mycred-birthday-plus",

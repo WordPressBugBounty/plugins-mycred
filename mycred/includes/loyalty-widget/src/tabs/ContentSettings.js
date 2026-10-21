@@ -23,33 +23,18 @@ import { usePreviewSettings } from '../context/PreviewSettingsContext';
 import { saveSectionSettings } from '../services/api';
 import { toast } from 'react-hot-toast';
 import ToggleSwitch from '../components/admin/ToggleSwitch';
+import SectionHeader from '../components/admin/SectionHeader';
+import SettingsCard from '../components/admin/SettingsCard';
+import { useRegisterSaveActions } from '../context/SaveActionsContext';
+import { useAdminTheme } from '../../../../src/shared/adminTheme/AdminThemeProvider';
+import { getTabContentSx, getSplitLayoutSx, getPreviewPanelSx, getFieldLabelSx, getTextFieldSx, getTabsSx, getAccordionSx, getAccordionSummarySx, getProBadgeSx } from '../components/admin/formStyles';
 
-const SectionHeader = ({ icon: Icon, title, desc }) => (
-    <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-            <Icon sx={{ color: '#5E2CED', fontSize: 20 }} />
-            <Typography sx={{ fontSize: '18px', fontWeight: 600, color: '#1a1a1a' }}>{title}</Typography>
-        </Box>
-        <Typography sx={{ fontSize: '14px', color: '#666' }}>{desc}</Typography>
-    </Box>
-);
-
-const MessageField = ({ label, value, onChange, disabled = false }) => (
-    <Box sx={{ mb: 3, opacity: disabled ? 0.6 : 1, pointerEvents: disabled ? 'none' : 'auto' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-            <Typography sx={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a' }}>{label}</Typography>
+const MessageField = ({ colors, label, value, onChange, disabled = false }) => (
+    <Box sx={{ mb: 3.5, '&:last-child': { mb: 0 }, opacity: disabled ? 0.6 : 1, pointerEvents: disabled ? 'none' : 'auto' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.25 }}>
+            <Typography sx={getFieldLabelSx(colors)}>{label}</Typography>
             {disabled && (
-                <Box sx={{
-                    bgcolor: '#F5F3FF',
-                    color: '#5E2CED',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    px: 1,
-                    py: 0.25,
-                    borderRadius: '4px',
-                    textTransform: 'uppercase',
-                    border: '1px solid #DDD6FE'
-                }}>
+                <Box sx={getProBadgeSx(colors)}>
                     {__('Pro', 'mycred')}
                 </Box>
             )}
@@ -60,44 +45,13 @@ const MessageField = ({ label, value, onChange, disabled = false }) => (
             value={value}
             onChange={(e) => onChange(e.target.value)}
             disabled={disabled}
-            sx={{
-                minWidth: { xs: 220, sm: 240 },
-                // Reset defaults
-                '& .MuiOutlinedInput-root': {
-                    height: 40,
-                    borderRadius: '10px',
-                    backgroundColor: '#fff !important',
-                    transition: 'all 0.2s ease-in-out',
-                    // Ensure single border via fieldset
-                    '& fieldset': {
-                        borderColor: '#E6E0F8 !important',
-                        borderWidth: '1px !important',
-                    },
-                    '&:hover fieldset': {
-                        borderColor: '#D9D0FF !important',
-                    },
-                    '&.Mui-focused fieldset': {
-                        borderColor: '#5E2CED !important',
-                        borderWidth: '1px !important', // Keep it 1px to avoid "thick" double look if that's the issue, or standard 2px is fine if single.
-                        // User complained about double borders, often due to box-shadow or unexpected outline.
-                        // We'll trust standard MUI fieldset behavior but ensure colors.
-                    },
-                    // Fix for potential WP-Admin global style leaks on input
-                    '& .MuiOutlinedInput-input': {
-                        padding: '10px 12px',
-                        fontSize: '14px',
-                        boxShadow: 'none !important', // creating potential double border look
-                        outline: 'none !important',
-                        border: 'none !important',
-                        backgroundColor: 'transparent !important',
-                    }
-                }
-            }}
+            sx={getTextFieldSx(colors, { minWidth: { xs: 220, sm: 240 } })}
         />
     </Box>
 );
 
 export default function ContentSettings() {
+    const { colors } = useAdminTheme();
     const isPro = window.mycredLoyaltyWidgetData?.is_toolkit_pro_active || false;
     const { content, updateContent } = usePreviewSettings();
     const guestSettings = content.guest || {};
@@ -144,12 +98,18 @@ export default function ContentSettings() {
         }
     };
 
+    useRegisterSaveActions({
+        onSave: handleSave,
+        loading,
+        label: __('Update Settings', 'mycred'),
+    });
+
     return (
-        <Box sx={{ p: 4 }}>
-            <Box sx={{ display: 'flex', gap: 4, flexWrap: { xs: 'wrap', lg: 'nowrap' } }}>
-                {/* Left Column: Content Settings - 55% Width */}
-                <Box sx={{ flex: { xs: '1 1 100%', lg: '0 0 50%' }, maxWidth: { xs: '100%', lg: '55%' } }}>
-                    <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+        <Box sx={getTabContentSx()}>
+            <Box sx={getSplitLayoutSx()}>
+                {/* Left Column: Content Settings */}
+                <Box>
+                    <SettingsCard>
                         <SectionHeader
                             icon={DescriptionIcon}
                             title={__('Content Settings', 'mycred')}
@@ -160,25 +120,7 @@ export default function ContentSettings() {
                         <Tabs
                             value={activeTab}
                             onChange={handleTabChange}
-                            sx={{
-                                mb: 3,
-                                minHeight: 'auto',
-                                '& .MuiTabs-indicator': {
-                                    backgroundColor: '#5E2CED',
-                                },
-                                '& .MuiTab-root': {
-                                    minHeight: 'auto',
-                                    py: 1.5,
-                                    px: 3,
-                                    textTransform: 'none',
-                                    fontSize: '14px',
-                                    fontWeight: 600,
-                                    color: '#666',
-                                    '&.Mui-selected': {
-                                        color: '#5E2CED',
-                                    }
-                                }
-                            }}
+                            sx={getTabsSx(colors)}
                         >
                             <Tab label={__('Guest User', 'mycred')} />
                             <Tab label={__('Member', 'mycred')} />
@@ -186,19 +128,21 @@ export default function ContentSettings() {
 
                         {/* Guest User Settings */}
                         {activeTab === 0 && (
-                            <Box>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                                 {/* General Messages Accordion */}
-                                <Accordion defaultExpanded sx={{ boxShadow: 'none', border: '1px solid #E0E0E0', borderRadius: '8px !important', mb: 2, '&:before': { display: 'none' } }}>
-                                    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#FAFAFA', borderRadius: '8px' }}>
-                                        <Typography sx={{ fontSize: '15px', fontWeight: 600 }}>{__('General Messages', 'mycred')}</Typography>
+                                <Accordion defaultExpanded sx={getAccordionSx(colors)}>
+                                    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={getAccordionSummarySx(colors)}>
+                                        <Typography>{__('General Messages', 'mycred')}</Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ p: 3 }}>
                                         <MessageField
+                                            colors={colors}
                                             label={__('Join Card Title', 'mycred')}
                                             value={guestSettings.joinCardTitle || ''}
                                             onChange={(v) => handleGuestChange('joinCardTitle', v)}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('Join Card Description', 'mycred')}
                                             value={guestSettings.joinCardDescription || ''}
                                             onChange={(v) => handleGuestChange('joinCardDescription', v)}
@@ -207,43 +151,38 @@ export default function ContentSettings() {
                                 </Accordion>
 
                                 {/* Navigation Labels Accordion */}
-                                <Accordion sx={{ boxShadow: 'none', border: '1px solid #E0E0E0', borderRadius: '8px !important', mb: 2, '&:before': { display: 'none' } }}>
-                                    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#FAFAFA', borderRadius: '8px' }}>
-                                        <Typography sx={{ fontSize: '15px', fontWeight: 600 }}>{__('Navigation Labels', 'mycred')}</Typography>
+                                <Accordion sx={getAccordionSx(colors)}>
+                                    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={getAccordionSummarySx(colors)}>
+                                        <Typography>{__('Navigation Labels', 'mycred')}</Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ p: 3 }}>
                                         <MessageField
+                                            colors={colors}
                                             label={__('Earn Label', 'mycred')}
                                             value={guestSettings.earnLabel}
                                             onChange={(v) => handleGuestChange('earnLabel', v)}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('Redeem Label', 'mycred')}
                                             value={guestSettings.redeemLabel}
                                             onChange={(v) => handleGuestChange('redeemLabel', v)}
                                             disabled={!isPro}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('Board Label', 'mycred')}
                                             value={guestSettings.boardLabel}
                                             onChange={(v) => handleGuestChange('boardLabel', v)}
                                         />
                                         <MessageField
-                                            label={__('History Label', 'mycred')}
-                                            value={guestSettings.logsLabel}
-                                            onChange={(v) => handleGuestChange('logsLabel', v)}
-                                        />
-                                        <MessageField
-                                            label={__('Profile Label', 'mycred')}
-                                            value={guestSettings.profileLabel}
-                                            onChange={(v) => handleGuestChange('profileLabel', v)}
-                                        />
-                                        <MessageField
+                                            colors={colors}
                                             label={__('Ranks Label', 'mycred')}
                                             value={guestSettings.ranksLabel}
                                             onChange={(v) => handleGuestChange('ranksLabel', v)}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('Badges Label', 'mycred')}
                                             value={guestSettings.badgesLabel}
                                             onChange={(v) => handleGuestChange('badgesLabel', v)}
@@ -252,43 +191,38 @@ export default function ContentSettings() {
                                 </Accordion>
 
                                 {/* Tab Content Headings Accordion */}
-                                <Accordion sx={{ boxShadow: 'none', border: '1px solid #E0E0E0', borderRadius: '8px !important', mb: 2, '&:before': { display: 'none' } }}>
-                                    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#FAFAFA', borderRadius: '8px' }}>
-                                        <Typography sx={{ fontSize: '15px', fontWeight: 600 }}>{__('Tab Content Headings', 'mycred')}</Typography>
+                                <Accordion sx={getAccordionSx(colors)}>
+                                    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={getAccordionSummarySx(colors)}>
+                                        <Typography>{__('Tab Content Headings', 'mycred')}</Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ p: 3 }}>
                                         <MessageField
+                                            colors={colors}
                                             label={__('Earn Heading', 'mycred')}
                                             value={guestSettings.earnMessage}
                                             onChange={(v) => handleGuestChange('earnMessage', v)}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('Redeem Heading', 'mycred')}
                                             value={guestSettings.redeemMessage}
                                             onChange={(v) => handleGuestChange('redeemMessage', v)}
                                             disabled={!isPro}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('Board Heading', 'mycred')}
                                             value={guestSettings.boardMessage}
                                             onChange={(v) => handleGuestChange('boardMessage', v)}
                                         />
                                         <MessageField
-                                            label={__('History Heading', 'mycred')}
-                                            value={guestSettings.logsMessage}
-                                            onChange={(v) => handleGuestChange('logsMessage', v)}
-                                        />
-                                        <MessageField
-                                            label={__('Profile Heading', 'mycred')}
-                                            value={guestSettings.profileMessage}
-                                            onChange={(v) => handleGuestChange('profileMessage', v)}
-                                        />
-                                        <MessageField
+                                            colors={colors}
                                             label={__('Ranks Heading', 'mycred')}
                                             value={guestSettings.ranksMessage}
                                             onChange={(v) => handleGuestChange('ranksMessage', v)}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('Badges Heading', 'mycred')}
                                             value={guestSettings.badgesMessage}
                                             onChange={(v) => handleGuestChange('badgesMessage', v)}
@@ -297,13 +231,13 @@ export default function ContentSettings() {
                                 </Accordion>
 
                                 {/* Buttons & Redirects Accordion */}
-                                <Accordion sx={{ boxShadow: 'none', border: '1px solid #E0E0E0', borderRadius: '8px !important', mb: 2, '&:before': { display: 'none' } }}>
-                                    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#FAFAFA', borderRadius: '8px' }}>
-                                        <Typography sx={{ fontSize: '15px', fontWeight: 600 }}>{__('Buttons & Redirects', 'mycred')}</Typography>
+                                <Accordion sx={getAccordionSx(colors)}>
+                                    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={getAccordionSummarySx(colors)}>
+                                        <Typography>{__('Buttons & Redirects', 'mycred')}</Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ p: 3 }}>
                                         <Box sx={{ mb: 3 }}>
-                                            <Typography sx={{ fontSize: '14px', fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                                            <Typography sx={{ ...getFieldLabelSx(colors), mb: 1 }}>
                                                 {__('Join Now Redirect Page', 'mycred')}
                                             </Typography>
                                             <TextField
@@ -313,31 +247,12 @@ export default function ContentSettings() {
                                                 placeholder="https://..."
                                                 value={guestSettings.joinRedirect}
                                                 onChange={(e) => handleGuestChange('joinRedirect', e.target.value)}
-                                                sx={{
-                                                    minWidth: { xs: 220, sm: 240 },
-                                                    '& .MuiOutlinedInput-root': {
-                                                        height: 40,
-                                                        borderRadius: '10px',
-                                                        backgroundColor: '#fff !important',
-                                                        transition: 'all 0.2s ease-in-out',
-                                                        '& fieldset': { borderColor: '#E6E0F8 !important', borderWidth: '1px !important' },
-                                                        '&:hover fieldset': { borderColor: '#D9D0FF !important' },
-                                                        '&.Mui-focused fieldset': { borderColor: '#5E2CED !important', borderWidth: '1px !important' },
-                                                        '& .MuiOutlinedInput-input': {
-                                                            padding: '10px 12px',
-                                                            fontSize: '14px',
-                                                            boxShadow: 'none !important',
-                                                            outline: 'none !important',
-                                                            border: 'none !important',
-                                                            backgroundColor: 'transparent !important',
-                                                        }
-                                                    }
-                                                }}
+                                                sx={getTextFieldSx(colors, { minWidth: { xs: 220, sm: 240 } })}
                                             />
                                         </Box>
 
                                         <Box sx={{ mb: 3 }}>
-                                            <Typography sx={{ fontSize: '14px', fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                                            <Typography sx={{ ...getFieldLabelSx(colors), mb: 1 }}>
                                                 {__('Login Redirect Page', 'mycred')}
                                             </Typography>
                                             <TextField
@@ -347,36 +262,19 @@ export default function ContentSettings() {
                                                 placeholder="https://..."
                                                 value={guestSettings.loginRedirect}
                                                 onChange={(e) => handleGuestChange('loginRedirect', e.target.value)}
-                                                sx={{
-                                                    minWidth: { xs: 220, sm: 240 },
-                                                    '& .MuiOutlinedInput-root': {
-                                                        height: 40,
-                                                        borderRadius: '10px',
-                                                        backgroundColor: '#fff !important',
-                                                        transition: 'all 0.2s ease-in-out',
-                                                        '& fieldset': { borderColor: '#E6E0F8 !important', borderWidth: '1px !important' },
-                                                        '&:hover fieldset': { borderColor: '#D9D0FF !important' },
-                                                        '&.Mui-focused fieldset': { borderColor: '#5E2CED !important', borderWidth: '1px !important' },
-                                                        '& .MuiOutlinedInput-input': {
-                                                            padding: '10px 12px',
-                                                            fontSize: '14px',
-                                                            boxShadow: 'none !important',
-                                                            outline: 'none !important',
-                                                            border: 'none !important',
-                                                            backgroundColor: 'transparent !important',
-                                                        }
-                                                    }
-                                                }}
+                                                sx={getTextFieldSx(colors, { minWidth: { xs: 220, sm: 240 } })}
                                             />
                                         </Box>
 
                                         <Box sx={{ mt: 2 }}>
                                             <MessageField
+                                            colors={colors}
                                                 label={__('Join Now Button Text', 'mycred')}
                                                 value={guestSettings.joinButtonText}
                                                 onChange={(v) => handleGuestChange('joinButtonText', v)}
                                             />
                                             <MessageField
+                                            colors={colors}
                                                 label={__('Sign In Link Text', 'mycred')}
                                                 value={guestSettings.loginButtonText}
                                                 onChange={(v) => handleGuestChange('loginButtonText', v)}
@@ -389,47 +287,54 @@ export default function ContentSettings() {
 
                         {/* Member Settings */}
                         {activeTab === 1 && (
-                            <Box>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
 
 
                                 {/* Navigation Labels Accordion */}
-                                <Accordion sx={{ boxShadow: 'none', border: '1px solid #E0E0E0', borderRadius: '8px !important', mb: 2, '&:before': { display: 'none' } }}>
-                                    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#FAFAFA', borderRadius: '8px' }}>
-                                        <Typography sx={{ fontSize: '15px', fontWeight: 600 }}>{__('Navigation Labels', 'mycred')}</Typography>
+                                <Accordion sx={getAccordionSx(colors)}>
+                                    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={getAccordionSummarySx(colors)}>
+                                        <Typography>{__('Navigation Labels', 'mycred')}</Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ p: 3 }}>
                                         <MessageField
+                                            colors={colors}
                                             label={__('Earn Label', 'mycred')}
                                             value={memberSettings.earnLabel}
                                             onChange={(v) => handleMemberChange('earnLabel', v)}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('Redeem Label', 'mycred')}
                                             value={memberSettings.redeemLabel}
                                             onChange={(v) => handleMemberChange('redeemLabel', v)}
                                             disabled={!isPro}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('Board Label', 'mycred')}
                                             value={memberSettings.boardLabel}
                                             onChange={(v) => handleMemberChange('boardLabel', v)}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('History Label', 'mycred')}
                                             value={memberSettings.logsLabel}
                                             onChange={(v) => handleMemberChange('logsLabel', v)}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('Profile Label', 'mycred')}
                                             value={memberSettings.profileLabel}
                                             onChange={(v) => handleMemberChange('profileLabel', v)}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('Ranks Label', 'mycred')}
                                             value={memberSettings.ranksLabel}
                                             onChange={(v) => handleMemberChange('ranksLabel', v)}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('Badges Label', 'mycred')}
                                             value={memberSettings.badgesLabel}
                                             onChange={(v) => handleMemberChange('badgesLabel', v)}
@@ -438,43 +343,50 @@ export default function ContentSettings() {
                                 </Accordion>
 
                                 {/* Tab Headings Accordion */}
-                                <Accordion sx={{ boxShadow: 'none', border: '1px solid #E0E0E0', borderRadius: '8px !important', mb: 2, '&:before': { display: 'none' } }}>
-                                    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#FAFAFA', borderRadius: '8px' }}>
-                                        <Typography sx={{ fontSize: '15px', fontWeight: 600 }}>{__('Tab Headings', 'mycred')}</Typography>
+                                <Accordion sx={getAccordionSx(colors)}>
+                                    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={getAccordionSummarySx(colors)}>
+                                        <Typography>{__('Tab Headings', 'mycred')}</Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ p: 3 }}>
                                         <MessageField
+                                            colors={colors}
                                             label={__('Earn Heading', 'mycred')}
                                             value={memberSettings.earnMessage}
                                             onChange={(v) => handleMemberChange('earnMessage', v)}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('Redeem Heading', 'mycred')}
                                             value={memberSettings.redeemMessage}
                                             onChange={(v) => handleMemberChange('redeemMessage', v)}
                                             disabled={!isPro}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('Board Heading', 'mycred')}
                                             value={memberSettings.boardMessage}
                                             onChange={(v) => handleMemberChange('boardMessage', v)}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('Logs Heading', 'mycred')}
                                             value={memberSettings.logsMessage}
                                             onChange={(v) => handleMemberChange('logsMessage', v)}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('Profile Heading', 'mycred')}
                                             value={memberSettings.profileMessage}
                                             onChange={(v) => handleMemberChange('profileMessage', v)}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('Ranks Heading', 'mycred')}
                                             value={memberSettings.ranksMessage}
                                             onChange={(v) => handleMemberChange('ranksMessage', v)}
                                         />
                                         <MessageField
+                                            colors={colors}
                                             label={__('Badges Heading', 'mycred')}
                                             value={memberSettings.badgesMessage}
                                             onChange={(v) => handleMemberChange('badgesMessage', v)}
@@ -486,37 +398,12 @@ export default function ContentSettings() {
                             </Box>
                         )}
 
-                        {/* Save Button */}
-                        <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid #E0E0E0' }}>
-                            <Button
-                                variant="contained"
-                                startIcon={<SaveIcon />}
-                                onClick={handleSave}
-                                disabled={loading}
-                                sx={{
-                                    bgcolor: '#5E2CED',
-                                    color: '#fff',
-                                    textTransform: 'none',
-                                    px: 4,
-                                    py: 1.25,
-                                    fontSize: '14px',
-                                    fontWeight: 600,
-                                    borderRadius: '8px',
-                                    '&:hover': {
-                                        bgcolor: '#4E1CDD',
-                                    }
-                                }}
-                            >
-                                {loading ? __('Saving...', 'mycred') : __('Save Settings', 'mycred')}
-                            </Button>
-                        </Box>
-                    </Paper>
+                    </SettingsCard>
                 </Box>
 
-                {/* Right Column: Live Preview - 45% Width */}
-                <Box sx={{ flex: { xs: '1 1 100%', lg: '0 0 50%' }, maxWidth: { xs: '100%', lg: '45%' } }}>
-                    <Box sx={{ position: 'sticky', top: 24 }}>
-                        <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0', minHeight: 600 }}>
+                <Box>
+                    <Box sx={getPreviewPanelSx(colors)}>
+                        <SettingsCard sx={{ minHeight: 600 }}>
                             <SectionHeader
                                 icon={AutoAwesomeIcon}
                                 title={__('Live Preview', 'mycred')}
@@ -528,7 +415,7 @@ export default function ContentSettings() {
                                     guestMode={activeTab === 0}
                                 />
                             </Box>
-                        </Paper>
+                        </SettingsCard>
                     </Box>
                 </Box>
             </Box>

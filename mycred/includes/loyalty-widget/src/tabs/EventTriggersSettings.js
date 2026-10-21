@@ -18,38 +18,37 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { saveSectionSettings } from '../services/api';
 import { toast } from 'react-hot-toast';
 import ToggleSwitch from '../components/admin/ToggleSwitch';
-
-const SectionHeader = ({ icon: Icon, title, desc }) => (
-    <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-            <Icon sx={{ color: '#5E2CED', fontSize: 20 }} />
-            <Typography sx={{ fontSize: '18px', fontWeight: 600, color: '#1a1a1a' }}>{title}</Typography>
-        </Box>
-        {desc && <Typography sx={{ fontSize: '14px', color: '#666' }}>{desc}</Typography>}
-    </Box>
-);
+import SectionHeader from '../components/admin/SectionHeader';
+import SettingsCard from '../components/admin/SettingsCard';
+import { useRegisterSaveActions } from '../context/SaveActionsContext';
+import { useAdminTheme } from '../../../../src/shared/adminTheme/AdminThemeProvider';
+import { getTabContentSx, getFormStackSx } from '../components/admin/formStyles';
 
 const HookItem = ({ title, description, checked, onChange, displayLabel, onLabelChange, pointTypeLabel, isPro }) => {
+    const { colors } = useAdminTheme();
 
     return (
         <Box sx={{
-            border: '1px solid #E0E0E0',
+            border: `1px solid ${colors.border}`,
             borderRadius: '8px',
             p: 2,
             mb: 2,
-            bgcolor: checked ? '#F8F6FF' : '#fff'
+            bgcolor: checked ? colors.sidebarActive : colors.paper,
+            width: '100%',
+            maxWidth: '100%',
+            boxSizing: 'border-box',
         }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Box sx={{ flex: 1 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                        <Typography sx={{ fontWeight: 600, fontSize: '15px', color: '#1a1a1a' }}>
+                        <Typography sx={{ fontWeight: 600, fontSize: '15px', color: colors.textPrimary }}>
                             {title}
                         </Typography>
                         <Typography
                             sx={{
                                 fontSize: '12px',
-                                color: '#5E2CED',
-                                bgcolor: '#F0EBFF',
+                                color: colors.primary,
+                                bgcolor: colors.primaryLight,
                                 px: 1,
                                 py: 0.25,
                                 borderRadius: '4px',
@@ -59,27 +58,36 @@ const HookItem = ({ title, description, checked, onChange, displayLabel, onLabel
                             {pointTypeLabel || __('Points', 'mycred')}
                         </Typography>
                     </Box>
-                    <Typography sx={{ fontSize: '13px', color: '#666', mb: 2 }}>
-                        {description}
-                    </Typography>
+                    <Typography
+                        component="div"
+                        sx={{
+                            fontSize: '13px',
+                            color: colors.textSecondary,
+                            mb: 2,
+                            overflowWrap: 'anywhere',
+                            wordBreak: 'break-word',
+                            '& a': { color: colors.primary },
+                        }}
+                        dangerouslySetInnerHTML={{ __html: description || '' }}
+                    />
 
                     {checked && (
                         <Box sx={{ mt: 2, pl: 0, opacity: !isPro ? 0.7 : 1 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                <Typography sx={{ fontSize: '12px', fontWeight: 700, color: '#1a1a1a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                <Typography sx={{ fontSize: '12px', fontWeight: 700, color: colors.textPrimary, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                     {__('Display Label in Widget', 'mycred')}
                                 </Typography>
                                 {!isPro && (
                                     <Box sx={{
-                                        bgcolor: '#F5F3FF',
-                                        color: '#5E2CED',
+                                        bgcolor: colors.primaryLight,
+                                        color: colors.primary,
                                         fontSize: '10px',
                                         fontWeight: 700,
                                         px: 1,
                                         py: 0.25,
                                         borderRadius: '4px',
                                         textTransform: 'uppercase',
-                                        border: '1px solid #DDD6FE'
+                                        border: `1px solid ${colors.borderInput}`
                                     }}>
                                         {__('Pro', 'mycred')}
                                     </Box>
@@ -91,8 +99,8 @@ const HookItem = ({ title, description, checked, onChange, displayLabel, onLabel
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: 1.5,
-                                    bgcolor: !isPro ? '#f9f9f9' : '#fff',
-                                    border: '1px solid #E0E0E0',
+                                    bgcolor: !isPro ? colors.paperMuted : colors.paper,
+                                    border: `1px solid ${colors.borderInput}`,
                                     borderRadius: '8px',
                                     px: 2,
                                     py: 1,
@@ -114,7 +122,7 @@ const HookItem = ({ title, description, checked, onChange, displayLabel, onLabel
                                             fontFamily: 'inherit',
                                             bgcolor: 'transparent',
                                             cursor: !isPro ? 'not-allowed' : 'text',
-                                            '&::placeholder': { color: '#ccc' }
+                                            '&::placeholder': { color: colors.textMuted }
                                         }}
                                     />
                                 </Box>
@@ -122,7 +130,9 @@ const HookItem = ({ title, description, checked, onChange, displayLabel, onLabel
                         </Box>
                     )}
                 </Box>
-                <ToggleSwitch checked={checked} onChange={onChange} />
+                <Box sx={{ flexShrink: 0 }}>
+                    <ToggleSwitch checked={checked} onChange={onChange} />
+                </Box>
             </Box>
         </Box>
     );
@@ -130,6 +140,7 @@ const HookItem = ({ title, description, checked, onChange, displayLabel, onLabel
 
 
 export default function EventTriggersSettings() {
+    const { colors } = useAdminTheme();
     const isPro = window.mycredLoyaltyWidgetData?.is_toolkit_pro_active || false;
     const initialTriggers = window.mycredLoyaltyWidgetData?.settings?.eventtriggers || {};
     const activeHooksData = window.mycredLoyaltyWidgetData?.active_hooks || [];
@@ -246,43 +257,57 @@ export default function EventTriggersSettings() {
         }
     };
 
+    useRegisterSaveActions({
+        onSave: handleSave,
+        loading,
+        label: __('Update Settings', 'mycred'),
+    });
+
     return (
-        <Box sx={{ p: 4 }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={getTabContentSx()}>
+            <Box sx={getFormStackSx()}>
                 {/* myCred Hooks */}
                 <Accordion
                     defaultExpanded
                     sx={{
-                        borderRadius: '12px !important',
+                        width: '100%',
+                        borderRadius: '8px !important',
                         boxShadow: 'none',
-                        border: '1px solid #E0E0E0',
-                        '&:before': { display: 'none' }
+                        border: `1px solid ${colors.border}`,
+                        bgcolor: colors.paper,
+                        '&:before': { display: 'none' },
+                        '&.Mui-expanded': { margin: 0 },
                     }}
                 >
                     <AccordionSummary
                         expandIcon={<ExpandMoreIcon />}
-                        sx={{ px: 3, py: 1 }}
+                        sx={{
+                            px: '24px',
+                            py: 2,
+                            minHeight: 72,
+                            '& .MuiAccordionSummary-content': { my: 1.5 },
+                        }}
                     >
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                            <FlashOnIcon sx={{ color: '#5E2CED', fontSize: 20 }} />
+                            <FlashOnIcon sx={{ color: colors.primary, fontSize: 20 }} />
                             <Box>
-                                <Typography sx={{ fontSize: '18px', fontWeight: 600, color: '#1a1a1a' }}>
+                                <Typography sx={{ fontSize: '18px', fontWeight: 600, color: colors.textPrimary }}>
                                     {__('myCred Hooks', 'mycred')}
                                 </Typography>
-                                <Typography sx={{ fontSize: '13px', color: '#666' }}>
+                                <Typography sx={{ fontSize: '13px', color: colors.textSecondary }}>
                                     {__('Enable automatic point rewards based on user actions.', 'mycred')}
                                 </Typography>
                             </Box>
                         </Box>
                     </AccordionSummary>
-                    <AccordionDetails sx={{ px: 3, pb: 3, pt: 0 }}>
-                        <Box sx={{ mb: 3, pb: 3, borderBottom: '1px solid #E0E0E0' }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <AccordionDetails sx={{ px: 3, pb: 3, pt: 2.5 }}>
+                        <Box sx={{ mb: 3, pb: 3, borderBottom: `1px solid ${colors.border}` }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
                                 <Box>
-                                    <Typography sx={{ fontWeight: 600, fontSize: '15px', color: '#1a1a1a' }}>
+                                    <Typography sx={{ fontWeight: 600, fontSize: '15px', color: colors.textPrimary }}>
                                         {__('Show Triggers in widget', 'mycred')}
                                     </Typography>
-                                    <Typography sx={{ fontSize: '13px', color: '#666', mt: 0.5 }}>
+                                    <Typography sx={{ fontSize: '13px', color: colors.textSecondary, mt: 1 }}>
                                         {__('Select which myCred Hooks to display in the loyalty widget', 'mycred')}
                                     </Typography>
                                 </Box>
@@ -301,16 +326,16 @@ export default function EventTriggersSettings() {
                                         onChange={(e, val) => setSelectedPointType(val)}
                                         sx={{
                                             mb: 3,
-                                            borderBottom: '1px solid #E0E0E0',
-                                            '& .MuiTabs-indicator': { backgroundColor: '#5E2CED' },
+                                            borderBottom: `1px solid ${colors.border}`,
+                                            '& .MuiTabs-indicator': { backgroundColor: colors.primary },
                                             '& .MuiTab-root': {
                                                 textTransform: 'none',
                                                 fontWeight: 600,
                                                 fontSize: '14px',
-                                                color: '#666',
+                                                color: colors.textSecondary,
                                                 minWidth: 'auto',
                                                 px: 3,
-                                                '&.Mui-selected': { color: '#5E2CED' }
+                                                '&.Mui-selected': { color: colors.primary }
                                             }
                                         }}
                                     >
@@ -327,7 +352,7 @@ export default function EventTriggersSettings() {
                                     .filter(([cat, hooks]) => hooks.filter(h => selectedPointType === 'all' || h.point_type === selectedPointType).length > 0)
                                     .map(([cat, hooks, catLabel]) => (
                                         <Box key={cat} sx={{ mb: 4 }}>
-                                            <Typography sx={{ fontSize: '15px', fontWeight: 600, color: '#5E2CED', mb: 2 }}>
+                                            <Typography sx={{ fontSize: '15px', fontWeight: 600, color: colors.primary, mb: 2 }}>
                                                 {catLabel}
                                             </Typography>
                                             {hooks
@@ -352,30 +377,6 @@ export default function EventTriggersSettings() {
                     </AccordionDetails>
                 </Accordion>
 
-                {/* Save Button */}
-                <Box sx={{ mt: 3 }}>
-                    <Button
-                        variant="contained"
-                        startIcon={<SaveIcon />}
-                        onClick={handleSave}
-                        disabled={loading}
-                        sx={{
-                            bgcolor: '#5E2CED',
-                            color: '#fff',
-                            textTransform: 'none',
-                            px: 4,
-                            py: 1.25,
-                            fontSize: '14px',
-                            fontWeight: 600,
-                            borderRadius: '8px',
-                            '&:hover': {
-                                bgcolor: '#4E1CDD',
-                            }
-                        }}
-                    >
-                        {loading ? __('Saving...', 'mycred') : __('Save Settings', 'mycred')}
-                    </Button>
-                </Box>
             </Box>
         </Box>
     );

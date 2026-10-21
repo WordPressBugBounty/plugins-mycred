@@ -137,6 +137,8 @@ if ( ! class_exists( 'myCRED_Banking_Service_Schedule_Deposit' ) ) :
             $settings = mycred_get_banking_addon_settings( NULL, $this->core->cred_id );
 
             if ( ! empty( $settings['active'] ) && in_array( 'schedule_deposit', $settings['active'] ) ) {
+                // Removed to show settings even when disabled
+            }
 ?>
                 <div class="row">
                     <div class="col-xs-12">
@@ -188,7 +190,6 @@ if ( ! class_exists( 'myCRED_Banking_Service_Schedule_Deposit' ) ) :
                     </div>
                 </div>
                 <?php
-            }
 
         }
 

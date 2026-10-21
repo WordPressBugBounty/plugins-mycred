@@ -27,6 +27,8 @@ import {
     fixtureTiers,
 } from './fixtureData';
 import { usePreviewSettings } from '../../context/PreviewSettingsContext';
+import { useAdminTheme } from '../../../../../src/shared/adminTheme/AdminThemeProvider';
+import { getPreviewFrameSx, getPreviewTitleBarSx, getSecondaryTextSx } from '../admin/formStyles';
 
 const SCREEN_OPTIONS = [
     { value: 'home', label: __('Home', 'mycred') },
@@ -40,6 +42,7 @@ const SCREEN_OPTIONS = [
 ];
 
 export default function WidgetPreviewPanel({ guestMode: externalGuestMode, onGuestModeChange }) {
+    const { colors } = useAdminTheme();
     const { settings } = usePreviewSettings();
     const { design, content, tabs, general, faq } = settings;
 
@@ -164,20 +167,12 @@ export default function WidgetPreviewPanel({ guestMode: externalGuestMode, onGue
 
     return (
         <Box ref={containerRef}>
-            <Box sx={{
-                bgcolor: '#E8E8E8',
-                borderRadius: '12px',
-                border: '1px solid #D0D0D0',
-                minHeight: 820 * scale,
-                position: 'relative',
-                overflow: 'hidden',
-                backgroundImage: 'linear-gradient(180deg, #f0f0f0 0%, #e4e4e4 100%)',
-            }}>
-                <Box sx={{ height: 28, bgcolor: '#D8D8D8', borderBottom: '1px solid #ccc', display: 'flex', alignItems: 'center', px: 1.5, gap: 0.75 }}>
+            <Box sx={getPreviewFrameSx(colors, scale)}>
+                <Box sx={getPreviewTitleBarSx(colors)}>
                     {['#ff5f57', '#febc2e', '#28c840'].map((c) => (
                         <Box key={c} sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: c }} />
                     ))}
-                    <Typography sx={{ fontSize: '10px', color: '#888', ml: 1 }}>{__('Store preview', 'mycred')}</Typography>
+                    <Typography sx={{ fontSize: '10px', color: colors.textMuted, ml: 1 }}>{__('Store preview', 'mycred')}</Typography>
                 </Box>
 
                 <Box sx={{
@@ -198,7 +193,7 @@ export default function WidgetPreviewPanel({ guestMode: externalGuestMode, onGue
                 </Box>
             </Box>
 
-            <Typography sx={{ fontSize: '12px', color: '#888', mt: 1.5, textAlign: 'center' }}>
+            <Typography sx={{ ...getSecondaryTextSx(colors), fontSize: '12px', mt: 1.5, textAlign: 'center' }}>
                 {__('Preview uses sample data. Save settings to apply on your site.', 'mycred')}
             </Typography>
         </Box>

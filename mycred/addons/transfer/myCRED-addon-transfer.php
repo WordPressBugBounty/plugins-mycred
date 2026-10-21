@@ -521,11 +521,6 @@ if ( ! class_exists( 'myCRED_Transfer_Module' ) ) :
 	</div>
 </div>
 <?php
-			if ( function_exists( 'mycred_render_plus_addon_upsell_accordions' ) ) {
-				mycred_render_plus_addon_upsell_accordions( 'transfer' );
-			}
-?>
-<?php
 
 		}
 
@@ -535,6 +530,14 @@ if ( ! class_exists( 'myCRED_Transfer_Module' ) ) :
 		 * @version 1.4
 		 */
 		public function sanitize_extra_settings( $new_data, $data, $general ) {
+
+			if ( ! isset( $data['transfers'] ) || ! is_array( $data['transfers'] ) ) {
+				$existing = mycred_get_option( 'mycred_pref_core', array() );
+				if ( is_array( $existing ) && isset( $existing['transfers'] ) && is_array( $existing['transfers'] ) ) {
+					$new_data['transfers'] = $existing['transfers'];
+				}
+				return $new_data;
+			}
 
 			$new_data['transfers']['types']                = $data['transfers']['types'];
 			$new_data['transfers']['reload']               = isset($data['transfers']['reload']) ? absint( $data['transfers']['reload'] ) : '';

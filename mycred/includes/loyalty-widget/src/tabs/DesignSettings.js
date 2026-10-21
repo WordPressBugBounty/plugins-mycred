@@ -23,30 +23,21 @@ import { usePreviewSettings } from '../context/PreviewSettingsContext';
 import { saveSectionSettings } from '../services/api';
 import { toast } from 'react-hot-toast';
 import ToggleSwitch from '../components/admin/ToggleSwitch';
+import SectionHeader from '../components/admin/SectionHeader';
+import SettingsCard from '../components/admin/SettingsCard';
+import { useRegisterSaveActions } from '../context/SaveActionsContext';
+import { useAdminTheme } from '../../../../src/shared/adminTheme/AdminThemeProvider';
+import { getTabContentSx, getSplitLayoutSx, getColorInputSx, getTemplateCardSx, getPreviewPanelSx, getFieldLabelSx, getSecondaryTextSx, getTextFieldSx, getSelectSx, getFileUploadRowSx, getFileUploadButtonSx, getImagePreviewBoxSx, getWarningBannerSx, getDisabledInputTextSx } from '../components/admin/formStyles';
 import { TEMPLATE_OPTIONS, getTemplatePreset, normalizeLayoutTemplate } from '../components/preview/templatePresets';
 import ViewQuiltIcon from '@mui/icons-material/ViewQuilt';
 
 const ColorInput = ({ label, value, onChange }) => {
+    const { colors } = useAdminTheme();
     const [isFocused, setIsFocused] = useState(false);
     return (
         <Box sx={{ mb: 2.5 }}>
-            <Typography sx={{ fontSize: '14px', fontWeight: 600, mb: 1, color: '#1a1a1a' }}>{label}</Typography>
-            <Box
-                sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0,
-                    border: isFocused ? '1px solid #5E2CED !important' : '1px solid #E6E0F8 !important',
-                    borderRadius: '10px',
-                    overflow: 'hidden',
-                    height: 44,
-                    transition: 'all 0.2s ease-in-out',
-                    backgroundColor: '#fff !important',
-                    '&:hover': {
-                        borderColor: isFocused ? '#5E2CED !important' : '#D9D0FF !important',
-                    }
-                }}
-            >
+            <Typography sx={{ fontSize: '14px', fontWeight: 600, mb: 1, color: colors.textPrimary }}>{label}</Typography>
+            <Box sx={getColorInputSx(colors, isFocused)}>
                 <Box
                     sx={{
                         width: 44,
@@ -55,7 +46,7 @@ const ColorInput = ({ label, value, onChange }) => {
                         flexShrink: 0,
                         position: 'relative',
                         cursor: 'pointer',
-                        borderRight: '1px solid #E6E0F8',
+                        borderRight: `1px solid ${colors.borderInput}`,
                         '& input[type="color"]': {
                             position: 'absolute',
                             top: -10,
@@ -97,6 +88,8 @@ const ColorInput = ({ label, value, onChange }) => {
                             height: '100%',
                             boxSizing: 'border-box',
                             py: 0,
+                            color: `${colors.textPrimary} !important`,
+                            WebkitTextFillColor: `${colors.textPrimary} !important`,
                             boxShadow: 'none !important',
                             outline: 'none !important',
                             border: 'none !important',
@@ -109,16 +102,6 @@ const ColorInput = ({ label, value, onChange }) => {
     );
 };
 
-const SectionHeader = ({ icon: Icon, title, desc }) => (
-    <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-            <Icon sx={{ color: '#5E2CED', fontSize: 20 }} />
-            <Typography sx={{ fontSize: '18px', fontWeight: 600, color: '#1a1a1a' }}>{title}</Typography>
-        </Box>
-        <Typography sx={{ fontSize: '14px', color: '#666' }}>{desc}</Typography>
-    </Box>
-);
-
 const getDefaultDesignSettings = () => ({
     showLogo: true,
     backgroundColor: '#000000',
@@ -127,7 +110,7 @@ const getDefaultDesignSettings = () => ({
     buttonTextColor: '#FFFFFF',
     showBranding: true,
     logoUrl: window.mycredLoyaltyWidgetData?.assets_url ? window.mycredLoyaltyWidgetData.assets_url + 'widget-logo.png' : '',
-    logoText: __('Reward Program', 'mycred'),
+    logoText: 'Reward Program',
     launcherRadius: 45,
     launcherAnimation: 'fade',
     layoutTemplate: 'luxury',
@@ -135,13 +118,14 @@ const getDefaultDesignSettings = () => ({
     headerImageUrl: window.mycredLoyaltyWidgetData?.assets_url ? window.mycredLoyaltyWidgetData.assets_url + 'mycred_widget_header.png' : '',
     headerOverlayOpacity: 0,
     headerSubtitle: __('Welcome to', 'mycred'),
-    programTitle: __('Rewards Hub', 'mycred'),
+    programTitle: 'Rewards Hub',
     borderRadius: 8,
     navLayout: 'list',
     heroImageUrl: window.mycredLoyaltyWidgetData?.assets_url ? window.mycredLoyaltyWidgetData.assets_url + 'default-logo1.svg' : '',
 });
 
 const DesignSettings = () => {
+    const { colors } = useAdminTheme();
     const isPro = window.mycredLoyaltyWidgetData?.is_toolkit_pro_active || false;
     const { design: settings, setDesign, updateDesign } = usePreviewSettings();
 
@@ -289,14 +273,21 @@ const DesignSettings = () => {
         }
     };
 
+    useRegisterSaveActions({
+        onSave: handleSave,
+        onReset: handleResetToDefaults,
+        loading,
+        label: __('Update Settings', 'mycred'),
+        resetLabel: __('Reset to Default', 'mycred'),
+    });
+
     return (
-        <Box sx={{ p: 4 }}>
-            <Box sx={{ display: 'flex', gap: 4, flexWrap: { xs: 'wrap', lg: 'nowrap' }, alignItems: 'flex-start' }}>
-                {/* Left Column: Settings - 50% Width */}
-                <Box sx={{ flex: '1', minWidth: { xs: '100%', lg: '0' }, maxWidth: { xs: '100%', lg: '500px' } }}>
+        <Box sx={getTabContentSx({ fullWidth: true })}>
+            <Box sx={getSplitLayoutSx()}>
+                <Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                         {/* Template picker */}
-                        <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+                        <SettingsCard>
                             <SectionHeader
                                 icon={ViewQuiltIcon}
                                 title={__('Templates', 'mycred')}
@@ -311,30 +302,24 @@ const DesignSettings = () => {
                                             onClick={() => handleSelectTemplate(opt.id)}
                                             sx={{
                                                 p: 2,
-                                                borderRadius: '12px',
-                                                border: selected ? '2px solid #5E2CED' : '1px solid #E0E0E0',
-                                                bgcolor: selected ? 'rgba(94,44,237,0.04)' : '#fff',
-                                                cursor: 'pointer',
-                                                transition: 'border-color 0.15s ease, background 0.15s ease',
-                                                '&:hover': {
-                                                    borderColor: selected ? '#5E2CED' : '#D9D0FF',
-                                                },
+                                                ...getTemplateCardSx(colors, selected),
+                                                bgcolor: selected ? colors.sidebarActive : colors.paper,
                                             }}
                                         >
-                                            <Typography sx={{ fontSize: 15, fontWeight: 700, color: '#1a1a1a', mb: 0.5 }}>
+                                            <Typography sx={{ fontSize: 15, fontWeight: 700, color: colors.textPrimary, mb: 0.5 }}>
                                                 {__(opt.label, 'mycred')}
                                             </Typography>
-                                            <Typography sx={{ fontSize: 12, color: '#666', lineHeight: 1.4 }}>
+                                            <Typography sx={{ fontSize: 12, color: colors.textSecondary, lineHeight: 1.4 }}>
                                                 {__(opt.description, 'mycred')}
                                             </Typography>
                                         </Box>
                                     );
                                 })}
                             </Box>
-                        </Paper>
+                        </SettingsCard>
 
                         {/* Logo Settings */}
-                        <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+                        <SettingsCard>
                             <SectionHeader
                                 icon={AutoAwesomeIcon}
                                 title={__('Logo Settings', 'mycred')}
@@ -343,7 +328,7 @@ const DesignSettings = () => {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                                 <Box>
                                     <Typography sx={{ fontWeight: 600, fontSize: '15px' }}>{__('Show Logo', 'mycred')}</Typography>
-                                    <Typography sx={{ fontSize: '13px', color: '#666' }}>{__('Display logo in the widget', 'mycred')}</Typography>
+                                    <Typography sx={{ fontSize: '13px', color: colors.textSecondary }}>{__('Display logo in the widget', 'mycred')}</Typography>
                                 </Box>
                                 <ToggleSwitch checked={settings.showLogo} onChange={(e) => handleChange('showLogo', e.target.checked)} />
                             </Box>
@@ -351,31 +336,11 @@ const DesignSettings = () => {
                             {settings.showLogo && (
                                 <Box sx={{ mb: 3 }}>
                                     <Typography sx={{ fontWeight: 600, fontSize: '15px', mb: 1.5 }}>{__('Upload Logo', 'mycred')}</Typography>
-                                    <Box
-                                        sx={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            border: '1px solid #E0E0E0',
-                                            borderRadius: '8px',
-                                            overflow: 'hidden',
-                                            height: 44
-                                        }}
-                                    >
+                                    <Box sx={getFileUploadRowSx(colors)}>
                                         <Button
                                             onClick={handleUploadLogo}
                                             size="small"
-                                            sx={{
-                                                textTransform: 'none',
-                                                color: '#1a1a1a',
-                                                fontWeight: 600,
-                                                px: 2,
-                                                height: '100%',
-                                                bgcolor: '#f5f5f5',
-                                                borderRadius: 0,
-                                                borderRight: '1px solid #E0E0E0',
-                                                flexShrink: 0,
-                                                '&:hover': { bgcolor: '#ececec' }
-                                            }}>
+                                            sx={getFileUploadButtonSx(colors)}>
                                             {__('Choose file', 'mycred')}
                                         </Button>
                                         <TextField
@@ -385,22 +350,20 @@ const DesignSettings = () => {
                                             size="small"
                                             value={settings.logoUrl || ''}
                                             sx={{
+                                                ...getDisabledInputTextSx(colors),
                                                 '& .MuiOutlinedInput-root': {
                                                     height: 44,
+                                                    backgroundColor: `${colors.paper} !important`,
                                                     '& fieldset': { border: 'none' },
-                                                    '&.Mui-disabled fieldset': { border: 'none' }
+                                                    '&.Mui-disabled fieldset': { border: 'none' },
                                                 },
-                                                '& .MuiInputBase-input.Mui-disabled': {
-                                                    WebkitTextFillColor: '#666',
-                                                    fontSize: '14px'
-                                                }
                                             }}
                                         />
                                     </Box>
                                     <Button
                                         onClick={handleRemoveLogo}
                                         size="small"
-                                        sx={{ mt: 2, textTransform: 'none', color: '#666', border: '1px solid #E0E0E0', borderRadius: '4px' }}>
+                                        sx={{ mt: 2, textTransform: 'none', color: colors.textSecondary, border: `1px solid ${colors.border}`, borderRadius: '4px' }}>
                                         {__('Restore Default', 'mycred')}
                                     </Button>
                                 </Box>
@@ -413,22 +376,16 @@ const DesignSettings = () => {
                                         value={settings.logoText}
                                         onChange={(e) => handleChange('logoText', e.target.value)}
                                         placeholder={__('Enter widget name...', 'mycred')}
-                                        sx={{
-                                            '& .MuiOutlinedInput-root': {
-                                                borderRadius: '8px',
-                                                height: '40px',
-                                                '&.Mui-focused fieldset': { borderColor: '#5E2CED' }
-                                            }
-                                        }}
+                                        sx={getTextFieldSx(colors, { borderRadius: '8px' })}
                                     />
-                                    <Typography sx={{ fontSize: '13px', color: '#666', mt: 1 }}>
+                                    <Typography sx={{ ...getSecondaryTextSx(colors), mt: 1 }}>
                                         {__('This name will appear in the widget launcher alongside your logo.', 'mycred')}
                                     </Typography>
                                 </Box>
-                        </Paper>
+                        </SettingsCard>
 
                         {/* Hero card brand image */}
-                        <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+                        <SettingsCard>
                             <SectionHeader
                                 icon={BrandingWatermarkIcon}
                                 title={__('Hero Card Brand Image', 'mycred')}
@@ -439,13 +396,13 @@ const DesignSettings = () => {
                                     {__('Upload Image / GIF', 'mycred')}
                                 </Button>
                                 {settings.heroImageUrl && (
-                                    <Button onClick={handleRemoveHeroImage} size="small" sx={{ textTransform: 'none', color: '#666' }}>
+                                    <Button onClick={handleRemoveHeroImage} size="small" sx={{ textTransform: 'none', color: colors.textSecondary }}>
                                         {__('Remove', 'mycred')}
                                     </Button>
                                 )}
                             </Box>
                             {settings.heroImageUrl && (
-                                <Box sx={{ mt: 2, p: 2, bgcolor: '#FAFAFA', borderRadius: '8px', border: '1px solid #E0E0E0', textAlign: 'center' }}>
+                                <Box sx={getImagePreviewBoxSx(colors)}>
                                     <Box
                                         component="img"
                                         src={settings.heroImageUrl}
@@ -454,10 +411,10 @@ const DesignSettings = () => {
                                     />
                                 </Box>
                             )}
-                        </Paper>
+                        </SettingsCard>
 
                         {/* Layout Settings */}
-                        <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+                        <SettingsCard>
                             <SectionHeader
                                 icon={AutoAwesomeIcon}
                                 title={__('Layout Settings', 'mycred')}
@@ -466,35 +423,23 @@ const DesignSettings = () => {
 
                             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 2 }}>
                                 <Box>
-                                    <Typography sx={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a', mb: 1 }}>{__('Header Subtitle', 'mycred')}</Typography>
+                                    <Typography sx={{ ...getFieldLabelSx(colors), mb: 1 }}>{__('Header Subtitle', 'mycred')}</Typography>
                                     <TextField
                                         fullWidth
                                         size="small"
                                         value={settings.headerSubtitle || ''}
                                         onChange={(e) => handleChange('headerSubtitle', e.target.value)}
-                                        sx={{
-                                            '& .MuiOutlinedInput-root': {
-                                                borderRadius: '8px',
-                                                height: '40px',
-                                                '&.Mui-focused fieldset': { borderColor: '#5E2CED' }
-                                            }
-                                        }}
+                                        sx={getTextFieldSx(colors, { borderRadius: '8px' })}
                                     />
                                 </Box>
                                 <Box>
-                                    <Typography sx={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a', mb: 1 }}>{__('Program Title', 'mycred')}</Typography>
+                                    <Typography sx={{ ...getFieldLabelSx(colors), mb: 1 }}>{__('Program Title', 'mycred')}</Typography>
                                     <TextField
                                         fullWidth
                                         size="small"
                                         value={settings.programTitle || ''}
                                         onChange={(e) => handleChange('programTitle', e.target.value)}
-                                        sx={{
-                                            '& .MuiOutlinedInput-root': {
-                                                borderRadius: '8px',
-                                                height: '40px',
-                                                '&.Mui-focused fieldset': { borderColor: '#5E2CED' }
-                                            }
-                                        }}
+                                        sx={getTextFieldSx(colors, { borderRadius: '8px' })}
                                     />
                                 </Box>
                             </Box>
@@ -506,7 +451,7 @@ const DesignSettings = () => {
                                         {__('Upload Image', 'mycred')}
                                     </Button>
                                     {settings.headerImageUrl && (
-                                        <Button onClick={() => handleChange('headerImageUrl', '')} size="small" sx={{ textTransform: 'none', color: '#666' }}>
+                                        <Button onClick={() => handleChange('headerImageUrl', '')} size="small" sx={{ textTransform: 'none', color: colors.textSecondary }}>
                                             {__('Remove', 'mycred')}
                                         </Button>
                                     )}
@@ -520,7 +465,7 @@ const DesignSettings = () => {
                                         max={1}
                                         step={0.05}
                                         valueLabelDisplay="auto"
-                                        sx={{ color: '#5E2CED' }}
+                                        sx={{ color: colors.primary }}
                                     />
                                 </Box>
                             </Box>
@@ -533,13 +478,13 @@ const DesignSettings = () => {
                                     max={24}
                                     step={1}
                                     valueLabelDisplay="auto"
-                                    sx={{ color: '#5E2CED' }}
+                                    sx={{ color: colors.primary }}
                                 />
                             </Box>
-                        </Paper>
+                        </SettingsCard>
 
                         {/* Appearance */}
-                        <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+                        <SettingsCard>
                             <SectionHeader
                                 icon={AutoAwesomeIcon}
                                 title={__('Appearance', 'mycred')}
@@ -559,10 +504,10 @@ const DesignSettings = () => {
                                     <ColorInput label={__('Button Text Color', 'mycred')} value={settings.buttonTextColor} onChange={(v) => handleChange('buttonTextColor', v)} />
                                 </Box>
                             </Box>
-                        </Paper>
+                        </SettingsCard>
 
                         {/* Branding */}
-                        <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+                        <SettingsCard>
                             <SectionHeader
                                 icon={BrandingWatermarkIcon}
                                 title={__('Branding', 'mycred')}
@@ -571,7 +516,7 @@ const DesignSettings = () => {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                                 <Box>
                                     <Typography sx={{ fontWeight: 600, fontSize: '15px' }}>{__('Show "Powered by myCred"', 'mycred')}</Typography>
-                                    <Typography sx={{ fontSize: '13px', color: '#666' }}>{__('Display branding footer (Pro version)', 'mycred')}</Typography>
+                                    <Typography sx={{ ...getSecondaryTextSx(colors) }}>{__('Display branding footer (Pro version)', 'mycred')}</Typography>
                                 </Box>
                                 <ToggleSwitch
                                     checked={settings.showBranding}
@@ -586,67 +531,20 @@ const DesignSettings = () => {
                                 />
                             </Box>
                             {!isPro && (
-                                <Box sx={{ p: 2, bgcolor: '#FFFBEB', borderRadius: '8px', border: '1px solid #FEF3C7', display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <Typography sx={{ color: '#92400E', fontSize: '13px' }}>
+                                <Box sx={getWarningBannerSx(colors)}>
+                                    <Typography sx={{ color: colors.warningText, fontSize: '13px' }}>
                                         👑 {__('Upgrade to Pro version to hide branding footer.', 'mycred')}
                                     </Typography>
                                 </Box>
                             )}
-                        </Paper>
+                        </SettingsCard>
 
-                        {/* Save Buttons */}
-                        <Box sx={{ mt: 1, pt: 3, borderTop: '1px solid #E0E0E0', display: 'flex', gap: 2 }}>
-                            <Button
-                                variant="contained"
-                                startIcon={<SaveIcon />}
-                                onClick={handleSave}
-                                disabled={loading}
-                                sx={{
-                                    bgcolor: '#5E2CED',
-                                    color: '#fff',
-                                    textTransform: 'none',
-                                    px: 4,
-                                    py: 1.25,
-                                    fontSize: '14px',
-                                    fontWeight: 600,
-                                    borderRadius: '8px',
-                                    '&:hover': {
-                                        bgcolor: '#4E1CDD',
-                                    }
-                                }}
-                            >
-                                {loading ? __('Saving...', 'mycred') : __('Save Settings', 'mycred')}
-                            </Button>
-                            <Button
-                                variant="outlined"
-                                startIcon={<RestartAltIcon />}
-                                onClick={handleResetToDefaults}
-                                disabled={loading}
-                                sx={{
-                                    borderColor: '#E0E0E0',
-                                    color: '#666',
-                                    textTransform: 'none',
-                                    px: 3,
-                                    py: 1.25,
-                                    fontSize: '14px',
-                                    fontWeight: 600,
-                                    borderRadius: '8px',
-                                    '&:hover': {
-                                        borderColor: '#ccc',
-                                        bgcolor: 'rgba(0,0,0,0.02)'
-                                    }
-                                }}
-                            >
-                                {__('Reset to Default', 'mycred')}
-                            </Button>
-                        </Box>
                     </Box>
                 </Box>
 
-                {/* Right Column: Preview & Launcher Settings - 50% Width */}
-                <Box sx={{ flex: '1', minWidth: { xs: '100%', lg: '0' }, maxWidth: { xs: '100%', lg: '520px' } }}>
-                    <Box sx={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+                <Box>
+                    <Box sx={{ ...getPreviewPanelSx(colors), display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <SettingsCard>
                             <SectionHeader
                                 icon={AutoAwesomeIcon}
                                 title={__('Live Widget Preview', 'mycred')}
@@ -655,10 +553,10 @@ const DesignSettings = () => {
                             <Box sx={{ mt: 2 }}>
                                 <WidgetPreviewPanel />
                             </Box>
-                        </Paper>
+                        </SettingsCard>
 
                         {/* Launcher Button Settings (Below Preview) */}
-                        <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+                        <SettingsCard>
                             <SectionHeader
                                 icon={AutoAwesomeIcon}
                                 title={__('Launcher Button Settings', 'mycred')}
@@ -677,7 +575,7 @@ const DesignSettings = () => {
                                         max={50}
                                         step={1}
                                         valueLabelDisplay="auto"
-                                        sx={{ color: '#5E2CED' }}
+                                        sx={{ color: colors.primary }}
                                     />
                                 </Box>
                             </Box>
@@ -690,12 +588,7 @@ const DesignSettings = () => {
                                     <Select
                                         value={settings.launcherAnimation}
                                         onChange={(e) => handleChange('launcherAnimation', e.target.value)}
-                                        sx={{
-                                            borderRadius: '8px',
-                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                                borderColor: '#5E2CED'
-                                            }
-                                        }}
+                                        sx={getSelectSx(colors, { borderRadius: '8px' })}
                                     >
                                         <MenuItem value="none">{__('None', 'mycred')}</MenuItem>
                                         <MenuItem value="fade">{__('Fade', 'mycred')}</MenuItem>
@@ -704,7 +597,7 @@ const DesignSettings = () => {
                                     </Select>
                                 </FormControl>
                             </Box>
-                        </Paper>
+                        </SettingsCard>
                     </Box>
                 </Box>
             </Box>

@@ -427,14 +427,14 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 
 			wp_add_inline_style(
 				'mycred-addons-style',
-				'#mycred-addons{background:#fafafc}'
+				'#mycred-addons{background:var(--mycred-addons-bg,#fafafc)}'
 				. 'body.mycred-addons-admin-page #myCRED-wrap>h1{display:none}'
 				. '#mycred-addons .mycred-addons-section{container-type:inline-size;container-name:addons-section}'
 				. '#mycred-addons .mycred-addons-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}'
 				. '@container addons-section (min-width:640px){#mycred-addons .mycred-addons-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}'
 				. '@container addons-section (min-width:1400px){#mycred-addons .mycred-addons-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}'
-				. '#mycred-addons .mycred-addons-card{background:#fff;border:1px solid #e9e4f6;border-radius:8px;padding:16px 16px 0}'
-				. '#mycred-addons .mycred-addons-skeleton{background:#eee;border-radius:6px}'
+				. '#mycred-addons .mycred-addons-card{background:var(--mycred-addons-card,#fff);border:1px solid var(--mycred-addons-line,#e9e4f6);border-radius:8px;padding:16px 16px 0}'
+				. '#mycred-addons .mycred-addons-skeleton{background:var(--mycred-addons-skeleton-from,#eee);border-radius:6px}'
 			);
 
 			wp_register_script(

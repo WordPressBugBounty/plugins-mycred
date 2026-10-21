@@ -326,7 +326,7 @@ export default function LuxuryLayout({
                     overflow: 'hidden',
                     pointerEvents: expandedFade < 0.1 ? 'none' : 'auto',
                 }}>
-                    <Typography sx={{
+                    <Typography color="inherit" sx={{
                         fontSize: '12px',
                         opacity: 0.9,
                         fontFamily: "'Instrument Sans', sans-serif",
@@ -334,7 +334,7 @@ export default function LuxuryLayout({
                     }}>
                         {design.headerSubtitle || __('Welcome to', 'mycred')}
                     </Typography>
-                    <Typography sx={{
+                    <Typography color="inherit" sx={{
                         fontSize: `${24 - 8 * collapse}px`,
                         fontWeight: 700,
                         fontFamily: "'Instrument Sans', sans-serif",
@@ -345,7 +345,7 @@ export default function LuxuryLayout({
                     </Typography>
                 </Box>
 
-                <Typography sx={{
+                <Typography color="inherit" sx={{
                     position: 'absolute',
                     left: 48,
                     right: 48,

@@ -10,60 +10,445 @@
 }
 
 .mycred-page-header {
+    position: relative;
+    z-index: 1;
     background: #ffffff;
-    padding: 12px 25px;
+    padding: 14px 25px;
     margin-left: -20px;
+    border-bottom: 1px solid #ece8f6;
 }
 
 .mycred-page-header-content {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
 }
 
-.mycred-page-header-logo img {
-    height: 30px;
-    width: auto;
+.mycred-page-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.mycred-page-header-mascot {
+    width: 36px;
+    height: 36px;
+    display: block;
+    flex-shrink: 0;
+}
+
+.mycred-page-header-title {
+    margin: 0;
+    padding: 0;
+    font-family: "Figtree", "Poppins", sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #1f2937;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .mycred-page-header-actions {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
+    gap: 10px;
+}
+
+.mycred-page-header-secondary-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    color: #111827 !important;
+    font-family: "Figtree", "Poppins", sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none !important;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.mycred-page-header-secondary-btn:hover,
+.mycred-page-header-secondary-btn:focus {
+    border-color: #c4b5fd;
+    background: #faf8ff;
+    color: #2d1572 !important;
+    text-decoration: none !important;
+}
+
+.mycred-page-header-secondary-icon {
+    font-size: 14px;
+    line-height: 1;
+    color: #5e2ced;
+}
+
+.mycred-page-header-pro-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    isolation: isolate;
+    padding: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    text-decoration: none !important;
+    cursor: pointer;
+    margin-left: 2px;
+}
+
+.mycred-page-header-pro-inner {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+    height: 40px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 0;
+    background: #ebe4ff;
+    color: #5e2ced !important;
+    text-decoration: none !important;
+    box-shadow: none;
+}
+
+.mycred-page-header-pro-gem {
+    position: relative;
+    z-index: 1;
+    display: block;
+    flex-shrink: 0;
+}
+
+.mycred-page-header-pro-copy {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-family: "Figtree", "Poppins", sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 16px;
+    color: #5e2ced;
+    white-space: nowrap;
+}
+
+.mycred-page-header-pro-copy-line strong {
+    font-weight: 700;
+}
+
+/* Legacy upgrade-btn selectors kept as aliases for any cached markup */
+.mycred-page-header-logo img {
+    height: 36px;
+    width: auto;
 }
 
 .mycred-page-header-upgrade-btn {
-    display: inline-block;
-    padding: 11px 24px;
-    border-radius: 5px;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 14px;
-    text-align: center;
-    transition: all 0.3s ease;
-    border: none;
-    cursor: pointer;
-    background: #FFD79C;
-    color: #7a5323;
+    display: none;
 }
 
-.mycred-page-header-upgrade-btn:hover {
-    background: #ffd79c;
-    color: #7a5323;
-    text-decoration: none;
+/* Admin dark mode — shared across Logs, Settings (React syncs html/body classes) */
+html.mycred-admin-dark-mode,
+html.mycred-logs-dark-mode,
+body.mycred-log-page.mycred-admin-dark-mode,
+body.mycred-log-page.mycred-logs-dark-mode {
+    background: #1a1d21 !important;
+    color-scheme: dark;
+}
+
+html.mycred-admin-dark-mode body.mycred-log-page #wpcontent,
+html.mycred-admin-dark-mode body.mycred-log-page #wpbody,
+html.mycred-admin-dark-mode body.mycred-log-page #wpbody-content,
+html.mycred-logs-dark-mode body.mycred-log-page #wpcontent,
+html.mycred-logs-dark-mode body.mycred-log-page #wpbody,
+html.mycred-logs-dark-mode body.mycred-log-page #wpbody-content,
+body.mycred-log-page.mycred-admin-dark-mode #wpcontent,
+body.mycred-log-page.mycred-admin-dark-mode #wpbody,
+body.mycred-log-page.mycred-admin-dark-mode #wpbody-content,
+body.mycred-log-page.mycred-logs-dark-mode #wpcontent,
+body.mycred-log-page.mycred-logs-dark-mode #wpbody,
+body.mycred-log-page.mycred-logs-dark-mode #wpbody-content {
+    background: #1a1d21 !important;
+}
+
+html.mycred-admin-dark-mode body.mycred-log-page .mycred-page-header,
+html.mycred-logs-dark-mode body.mycred-log-page .mycred-page-header,
+body.mycred-log-page.mycred-admin-dark-mode .mycred-page-header,
+body.mycred-log-page.mycred-logs-dark-mode .mycred-page-header {
+    background: #24282d !important;
+    border-bottom: 1px solid #3a3f45;
+    margin-left: -20px;
+}
+
+html.mycred-admin-dark-mode body.mycred-log-page .mycred-page-header-mascot,
+html.mycred-logs-dark-mode body.mycred-log-page .mycred-page-header-mascot,
+body.mycred-log-page.mycred-admin-dark-mode .mycred-page-header-mascot,
+body.mycred-log-page.mycred-logs-dark-mode .mycred-page-header-mascot {
+    filter: none;
+}
+
+html.mycred-admin-dark-mode body.mycred-log-page .mycred-page-header-title,
+html.mycred-logs-dark-mode body.mycred-log-page .mycred-page-header-title,
+body.mycred-log-page.mycred-admin-dark-mode .mycred-page-header-title,
+body.mycred-log-page.mycred-logs-dark-mode .mycred-page-header-title {
+    color: #f3f4f6 !important;
+}
+
+html.mycred-admin-dark-mode .mycred-page-header-secondary-btn,
+html.mycred-logs-dark-mode .mycred-page-header-secondary-btn {
+    background: #2c3136;
+    border-color: #4a4f56;
+    color: #f3f4f6 !important;
+}
+
+html.mycred-admin-dark-mode .mycred-page-header-secondary-btn:hover,
+html.mycred-logs-dark-mode .mycred-page-header-secondary-btn:hover {
+    background: #353b42;
+    border-color: #6b57a1;
+    color: #ffffff !important;
+}
+
+html.mycred-admin-dark-mode body.mycred-log-page #myCRED-wrap.wrap,
+html.mycred-logs-dark-mode body.mycred-log-page #myCRED-wrap.wrap,
+body.mycred-log-page.mycred-admin-dark-mode #myCRED-wrap.wrap,
+body.mycred-log-page.mycred-logs-dark-mode #myCRED-wrap.wrap {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+html.mycred-admin-dark-mode #mycred-logs-ui-root,
+html.mycred-logs-dark-mode #mycred-logs-ui-root {
+    background: #1a1d21;
+}
+
+/* Settings page — full-page dark mode */
+html.mycred-admin-dark-mode body.mycred-settings-page,
+html.mycred-logs-dark-mode body.mycred-settings-page,
+body.mycred-settings-page.mycred-admin-dark-mode,
+body.mycred-settings-page.mycred-logs-dark-mode {
+    background: #1a1d21 !important;
+}
+
+html.mycred-admin-dark-mode body.mycred-settings-page #wpcontent,
+html.mycred-admin-dark-mode body.mycred-settings-page #wpbody,
+html.mycred-admin-dark-mode body.mycred-settings-page #wpbody-content,
+html.mycred-logs-dark-mode body.mycred-settings-page #wpcontent,
+html.mycred-logs-dark-mode body.mycred-settings-page #wpbody,
+html.mycred-logs-dark-mode body.mycred-settings-page #wpbody-content,
+body.mycred-settings-page.mycred-admin-dark-mode #wpcontent,
+body.mycred-settings-page.mycred-admin-dark-mode #wpbody,
+body.mycred-settings-page.mycred-admin-dark-mode #wpbody-content,
+body.mycred-settings-page.mycred-logs-dark-mode #wpcontent,
+body.mycred-settings-page.mycred-logs-dark-mode #wpbody,
+body.mycred-settings-page.mycred-logs-dark-mode #wpbody-content {
+    background: #1a1d21 !important;
+}
+
+html.mycred-admin-dark-mode body.mycred-settings-page .mycred-page-header,
+html.mycred-logs-dark-mode body.mycred-settings-page .mycred-page-header,
+body.mycred-settings-page.mycred-admin-dark-mode .mycred-page-header,
+body.mycred-settings-page.mycred-logs-dark-mode .mycred-page-header {
+    background: #24282d !important;
+    border-bottom: 1px solid #3a3f45;
+    margin-left: -20px;
+}
+
+html.mycred-admin-dark-mode body.mycred-settings-page .mycred-page-header-mascot,
+html.mycred-logs-dark-mode body.mycred-settings-page .mycred-page-header-mascot,
+body.mycred-settings-page.mycred-admin-dark-mode .mycred-page-header-mascot,
+body.mycred-settings-page.mycred-logs-dark-mode .mycred-page-header-mascot {
+    filter: none;
+}
+
+html.mycred-admin-dark-mode body.mycred-settings-page .mycred-page-header-title,
+html.mycred-logs-dark-mode body.mycred-settings-page .mycred-page-header-title,
+body.mycred-settings-page.mycred-admin-dark-mode .mycred-page-header-title,
+body.mycred-settings-page.mycred-logs-dark-mode .mycred-page-header-title {
+    color: #f3f4f6 !important;
+}
+
+html.mycred-admin-dark-mode body.mycred-settings-page #myCRED-wrap.wrap,
+html.mycred-logs-dark-mode body.mycred-settings-page #myCRED-wrap.wrap,
+body.mycred-settings-page.mycred-admin-dark-mode #myCRED-wrap.wrap,
+body.mycred-settings-page.mycred-logs-dark-mode #myCRED-wrap.wrap,
+html.mycred-admin-dark-mode body.mycred-settings-page #myCRED-wrap,
+html.mycred-logs-dark-mode body.mycred-settings-page #myCRED-wrap,
+body.mycred-settings-page.mycred-admin-dark-mode #myCRED-wrap,
+body.mycred-settings-page.mycred-logs-dark-mode #myCRED-wrap {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+html.mycred-admin-dark-mode #mycred-settings-ui-root,
+html.mycred-logs-dark-mode #mycred-settings-ui-root {
+    background: #1a1d21;
+}
+
+/* Hooks page — full-page dark mode */
+html.mycred-admin-dark-mode body.mycred-hooks-page,
+html.mycred-logs-dark-mode body.mycred-hooks-page,
+body.mycred-hooks-page.mycred-admin-dark-mode,
+body.mycred-hooks-page.mycred-logs-dark-mode {
+    background: #1a1d21 !important;
+}
+
+html.mycred-admin-dark-mode body.mycred-hooks-page #wpcontent,
+html.mycred-admin-dark-mode body.mycred-hooks-page #wpbody,
+html.mycred-admin-dark-mode body.mycred-hooks-page #wpbody-content,
+html.mycred-logs-dark-mode body.mycred-hooks-page #wpcontent,
+html.mycred-logs-dark-mode body.mycred-hooks-page #wpbody,
+html.mycred-logs-dark-mode body.mycred-hooks-page #wpbody-content,
+body.mycred-hooks-page.mycred-admin-dark-mode #wpcontent,
+body.mycred-hooks-page.mycred-admin-dark-mode #wpbody,
+body.mycred-hooks-page.mycred-admin-dark-mode #wpbody-content,
+body.mycred-hooks-page.mycred-logs-dark-mode #wpcontent,
+body.mycred-hooks-page.mycred-logs-dark-mode #wpbody,
+body.mycred-hooks-page.mycred-logs-dark-mode #wpbody-content {
+    background: #1a1d21 !important;
+}
+
+html.mycred-admin-dark-mode body.mycred-hooks-page .mycred-page-header,
+html.mycred-logs-dark-mode body.mycred-hooks-page .mycred-page-header,
+body.mycred-hooks-page.mycred-admin-dark-mode .mycred-page-header,
+body.mycred-hooks-page.mycred-logs-dark-mode .mycred-page-header {
+    background: #24282d !important;
+    border-bottom: 1px solid #3a3f45;
+    margin-left: -20px;
+}
+
+html.mycred-admin-dark-mode body.mycred-hooks-page .mycred-page-header-mascot,
+html.mycred-logs-dark-mode body.mycred-hooks-page .mycred-page-header-mascot,
+body.mycred-hooks-page.mycred-admin-dark-mode .mycred-page-header-mascot,
+body.mycred-hooks-page.mycred-logs-dark-mode .mycred-page-header-mascot {
+    filter: none;
+}
+
+html.mycred-admin-dark-mode body.mycred-hooks-page .mycred-page-header-title,
+html.mycred-logs-dark-mode body.mycred-hooks-page .mycred-page-header-title,
+body.mycred-hooks-page.mycred-admin-dark-mode .mycred-page-header-title,
+body.mycred-hooks-page.mycred-logs-dark-mode .mycred-page-header-title {
+    color: #f3f4f6 !important;
+}
+
+html.mycred-admin-dark-mode #mycred-hooks-app,
+html.mycred-logs-dark-mode #mycred-hooks-app {
+    background: #1a1d21;
+}
+
+html.mycred-admin-dark-mode body.mycred-addons-admin-page,
+html.mycred-logs-dark-mode body.mycred-addons-admin-page,
+body.mycred-addons-admin-page.mycred-admin-dark-mode,
+body.mycred-addons-admin-page.mycred-logs-dark-mode {
+    background: #1a1d21 !important;
+}
+
+html.mycred-admin-dark-mode body.mycred-addons-admin-page #wpcontent,
+html.mycred-admin-dark-mode body.mycred-addons-admin-page #wpbody,
+html.mycred-admin-dark-mode body.mycred-addons-admin-page #wpbody-content,
+html.mycred-logs-dark-mode body.mycred-addons-admin-page #wpcontent,
+html.mycred-logs-dark-mode body.mycred-addons-admin-page #wpbody,
+html.mycred-logs-dark-mode body.mycred-addons-admin-page #wpbody-content,
+body.mycred-addons-admin-page.mycred-admin-dark-mode #wpcontent,
+body.mycred-addons-admin-page.mycred-admin-dark-mode #wpbody,
+body.mycred-addons-admin-page.mycred-admin-dark-mode #wpbody-content,
+body.mycred-addons-admin-page.mycred-logs-dark-mode #wpcontent,
+body.mycred-addons-admin-page.mycred-logs-dark-mode #wpbody,
+body.mycred-addons-admin-page.mycred-logs-dark-mode #wpbody-content {
+    background: #1a1d21 !important;
+}
+
+html.mycred-admin-dark-mode body.mycred-addons-admin-page .mycred-page-header,
+html.mycred-logs-dark-mode body.mycred-addons-admin-page .mycred-page-header,
+body.mycred-addons-admin-page.mycred-admin-dark-mode .mycred-page-header,
+body.mycred-addons-admin-page.mycred-logs-dark-mode .mycred-page-header {
+    background: #24282d !important;
+    border-bottom: 1px solid #3a3f45;
+}
+
+html.mycred-admin-dark-mode body.mycred-addons-admin-page .mycred-page-header-mascot,
+html.mycred-logs-dark-mode body.mycred-addons-admin-page .mycred-page-header-mascot,
+body.mycred-addons-admin-page.mycred-admin-dark-mode .mycred-page-header-mascot,
+body.mycred-addons-admin-page.mycred-logs-dark-mode .mycred-page-header-mascot {
+    filter: none;
+}
+
+html.mycred-admin-dark-mode body.mycred-addons-admin-page .mycred-page-header-title,
+html.mycred-logs-dark-mode body.mycred-addons-admin-page .mycred-page-header-title,
+body.mycred-addons-admin-page.mycred-admin-dark-mode .mycred-page-header-title,
+body.mycred-addons-admin-page.mycred-logs-dark-mode .mycred-page-header-title {
+    color: #f3f4f6 !important;
+}
+
+html.mycred-admin-dark-mode #mycred-addons,
+html.mycred-logs-dark-mode #mycred-addons {
+    background: #1a1d21;
+}
+
+/* Select2 dropdowns in admin dark mode */
+html.mycred-admin-dark-mode .select2-dropdown,
+html.mycred-logs-dark-mode .select2-dropdown {
+    background: #24282d !important;
+    border-color: #3a3f45 !important;
+    color: #f0f0f0 !important;
+}
+
+html.mycred-admin-dark-mode .select2-results__option,
+html.mycred-logs-dark-mode .select2-results__option {
+    color: #f0f0f0 !important;
+}
+
+html.mycred-admin-dark-mode .select2-container--default .select2-search--dropdown .select2-search__field,
+html.mycred-logs-dark-mode .select2-container--default .select2-search--dropdown .select2-search__field {
+    background: #2c3136 !important;
+    border-color: #4a4f56 !important;
+    color: #f0f0f0 !important;
 }
 
 @media screen and (max-width: 768px) {
     .mycred-page-header {
-        padding: 15px 20px;
+        padding: 12px 16px;
     }
-    
-    .mycred-page-header-logo img {
-        height: 30px;
+
+    .mycred-page-header-mascot {
+        width: 32px;
+        height: 32px;
     }
-    
-    .mycred-page-header-upgrade-btn {
-        padding: 8px 16px;
+
+    .mycred-page-header-title {
+        font-size: 18px;
+    }
+
+    .mycred-page-header-pro-inner {
+        min-width: 156px;
+        height: 38px;
+        padding: 0 12px 0 10px;
+    }
+
+    .mycred-page-header-pro-copy {
         font-size: 12px;
+        line-height: 15px;
+    }
+
+    .mycred-page-header-secondary-btn {
+        height: 36px;
+        padding: 0 10px;
+        font-size: 12px;
+    }
+
+    .mycred-page-header-actions {
+        flex-wrap: wrap;
+        justify-content: flex-end;
     }
 }
 
@@ -178,7 +563,49 @@ body[class*="_page_mycred-settings"] .mycred-admin-page .wrap {
     box-shadow: 0px 2px 1px -1px rgba(0, 0, 0, 0.2), 0px 1px 1px 0px rgba(0, 0, 0, 0.14), 0px 1px 3px 0px rgba(0, 0, 0, 0.12);
 }
 
+body.mycred-woocommerce-settings-page #myCRED-wrap,
+body.mycred-woocommerce-settings-page.mycred-admin-page #myCRED-wrap,
+body.mycred-woocommerce-settings-page .wrap:not(#fs_connect) {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    border: none !important;
+}
+
+body.mycred-loyalty-widget-page #myCRED-wrap,
+body.mycred-loyalty-widget-page.mycred-admin-page #myCRED-wrap,
+body.mycred-loyalty-widget-page .wrap:not(#fs_connect) {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    border: none !important;
+}
+
+/* Hide empty wrap elements inserted before headers or by notices */
+body.mycred-admin-page #wpbody-content > .wrap:empty,
+body[class*="mycred"] #wpbody-content > .wrap:empty,
+.mycred-admin-page .wrap:empty {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
 body.mycred-settings-page,
+body.mycred-woocommerce-settings-page,
+body.mycred-loyalty-widget-page,
 body.toplevel_page_mycred-main,
 body.mycred-log-page,
 body.mycred-hooks-page,
@@ -190,6 +617,15 @@ body.mycred-gateways-page,
 body.mycred-cashcreds-page,
 body.mycred-admin-page {
     background: #f0f4ff !important;
+}
+
+/* Logs/MUI overlays — keep popover/menu paper opaque over table content */
+body.mycred-log-page .MuiPopover-paper,
+body.mycred-log-page .MuiMenu-paper,
+body.mycred-log-page .mycred-logs-popover-paper {
+    background-color: #ffffff !important;
+    background-image: none !important;
+    opacity: 1 !important;
 }
 
 .mycred-settings-layout {
@@ -474,9 +910,9 @@ body.mycred-admin-page {
     margin-bottom: 0; 
 }
 
-.mycred-ui-wrap .button:not(.button-primary):not(.mycred-ui-btn-purple):not(.pagination-links span):not(.pagination-links a):not(.wp-editor-wrap .button):not(.wp-color-result), 
-#myCRED-wrap .button:not(.button-primary):not(.mycred-ui-btn-purple):not(.pagination-links span):not(.pagination-links a):not(.wp-editor-wrap .button):not(.wp-color-result), 
-.mycred-admin-page .wrap .button:not(.button-primary):not(.mycred-ui-btn-purple):not(.pagination-links span):not(.pagination-links a):not(.wp-editor-wrap .button):not(.wp-color-result) {
+.mycred-ui-wrap .button:not(.button-primary):not(.mycred-ui-btn-purple):not(.mycred-delete-point-type):not(.pagination-links span):not(.pagination-links a):not(.wp-editor-wrap .button):not(.wp-color-result), 
+#myCRED-wrap .button:not(.button-primary):not(.mycred-ui-btn-purple):not(.mycred-delete-point-type):not(.pagination-links span):not(.pagination-links a):not(.wp-editor-wrap .button):not(.wp-color-result), 
+.mycred-admin-page .wrap .button:not(.button-primary):not(.mycred-ui-btn-purple):not(.mycred-delete-point-type):not(.pagination-links span):not(.pagination-links a):not(.wp-editor-wrap .button):not(.wp-color-result) {
     background: #ffffff !important;
     color: #3c434a !important;
     border-color: #3c434a !important;
@@ -487,22 +923,22 @@ body.mycred-admin-page {
     cursor: pointer !important;
 }
 
-.mycred-ui-wrap .button:not(.button-primary):not(.mycred-ui-btn-purple):hover, 
-#myCRED-wrap .button:not(.button-primary):not(.mycred-ui-btn-purple):hover, 
-.mycred-admin-page .wrap .button:not(.button-primary):not(.mycred-ui-btn-purple):hover {
+.mycred-ui-wrap .button:not(.button-primary):not(.mycred-ui-btn-purple):not(.mycred-delete-point-type):hover, 
+#myCRED-wrap .button:not(.button-primary):not(.mycred-ui-btn-purple):not(.mycred-delete-point-type):hover, 
+.mycred-admin-page .wrap .button:not(.button-primary):not(.mycred-ui-btn-purple):not(.mycred-delete-point-type):hover {
     border-color: #5f2ced !important;
     color: #5f2ced !important;
 }
 
-.mycred-ui-wrap .button[disabled]:not(.button-primary):not(.mycred-ui-btn-purple), 
-#myCRED-wrap .button[disabled]:not(.button-primary):not(.mycred-ui-btn-purple), 
-.mycred-admin-page .wrap .button[disabled]:not(.button-primary):not(.mycred-ui-btn-purple) {
+.mycred-ui-wrap .button[disabled]:not(.button-primary):not(.mycred-ui-btn-purple):not(.mycred-delete-point-type), 
+#myCRED-wrap .button[disabled]:not(.button-primary):not(.mycred-ui-btn-purple):not(.mycred-delete-point-type), 
+.mycred-admin-page .wrap .button[disabled]:not(.button-primary):not(.mycred-ui-btn-purple):not(.mycred-delete-point-type) {
     background: #f0f0f1 !important;
 }
 
-.mycred-ui-wrap .button:not(.button-primary):not(.mycred-ui-btn-purple):not(.search-box input[type="submit"]):focus, 
-#myCRED-wrap .button:not(.button-primary):not(.mycred-ui-btn-purple):not(.search-box input[type="submit"]):focus, 
-.mycred-admin-page .wrap .button:not(.button-primary):not(.mycred-ui-btn-purple):not(.search-box input[type="submit"]):focus {
+.mycred-ui-wrap .button:not(.button-primary):not(.mycred-ui-btn-purple):not(.mycred-delete-point-type):not(.search-box input[type="submit"]):focus, 
+#myCRED-wrap .button:not(.button-primary):not(.mycred-ui-btn-purple):not(.mycred-delete-point-type):not(.search-box input[type="submit"]):focus, 
+.mycred-admin-page .wrap .button:not(.button-primary):not(.mycred-ui-btn-purple):not(.mycred-delete-point-type):not(.search-box input[type="submit"]):focus {
     border-color: #5f2ced !important;
     color: #5f2ced !important;
     box-shadow: 0 0 0 1px #fff, 0 0 0 3px #5f2ced !important;
@@ -1514,86 +1950,333 @@ select.mycred-ui-form + span.select2 > span.selection > span.select2-selection >
 }
 
 /* license Page */
-.mmc_welcome { 
-    margin: 12px auto;
-    padding: 50px 10px;
-    border-radius: 10px;
-    text-align: center;
-}
-.mmc_title { 
-    text-align: center;
-    font-size: 30px;
-    font-weight: 100; 
-    line-height: 35px; 
+body.mycred-membership-page,
+body.mycred-membership-page #wpcontent,
+body.mycred-membership-page #wpbody,
+body.mycred-membership-page #wpbody-content,
+body.mycred-membership-page #wpfooter {
+    background: #f8f6ff !important;
 }
 
-.mmc_welcome .mmc_lincense_key { 
-    font-size: 15px;
-    padding: 9px 14px;
-    width: 430px;
-    height: 45px;
-    border-radius: 10px !important;
-    border-color: #d3d3d3;
+body.mycred-membership-page #wpbody-content {
+    padding-bottom: 0;
+}
+
+body.mycred-membership-page #myCRED-wrap,
+body.mycred-membership-page.mycred-admin-page #myCRED-wrap {
+    background: transparent !important;
+    margin: 0 !important;
+    padding: 24px !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box;
+}
+
+body.mycred-membership-page .mycred-page-header {
+    background: #ffffff !important;
+    position: relative;
+    z-index: 10;
+}
+
+.mmc_welcome {
+    margin: 8px auto 0;
+    max-width: 760px;
+    padding: 24px;
+    border: 1px solid #e5dff6;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: none;
+    text-align: left;
+    box-sizing: border-box;
+}
+
+.mmc_card_head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 0 0 20px;
+    padding: 0 0 20px;
+    border-bottom: 1px solid #e5dff6;
+}
+
+.mmc_card_mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #ebe4ff;
+    color: #5e2ced;
+}
+
+.mmc_card_mark svg {
+    display: block;
+}
+
+.mmc_card_copy {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.mmc_kicker {
+    margin: 0 0 4px;
+    font-family: "Figtree", "Inter", sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 16px;
+    letter-spacing: 0.48px;
+    text-transform: uppercase;
+    color: #978abc;
+}
+
+.mmc_title {
+    margin: 0 0 6px;
+    text-align: left;
+    font-family: "Figtree", "Inter", sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #2d1572;
+}
+
+.mmc_lead {
+    margin: 0;
+    font-family: "Figtree", "Inter", sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #6b57a1;
+}
+
+.mmc_status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    height: 28px;
+    margin-top: 0;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-family: "Figtree", "Inter", sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.mmc_status_dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.mmc_status.is-active {
+    background: rgba(34, 197, 94, 0.12);
+    color: #15803d;
+}
+
+.mmc_status.is-inactive {
+    background: #fff2f2;
+    color: #b91514;
+}
+
+.mmc_field_label {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    margin: 0;
+    font-family: "Figtree", "Inter", sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #2d1572;
+}
+
+.mmc_welcome .mmc_lincense_key {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+    max-width: 100%;
+    height: 44px;
+    margin: 0;
+    padding: 0 76px 0 14px;
+    box-sizing: border-box;
+    border: 1px solid #ddd2f9;
+    border-radius: 8px !important;
+    background: #ffffff;
+    color: #2d1572;
+    font-family: "Figtree", "Inter", sans-serif;
+    font-size: 14px;
 }
 
 .mmc_lincense_key::placeholder {
-    color: #d2cbe3;
-    font-size: 15px;
+    color: #978abc;
+    font-size: 14px;
 }
 
-.mmc_welcome .mmc_lincense_key:focus { 
-    box-shadow: inset 0 0 0 1px #2271b1 !important; 
+.mmc_welcome .mmc_lincense_key:focus {
+    border-color: #5e2ced;
+    box-shadow: 0 0 0 1px #5e2ced !important;
+    outline: none;
 }
 
-.mmc_welcome .mmc_save_license { 
-    height: 45px !important;
-    width: 110px !important;
-    font-size: 15px !important;
-    margin-left: -35px;
-    border-radius: 0px 10px 10px 0px;
-    border-width: inherit;
+#myCRED-wrap .mmc_welcome .mmc_save_license.button.button-primary {
+    grid-column: 2;
+    grid-row: 2;
+    height: 44px !important;
+    width: auto !important;
+    min-width: 88px;
+    margin: 0 !important;
+    padding: 0 20px !important;
+    border: none !important;
+    border-radius: 8px !important;
+    color: #ffffff !important;
+    font-family: "Figtree", "Inter", sans-serif;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    line-height: 44px !important;
+    box-shadow: none !important;
+    cursor: pointer;
 }
 
-.mmc_welcome_content form { 
-    width: 512px;
-    margin: 30px auto 0; 
-    position:relative; 
-    display: flex; 
-    max-width:100%; 
+#myCRED-wrap .mmc_welcome .mmc_save_license.button.button-primary.is-valid {
+    background: #5e2ced !important;
+    border-color: #5e2ced !important;
 }
 
-.mmc_welcome_content a { 
-    text-align: left; 
+#myCRED-wrap .mmc_welcome .mmc_save_license.button.button-primary.is-valid:hover,
+#myCRED-wrap .mmc_welcome .mmc_save_license.button.button-primary.is-valid:focus {
+    background: #6a47ff !important;
+    border-color: #6a47ff !important;
+    box-shadow: none !important;
+    color: #ffffff !important;
 }
 
-.mmc_license_link { 
-    text-align: left; 
-    margin: 5px auto; 
-    width: 512px; 
-    max-width: 100%; 
+#myCRED-wrap .mmc_welcome .mmc_save_license.button.button-primary.is-invalid {
+    background: #b91514 !important;
+    border-color: #b91514 !important;
+}
+
+#myCRED-wrap .mmc_welcome .mmc_save_license.button.button-primary.is-invalid:hover,
+#myCRED-wrap .mmc_welcome .mmc_save_license.button.button-primary.is-invalid:focus {
+    background: #9d1211 !important;
+    border-color: #9d1211 !important;
+    box-shadow: none !important;
+    color: #ffffff !important;
+}
+
+.mmc_welcome_content form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    position: relative;
+}
+
+.mmc_welcome_content a {
+    text-align: left;
+}
+
+.mmc_license_link {
+    text-align: left;
+    margin: 16px 0 0;
+    padding-top: 16px;
+    border-top: 1px solid #e5dff6;
+    width: 100%;
+    max-width: 100%;
 }
 
 .mmc_welcome .mmc_license_link a {
-    color: #5f2ced;
-    font-style: italic;
-    text-decoration: none; 
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #5e2ced;
+    font-family: "Figtree", "Inter", sans-serif;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 600;
+    text-decoration: none;
 }
 
-.mycred-membership-menu-label { 
-    color: #ffffff; 
-    margin: 5px; 
-    background: #892bff; 
-    padding: 1px 5px 3px 5px; 
-    border-radius: 4px; 
-    font-size: 10px; 
+.mmc_welcome .mmc_license_link a:hover,
+.mmc_welcome .mmc_license_link a:focus {
+    color: #2d1572;
+    text-decoration: underline;
 }
 
-.membership-license-inactive, 
+.mycred-membership-menu-label {
+    color: #ffffff;
+    margin: 5px;
+    background: #892bff;
+    padding: 1px 5px 3px 5px;
+    border-radius: 4px;
+    font-size: 10px;
+}
+
+#myCRED-wrap .mmc_welcome .mmc_key_toggle {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: end;
+    align-self: center;
+    position: relative;
+    right: 40px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px !important;
+    min-height: 0;
+    margin: 0;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 4px;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #6b57a1;
+    cursor: pointer;
+    line-height: 1;
+}
+
+#myCRED-wrap .mmc_welcome .mmc_key_toggle .dashicons {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+    line-height: 20px;
+}
+
+#myCRED-wrap .mmc_welcome .mmc_key_toggle:hover,
+#myCRED-wrap .mmc_welcome .mmc_key_toggle:focus {
+    color: #5e2ced;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none;
+}
+
+.membership-license-inactive,
 .membership-license-activated {
-    position: absolute;
-    top: 9px;
-    right: 128px;
-    font-size: 26px;
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: end;
+    align-self: center;
+    position: relative;
+    top: auto;
+    right: 12px;
+    z-index: 1;
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    font-size: 22px;
+    line-height: 22px;
+    pointer-events: none;
 }
 
 .membership-license-inactive {
@@ -1601,14 +2284,35 @@ select.mycred-ui-form + span.select2 > span.selection > span.select2-selection >
 }
 
 .membership-license-activated {
-    color: green;
+    color: #16a34a;
 }
 
 .mycred_license_valid_check {
-    max-width: 455px;
-    margin: 0 auto 20px !important;
-    padding-top: 10px !important;
-    padding-bottom: 10px !important;
+    max-width: none;
+    margin: 0 0 16px !important;
+    padding: 12px 16px !important;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+    .mmc_card_head {
+        flex-wrap: wrap;
+    }
+
+    .mmc_status {
+        margin-left: 60px;
+    }
+
+    .mmc_welcome_content form {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    #myCRED-wrap .mmc_welcome .mmc_save_license.button.button-primary {
+        grid-column: 1;
+        grid-row: 3;
+        width: 100% !important;
+    }
 }
 /* end */
 
@@ -2724,10 +3428,4 @@ body.mycred-settings-page #screen-meta {
     background-color: #00a32a !important;
     color: #ffffff !important;
     font-weight: 600;
-}
-
-
-div#fs_connect {
-    background: none;
-    box-shadow: none;
 }

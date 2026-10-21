@@ -59,6 +59,7 @@ if ( ! class_exists( 'myCRED_Log_Module' ) ) :
 
 			add_action( 'wp_ajax_mycred-delete-log-entry', array( $this, 'action_delete_log_entry' ) );
 			add_action( 'wp_ajax_mycred-update-log-entry', array( $this, 'action_update_log_entry' ) );
+			add_action( 'wp_ajax_mycred-bulk-delete-log-entries', array( $this, 'action_bulk_delete_entries_ajax' ) );
 
 		}
 
@@ -254,6 +255,47 @@ if ( ! class_exists( 'myCRED_Log_Module' ) ) :
 
 			// Respond
 			wp_send_json_success( __( 'Row Deleted', 'mycred' ) );
+
+		}
+
+		/**
+		 * Bulk Delete Log Entries Action (AJAX)
+		 * @since 2.11
+		 * @version 1.0
+		 */
+		public function action_bulk_delete_entries_ajax() {
+
+			// Security
+			check_ajax_referer( 'mycred-bulk-delete-log-entries', 'token' );
+
+			// Access
+			if ( ! $this->core->user_is_point_admin() )
+				wp_send_json_error( 'Access denied' );
+
+			$entry_ids = isset( $_POST['ids'] ) ? array_map( 'absint', (array) $_POST['ids'] ) : array();
+			if ( empty( $entry_ids ) )
+				wp_send_json_error( 'No entries selected' );
+
+			$point_type = isset( $_POST['ctype'] ) ? sanitize_key( $_POST['ctype'] ) : '';
+			if ( ! mycred_point_type_exists( $point_type ) || $point_type != $this->mycred_type )
+				wp_send_json_error( 'Invalid point type' );
+
+			global $wpdb, $mycred_log_table;
+
+			$deleted = 0;
+			foreach ( $entry_ids as $entry_id ) {
+				
+				$user_id = $wpdb->get_var( $wpdb->prepare( "SELECT user_id FROM {$mycred_log_table} WHERE id = %d;", $entry_id ) );
+				if ( $user_id !== NULL ) {
+					mycred_delete_user_meta( $user_id, $this->mycred_type, '_history' );
+					$wpdb->delete( $mycred_log_table, array( 'id' => $entry_id ), array( '%d' ) );
+					$deleted ++;
+				}
+			}
+
+			do_action( 'mycred_bulk_deleted_log_entries', $entry_ids, $point_type );
+
+			wp_send_json_success( sprintf( _n( '1 Entry Deleted', '%d Entries Deleted', $deleted, 'mycred' ), $deleted ) );
 
 		}
 
@@ -579,6 +621,102 @@ if ( ! class_exists( 'myCRED_Log_Module' ) ) :
 
 			wp_enqueue_script( 'mycred-edit-log' );
 
+			// Enqueue Fonts
+			wp_enqueue_style( 'mycred-logs-google-fonts', 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Figtree:wght@400;500;600;700&family=Vollkorn:wght@700&display=swap' );
+
+			// Enqueue the new React Logs app
+			$script_url = plugins_url( 'assets/build/logs.bundle.js', myCRED_THIS );
+			$script_path = myCRED_ROOT_DIR . 'assets/build/logs.bundle.js';
+			if ( file_exists( $script_path ) ) {
+				wp_enqueue_script(
+					'mycred-logs-react-app',
+					$script_url,
+					array( 'wp-element' ),
+					myCRED_VERSION . '.' . filemtime( $script_path ),
+					true
+				);
+				
+				// Get point types for the switcher
+				$point_types = array();
+				foreach ( mycred_get_types( true ) as $type => $label ) {
+					$point_types[$type] = mycred_label( true, $type );
+				}
+
+				// Check if export is enabled
+				$export_enabled = false;
+				$export_format  = 'both';
+				$core_prefs = get_option( 'mycred_pref_core', array() );
+				if ( isset( $core_prefs['export']['admin'] ) ) {
+					$export_enabled = (bool) $core_prefs['export']['admin'];
+				}
+				if ( isset( $core_prefs['export']['admin_format'] ) ) {
+					$export_format = sanitize_key( $core_prefs['export']['admin_format'] );
+				}
+
+				// Localize script with data
+				$mycred_logs_data = apply_filters(
+					'mycred_logs_localized_data',
+					array(
+						'ajaxurl'         => admin_url( 'admin-ajax.php' ),
+						'nonce'           => wp_create_nonce( 'mycred-logs-nonce' ),
+						'updateNonce'     => wp_create_nonce( 'mycred-update-log-entry' ),
+						'deleteNonce'     => wp_create_nonce( 'mycred-delete-log-entry' ),
+						'bulkDeleteNonce' => wp_create_nonce( 'mycred-bulk-delete-log-entries' ),
+						'pointType'       => $this->mycred_type,
+						'pointTypes'      => $point_types,
+						'mainSlug'        => MYCRED_SLUG,
+						'screenId'        => $screen->id,
+						'exportEnabled'   => $export_enabled,
+						'exportFormat'    => $export_format,
+						'extraColumns'    => array(),
+						'labels'          => array(
+							'singular' => $this->core->singular(),
+							'plural'   => $this->core->plural(),
+						),
+					),
+					$this->mycred_type
+				);
+
+				wp_localize_script( 'mycred-logs-react-app', 'mycredLogsData', $mycred_logs_data );
+
+				// Hide legacy WP elements (Admin Title, Screen Options)
+				add_action( 'admin_head', function() {
+					echo '<style>
+						/* Hide legacy WP UI chrome */
+						#screen-meta-links, 
+						.wrap h1, 
+						.wp-heading-inline, 
+						.mycred-ui-info-btn, 
+						.notice-info, 
+						.update-nag, 
+						#wpfooter,
+						.page-title-action { 
+							display: none !important; 
+						}
+						
+						#myCRED-wrap.wrap {
+							width: 100% !important;
+							max-width: 100% !important;
+							margin: 0 !important;
+							padding: 0 20px !important;
+							box-sizing: border-box !important;
+							background: transparent !important;
+							border: none !important;
+							box-shadow: none !important;
+						}
+						#wpbody-content { padding-bottom: 0; }
+						#mycred-logs-ui-root {
+							width: 100%;
+							max-width: 100%;
+							box-sizing: border-box;
+						}
+						
+						/* Adjust header spacing */
+						.mycred-page-header { margin-bottom: 20px; }
+					</style>';
+				} );
+			}
+
 		}
 
 		/**
@@ -619,6 +757,8 @@ if ( ! class_exists( 'myCRED_Log_Module' ) ) :
 			// Security
 			if ( ! $this->core->user_is_point_editor() ) wp_die( 'Access Denied' );
 
+			mycred_render_admin_header();
+
 			$get_page = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : '';
 
 			$per_page             = mycred_get_user_meta( $this->current_user_id, 'mycred_epp_' . $get_page, '', true );
@@ -645,10 +785,12 @@ if ( ! class_exists( 'myCRED_Log_Module' ) ) :
 			$log->headers         = $this->log_columns;
 
 ?>
-<?php mycred_render_admin_header(); ?>
-<div class="mycred-promo-layout">
 <div class="wrap" id="myCRED-wrap">
-	<h1><?php esc_html_e( 'Log', 'mycred' ); if ( MYCRED_DEFAULT_LABEL === 'myCRED' ) : ?> <a href="http://codex.mycred.me/chapter-i/the-log/" class="mycred-ui-info-btn" target="_blank"><p><?php esc_html_e( 'Documentation', 'mycred' ); ?></p></a><?php endif; ?></h1>
+	<?php /* <h1><?php $this->page_title(); if ( MYCRED_DEFAULT_LABEL === 'myCRED' ) : ?> <a href="http://codex.mycred.me/chapter-i/the-log/" class="mycred-ui-info-btn" target="_blank"><p><?php esc_html_e( 'Documentation', 'mycred' ); ?></p></a><?php endif; ?></h1> */ ?>
+
+	<div id="mycred-logs-ui-root"></div>
+
+	<div id="mycred-legacy-logs-wrap" style="display:none;">
 <?php
 
 			// This requirement is only checked on activation. If the library is disabled
@@ -719,6 +861,7 @@ if ( ! class_exists( 'myCRED_Log_Module' ) ) :
 
 	<?php do_action( 'mycred_bottom_log_page', $this ); ?>
 
+	</div>
 </div>
 </div>
 <?php

@@ -131,7 +131,21 @@ export default function WidgetShell({
                         },
                     }}>
                         {design.showLogo && (
-                            <Box component="img" src={design.logoUrl || (assetsUrl + 'widget-logo.png')} alt="Logo" sx={{ height: 24, objectFit: 'contain', maxWidth: 100 }} />
+                            <Box
+                                component="img"
+                                src={design.logoUrl || (assetsUrl + 'widget-logo.png')}
+                                alt="Logo"
+                                sx={{
+                                    height: '24px !important',
+                                    maxHeight: '24px !important',
+                                    width: 'auto !important',
+                                    maxWidth: '100px !important',
+                                    objectFit: 'contain',
+                                    display: 'inline-block',
+                                    verticalAlign: 'middle',
+                                    flexShrink: 0,
+                                }}
+                            />
                         )}
                         <Typography sx={{ fontSize: '14px', fontWeight: 700, whiteSpace: 'nowrap', color: textColor }}>
                             {design.logoText || __('Rewards Hub', 'mycred')}

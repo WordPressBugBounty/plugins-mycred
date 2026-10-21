@@ -6,7 +6,6 @@ export const LUXURY_PRESET = {
     buttonColor: '#8B6F47',
     buttonTextColor: '#FFFFFF',
     navLayout: 'list',
-    showReferralOnHome: false,
     borderRadius: 12,
 };
 
@@ -18,7 +17,6 @@ export const MODERN_PRESET = {
     buttonColor: '#8B6F47',
     buttonTextColor: '#FFFFFF',
     navLayout: 'grid',
-    showReferralOnHome: false,
     borderRadius: 16,
 };
 

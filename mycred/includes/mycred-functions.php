@@ -2022,6 +2022,116 @@ if ( ! function_exists( 'mycred_is_installed' ) ) :
 endif;
 
 /**
+ * Whether the first-install onboarding / tour guide has been completed.
+ *
+ * Shared by AI onboarding and the Manual Setup tour. Once this option is set,
+ * neither screen should appear again.
+ *
+ * @since 2.9.6
+ * @return int|false Timestamp when completed, or false.
+ */
+if ( ! function_exists( 'mycred_is_tour_guide_completed' ) ) :
+	function mycred_is_tour_guide_completed() {
+
+		return mycred_get_option( 'mycred_tour_guide_completed', false );
+
+	}
+endif;
+
+/**
+ * Mark first-install onboarding / tour guide as completed.
+ *
+ * @since 2.9.6
+ * @return bool
+ */
+if ( ! function_exists( 'mycred_mark_tour_guide_completed' ) ) :
+	function mycred_mark_tour_guide_completed() {
+
+		if ( mycred_is_tour_guide_completed() ) {
+			return true;
+		}
+
+		mycred_delete_option( 'mycred_needs_onboarding' );
+
+		return mycred_update_option( 'mycred_tour_guide_completed', time() );
+
+	}
+endif;
+
+/**
+ * Whether the first-install onboarding wizard should still be shown.
+ *
+ * @since 2.9.6
+ * @return bool
+ */
+if ( ! function_exists( 'mycred_is_onboarding_pending' ) ) :
+	function mycred_is_onboarding_pending() {
+
+		if ( mycred_is_tour_guide_completed() ) {
+			return false;
+		}
+
+		if ( mycred_get_option( 'mycred_needs_onboarding', false ) ) {
+			return true;
+		}
+
+		return ! mycred_is_installed();
+
+	}
+endif;
+
+/**
+ * Enable every built-in myCred add-on.
+ *
+ * Used by Skip Setup during onboarding.
+ *
+ * @since 2.9.6
+ * @return bool
+ */
+if ( ! function_exists( 'mycred_enable_all_builtin_addons' ) ) :
+	function mycred_enable_all_builtin_addons() {
+
+		if ( ! defined( 'myCRED_MODULES_DIR' ) ) {
+			return false;
+		}
+
+		require_once myCRED_MODULES_DIR . 'mycred-module-addons.php';
+
+		if ( ! class_exists( 'myCRED_Addons_Module' ) ) {
+			return false;
+		}
+
+		$addons_module    = new myCRED_Addons_Module();
+		$installed_addons = $addons_module->get();
+
+		if ( empty( $installed_addons ) || ! is_array( $installed_addons ) ) {
+			return false;
+		}
+
+		$prefs = get_option( 'mycred_pref_addons', array() );
+		if ( ! is_array( $prefs ) ) {
+			$prefs = array();
+		}
+
+		$prefs['installed'] = $installed_addons;
+		$prefs['active']    = array_values( array_keys( $installed_addons ) );
+
+		if ( function_exists( 'mycred_update_option' ) ) {
+			mycred_update_option( 'mycred_pref_addons', $prefs );
+		} else {
+			update_option( 'mycred_pref_addons', $prefs );
+		}
+
+		if ( function_exists( 'mycred_sync_legacy_enabled_addons' ) ) {
+			mycred_sync_legacy_enabled_addons( $prefs['active'] );
+		}
+
+		return true;
+
+	}
+endif;
+
+/**
  * Maybe Install myCRED Table
  * Check to see if maybe the myCRED table needs to be installed.
  * @since 1.7.6
@@ -5156,46 +5266,69 @@ if ( ! function_exists( 'mycred_render_admin_header' ) ) :
 		$toolkit_pro_active = is_plugin_active( 'mycred-toolkit-pro/mycred-toolkit-pro.php' );
 
 		// Current date
-		$today = new DateTime( current_time( 'Y-m-d' ) );
-		$black_friday_end = new DateTime( '2025-12-10' ); // 10 Dec inclusive
+		$today            = new DateTime( current_time( 'Y-m-d' ) );
+		$black_friday_end = new DateTime( '2027-12-10' ); // 10 Dec inclusive
+		$is_black_friday  = ( $today <= $black_friday_end );
+
+		$page_title = get_admin_page_title();
+		if ( empty( $page_title ) ) {
+			$page_title = 'myCred';
+		}
+
+		$ask_ai_slug = defined( 'MYCRED_AI_ASSISTANT_PAGE' ) ? MYCRED_AI_ASSISTANT_PAGE : 'mycred-ai-assistant';
+		$ask_ai_url  = admin_url( 'admin.php?page=' . $ask_ai_slug );
+		
+		$is_ai_page  = isset( $_GET['page'] ) && sanitize_key( wp_unslash( $_GET['page'] ) ) === $ask_ai_slug;
+
+		$pro_url = $is_black_friday
+			? 'https://mycred.me/pricing/?utm_source=plugin&utm_medium=header_pro_btn_bf'
+			: 'https://mycred.me/pricing/?utm_source=plugin&utm_medium=header_pro_btn';
+		$pro_gem_url = plugins_url( 'assets/images/supercharge-pro-gem.svg', myCRED_THIS );
 
 		?>
 		<div class="mycred-page-header">
 			<div class="mycred-page-header-content">
-				
-				<div class="mycred-page-header-logo">
-					<img src="<?php echo esc_url( plugins_url( 'assets/images/mycred-logo.svg', myCRED_THIS ) ); ?>" alt="myCRED" />
+
+				<div class="mycred-page-header-brand">
+					<img
+						class="mycred-page-header-mascot"
+						src="<?php echo esc_url( plugins_url( 'assets/images/mycred-mascot.svg', myCRED_THIS ) ); ?>"
+						alt="<?php echo esc_attr__( 'myCred', 'mycred' ); ?>"
+						width="36"
+						height="36"
+					/>
+					<h1 class="mycred-page-header-title"><?php echo esc_html( $page_title ); ?></h1>
 				</div>
 
-				<?php 
-				// If toolkit NOT active
-				if ( ! $toolkit_pro_active ) : 
-
-					// Show Black Friday until 10 Dec
-					if ( $today <= $black_friday_end ) : ?>
-						
-						<div class="mycred-page-header-actions">
-						<p style=" padding: 0 22px; margin: 0; text-align: right">
-						<strong style="position: relative; font-weight: bold;" class="masked-text">🎉 Black Friday Sale is On!</strong><br>Grab the biggest deals of the year before they’re gone!
-						</p>
-							<a href="https://mycred.me/pricing/?utm_source=plugin&utm_medium=header_pro_btn_bf" 
-							target="_blank" class="mycred-page-header-upgrade-btn">
-								<span>Black Friday Deals</span>
-							</a>
-						</div>
-
-					<?php else : ?>
-
-						<div class="mycred-page-header-actions">
-							<a href="https://mycred.me/pricing/?utm_source=plugin&utm_medium=header_pro_btn" 
-							target="_blank" class="mycred-page-header-upgrade-btn">
-								<span><?php esc_html_e( 'Upgrade Now', 'mycred' ); ?></span>
-							</a>
-						</div>
-
+				<div class="mycred-page-header-actions">
+					<?php if ( ! $is_ai_page ) : ?>
+					<a
+						href="<?php echo esc_url( $ask_ai_url ); ?>"
+						class="mycred-page-header-secondary-btn"
+					>
+						<span class="mycred-page-header-secondary-icon" aria-hidden="true">✦</span>
+						<span class="mycred-page-header-secondary-text"><?php esc_html_e( 'Ask AI', 'mycred' ); ?></span>
+					</a>
 					<?php endif; ?>
-
-				<?php endif; ?>
+					
+					<?php if ( ! $toolkit_pro_active ) : ?>
+						<a
+							href="<?php echo esc_url( $pro_url ); ?>"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="mycred-page-header-pro-btn"
+						>
+							<span class="mycred-page-header-pro-inner">
+								<svg class="mycred-page-header-pro-gem" width="18" height="18" focusable="false" aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="margin-right:8px;">
+									<path d="M9.19 6.35c-2.04 2.29-3.44 5.58-3.57 5.89L2 10.69l4.05-4.05c.47-.47 1.15-.68 1.81-.55zM11.17 17s3.74-1.55 5.89-3.7c5.4-5.4 4.5-9.62 4.21-10.57-.95-.3-5.17-1.19-10.57 4.21C8.55 9.09 7 12.83 7 12.83zm6.48-2.19c-2.29 2.04-5.58 3.44-5.89 3.57L13.31 22l4.05-4.05c.47-.47.68-1.15.55-1.81zM9 18c0 .83-.34 1.58-.88 2.12C6.94 21.3 2 22 2 22s.7-4.94 1.88-6.12C4.42 15.34 5.17 15 6 15c1.66 0 3 1.34 3 3m4-9c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2"></path>
+								</svg>
+								<span class="mycred-page-header-pro-copy">
+									<?php esc_html_e( 'Upgrade to Pro', 'mycred' ); ?>
+								</span>
+							</span>
+						</a>
+					<?php endif; ?>
+				</div>
 
 			</div>
 		</div>

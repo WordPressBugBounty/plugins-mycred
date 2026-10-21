@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { ThemeProvider } from "@mui/material/styles";
 import { __ } from "@wordpress/i18n";
+import { getAddonsTheme } from "./theme";
 import "./styles/addons-page.css";
 import Notification, { showToast } from "./components/Notification";
 
@@ -68,6 +70,7 @@ const getInitialUserPlan = () => {
 };
 
 const App = () => {
+  const theme = useMemo(() => getAddonsTheme(), []);
   const [initialLoading, setInitialLoading] = useState(false);
   const [cardLoading, setCardLoading] = useState(new Set());
   const [Addons, setAddons] = useState(getInitialActiveSlugs);
@@ -402,6 +405,7 @@ const App = () => {
   };
 
   return (
+    <ThemeProvider theme={theme}>
     <>
       <div className="mycred-addons-wrap">
         <div className="mycred-addons-shell">
@@ -458,6 +462,7 @@ const App = () => {
       <UpgradeDialog open={open} handleClose={handleClose} />
       <Notification />
     </>
+    </ThemeProvider>
   );
 };
 

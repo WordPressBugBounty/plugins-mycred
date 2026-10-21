@@ -27,21 +27,14 @@ dayjs.extend(customParseFormat);
 import { saveSectionSettings } from '../services/api';
 import { toast } from 'react-hot-toast';
 import ToggleSwitch from '../components/admin/ToggleSwitch';
-
-const SectionHeader = ({ icon: Icon, title, desc, action }) => (
-    <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                <Icon sx={{ color: '#5E2CED', fontSize: 20 }} />
-                <Typography sx={{ fontSize: '18px', fontWeight: 600, color: '#1a1a1a' }}>{title}</Typography>
-            </Box>
-            {desc && <Typography sx={{ fontSize: '14px', color: '#666' }}>{desc}</Typography>}
-        </Box>
-        {action && <Box>{action}</Box>}
-    </Box>
-);
+import SectionHeader from '../components/admin/SectionHeader';
+import SettingsCard from '../components/admin/SettingsCard';
+import { useRegisterSaveActions } from '../context/SaveActionsContext';
+import { useAdminTheme } from '../../../../src/shared/adminTheme/AdminThemeProvider';
+import { getTabContentSx, getFormStackSx, getFieldLabelSx, getTextFieldSx, getSelectSx, getSecondaryTextSx } from '../components/admin/formStyles';
 
 export default function GeneralSettings() {
+    const { colors } = useAdminTheme();
     const initialSettings = window.mycredLoyaltyWidgetData?.settings?.general || {};
 
     const parseTime = (timeStr, fallback) => {
@@ -117,12 +110,18 @@ export default function GeneralSettings() {
         }
     };
 
+    useRegisterSaveActions({
+        onSave: handleSave,
+        loading,
+        label: __('Update Settings', 'mycred'),
+    });
+
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Box sx={{ p: 4 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Box sx={getTabContentSx()}>
+                <Box sx={getFormStackSx()}>
                     {/* Enable Widget */}
-                    <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+                    <SettingsCard>
                         <SectionHeader
                             icon={SettingsIcon}
                             title={__('Enable Widget', 'mycred')}
@@ -137,10 +136,10 @@ export default function GeneralSettings() {
                                 onChange={(e) => handleChange('enableWidget', e.target.checked)}
                             />
                         </Box>
-                    </Paper>
+                    </SettingsCard>
 
                     {/* Widget Visibility */}
-                    <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+                    <SettingsCard>
                         <SectionHeader
                             icon={SettingsIcon}
                             title={__('Widget Visibility', 'mycred')}
@@ -150,28 +149,7 @@ export default function GeneralSettings() {
                             <Select
                                 value={settings.visibility}
                                 onChange={(e) => handleChange('visibility', e.target.value)}
-                                sx={{
-                                    borderRadius: '10px',
-                                    height: 40,
-                                    '& .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: '#E6E0F8 !important',
-                                        borderWidth: '1px !important',
-                                    },
-                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: '#5E2CED !important',
-                                        borderWidth: '1px !important',
-                                    },
-                                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: '#D9D0FF !important',
-                                    },
-                                    '& .MuiSelect-select': {
-                                        padding: '10px 12px',
-                                        fontSize: '14px',
-                                        boxShadow: 'none !important',
-                                        outline: 'none !important',
-                                        backgroundColor: 'transparent !important',
-                                    }
-                                }}
+                                sx={getSelectSx(colors)}
                             >
                                 <MenuItem value="all">{__('Show to All Users', 'mycred')}</MenuItem>
                                 <MenuItem value="logged_in">{__('Logged-in Users Only', 'mycred')}</MenuItem>
@@ -181,7 +159,7 @@ export default function GeneralSettings() {
                         </FormControl>
                         {settings.visibility === 'roles' && (
                             <FormControl fullWidth size="small">
-                                <Typography sx={{ fontSize: '13px', fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                                <Typography sx={{ ...getFieldLabelSx(colors), fontSize: '13px', mb: 1 }}>
                                     {__('Select Roles', 'mycred')}
                                 </Typography>
                                 <Select
@@ -192,27 +170,7 @@ export default function GeneralSettings() {
                                         const r = availableRoles.find(ar => ar.key === k);
                                         return r ? r.name : k;
                                     }).join(', ')}
-                                    sx={{
-                                        borderRadius: '10px',
-                                        '& .MuiOutlinedInput-notchedOutline': {
-                                            borderColor: '#E6E0F8 !important',
-                                            borderWidth: '1px !important',
-                                        },
-                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                            borderColor: '#5E2CED !important',
-                                            borderWidth: '1px !important',
-                                        },
-                                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                                            borderColor: '#D9D0FF !important',
-                                        },
-                                        '& .MuiSelect-select': {
-                                            padding: '10px 12px',
-                                            fontSize: '14px',
-                                            boxShadow: 'none !important',
-                                            outline: 'none !important',
-                                            backgroundColor: 'transparent !important',
-                                        }
-                                    }}
+                                    sx={getSelectSx(colors)}
                                 >
                                     {availableRoles.map((role) => (
                                         <MenuItem key={role.key} value={role.key}>
@@ -223,10 +181,10 @@ export default function GeneralSettings() {
                                 </Select>
                             </FormControl>
                         )}
-                    </Paper>
+                    </SettingsCard>
 
                     {/* Widget Position */}
-                    <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+                    <SettingsCard>
                         <SectionHeader
                             icon={SettingsIcon}
                             title={__('Widget Position', 'mycred')}
@@ -236,11 +194,11 @@ export default function GeneralSettings() {
                                     size="small"
                                     startIcon={<RestartAltIcon />}
                                     onClick={handleResetPosition}
-                                    sx={{ 
-                                        color: '#666', 
+                                    sx={{
+                                        color: colors.textSecondary,
                                         textTransform: 'none',
                                         fontSize: '13px',
-                                        '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' }
+                                        '&:hover': { bgcolor: colors.hover },
                                     }}
                                 >
                                     {__('Reset Position', 'mycred')}
@@ -251,28 +209,7 @@ export default function GeneralSettings() {
                             <Select
                                 value={settings.widgetPosition}
                                 onChange={(e) => handleChange('widgetPosition', e.target.value)}
-                                sx={{
-                                    borderRadius: '10px',
-                                    height: 40,
-                                    '& .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: '#E6E0F8 !important',
-                                        borderWidth: '1px !important',
-                                    },
-                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: '#5E2CED !important',
-                                        borderWidth: '1px !important',
-                                    },
-                                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: '#D9D0FF !important',
-                                    },
-                                    '& .MuiSelect-select': {
-                                        padding: '10px 12px',
-                                        fontSize: '14px',
-                                        boxShadow: 'none !important',
-                                        outline: 'none !important',
-                                        backgroundColor: 'transparent !important',
-                                    }
-                                }}
+                                sx={getSelectSx(colors)}
                             >
                                 <MenuItem value="bottom-right">{__('Bottom Right', 'mycred')}</MenuItem>
                                 <MenuItem value="bottom-left">{__('Bottom Left', 'mycred')}</MenuItem>
@@ -283,7 +220,7 @@ export default function GeneralSettings() {
 
                         <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
                             <Box sx={{ flex: 1 }}>
-                                <Typography sx={{ fontSize: '14px', fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                                <Typography sx={{ ...getFieldLabelSx(colors), mb: 1 }}>
                                     {__('Top Margin (px)', 'mycred')}
                                 </Typography>
                                 <TextField
@@ -292,36 +229,11 @@ export default function GeneralSettings() {
                                     type="number"
                                     value={settings.marginTop}
                                     onChange={(e) => handleChange('marginTop', parseInt(e.target.value) || 0)}
-                                    sx={{ 
-                                        '& .MuiOutlinedInput-root': { 
-                                            height: 40,
-                                            borderRadius: '10px',
-                                            backgroundColor: '#fff !important',
-                                            '& fieldset': {
-                                                borderColor: '#E6E0F8 !important',
-                                                borderWidth: '1px !important',
-                                            },
-                                            '&:hover fieldset': {
-                                                borderColor: '#D9D0FF !important',
-                                            },
-                                            '&.Mui-focused fieldset': {
-                                                borderColor: '#5E2CED !important',
-                                                borderWidth: '1px !important',
-                                            },
-                                            '& .MuiOutlinedInput-input': {
-                                                padding: '10px 12px',
-                                                fontSize: '14px',
-                                                boxShadow: 'none !important',
-                                                outline: 'none !important',
-                                                border: 'none !important',
-                                                backgroundColor: 'transparent !important',
-                                            }
-                                        }
-                                    }}
+                                    sx={getTextFieldSx(colors)}
                                 />
                             </Box>
                             <Box sx={{ flex: 1 }}>
-                                <Typography sx={{ fontSize: '14px', fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                                <Typography sx={{ ...getFieldLabelSx(colors), mb: 1 }}>
                                     {__('Right Margin (px)', 'mycred')}
                                 </Typography>
                                 <TextField
@@ -330,36 +242,11 @@ export default function GeneralSettings() {
                                     type="number"
                                     value={settings.marginRight}
                                     onChange={(e) => handleChange('marginRight', parseInt(e.target.value) || 0)}
-                                    sx={{ 
-                                        '& .MuiOutlinedInput-root': { 
-                                            height: 40,
-                                            borderRadius: '10px',
-                                            backgroundColor: '#fff !important',
-                                            '& fieldset': {
-                                                borderColor: '#E6E0F8 !important',
-                                                borderWidth: '1px !important',
-                                            },
-                                            '&:hover fieldset': {
-                                                borderColor: '#D9D0FF !important',
-                                            },
-                                            '&.Mui-focused fieldset': {
-                                                borderColor: '#5E2CED !important',
-                                                borderWidth: '1px !important',
-                                            },
-                                            '& .MuiOutlinedInput-input': {
-                                                padding: '10px 12px',
-                                                fontSize: '14px',
-                                                boxShadow: 'none !important',
-                                                outline: 'none !important',
-                                                border: 'none !important',
-                                                backgroundColor: 'transparent !important',
-                                            }
-                                        }
-                                    }}
+                                    sx={getTextFieldSx(colors)}
                                 />
                             </Box>
                             <Box sx={{ flex: 1 }}>
-                                <Typography sx={{ fontSize: '14px', fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                                <Typography sx={{ ...getFieldLabelSx(colors), mb: 1 }}>
                                     {__('Bottom Margin (px)', 'mycred')}
                                 </Typography>
                                 <TextField
@@ -368,36 +255,11 @@ export default function GeneralSettings() {
                                     type="number"
                                     value={settings.marginBottom}
                                     onChange={(e) => handleChange('marginBottom', parseInt(e.target.value) || 0)}
-                                    sx={{ 
-                                        '& .MuiOutlinedInput-root': { 
-                                            height: 40,
-                                            borderRadius: '10px',
-                                            backgroundColor: '#fff !important',
-                                            '& fieldset': {
-                                                borderColor: '#E6E0F8 !important',
-                                                borderWidth: '1px !important',
-                                            },
-                                            '&:hover fieldset': {
-                                                borderColor: '#D9D0FF !important',
-                                            },
-                                            '&.Mui-focused fieldset': {
-                                                borderColor: '#5E2CED !important',
-                                                borderWidth: '1px !important',
-                                            },
-                                            '& .MuiOutlinedInput-input': {
-                                                padding: '10px 12px',
-                                                fontSize: '14px',
-                                                boxShadow: 'none !important',
-                                                outline: 'none !important',
-                                                border: 'none !important',
-                                                backgroundColor: 'transparent !important',
-                                            }
-                                        }
-                                    }}
+                                    sx={getTextFieldSx(colors)}
                                 />
                             </Box>
                             <Box sx={{ flex: 1 }}>
-                                <Typography sx={{ fontSize: '14px', fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                                <Typography sx={{ ...getFieldLabelSx(colors), mb: 1 }}>
                                     {__('Left Margin (px)', 'mycred')}
                                 </Typography>
                                 <TextField
@@ -406,39 +268,14 @@ export default function GeneralSettings() {
                                     type="number"
                                     value={settings.marginLeft}
                                     onChange={(e) => handleChange('marginLeft', parseInt(e.target.value) || 0)}
-                                    sx={{ 
-                                        '& .MuiOutlinedInput-root': { 
-                                            height: 40,
-                                            borderRadius: '10px',
-                                            backgroundColor: '#fff !important',
-                                            '& fieldset': {
-                                                borderColor: '#E6E0F8 !important',
-                                                borderWidth: '1px !important',
-                                            },
-                                            '&:hover fieldset': {
-                                                borderColor: '#D9D0FF !important',
-                                            },
-                                            '&.Mui-focused fieldset': {
-                                                borderColor: '#5E2CED !important',
-                                                borderWidth: '1px !important',
-                                            },
-                                            '& .MuiOutlinedInput-input': {
-                                                padding: '10px 12px',
-                                                fontSize: '14px',
-                                                boxShadow: 'none !important',
-                                                outline: 'none !important',
-                                                border: 'none !important',
-                                                backgroundColor: 'transparent !important',
-                                            }
-                                        }
-                                    }}
+                                    sx={getTextFieldSx(colors)}
                                 />
                             </Box>
                         </Box>
-                    </Paper>
+                    </SettingsCard>
 
                     {/* Date Range */}
-                    <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+                    <SettingsCard>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                             <Box sx={{ flex: 1 }}>
                                 <SectionHeader
@@ -466,7 +303,7 @@ export default function GeneralSettings() {
                         }}>
                             <Box sx={{ display: 'flex', gap: 3 }}>
                                 <Box sx={{ flex: 1 }}>
-                                    <Typography sx={{ fontSize: '14px', fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                                    <Typography sx={{ ...getFieldLabelSx(colors), mb: 1 }}>
                                         {__('Start Date', 'mycred')}
                                     </Typography>
                                     <DatePicker
@@ -477,38 +314,13 @@ export default function GeneralSettings() {
                                             textField: {
                                                 fullWidth: true,
                                                 size: 'small',
-                                                sx: { 
-                                                    '& .MuiOutlinedInput-root': { 
-                                                        height: 40,
-                                                        borderRadius: '10px',
-                                                        backgroundColor: '#fff !important',
-                                                        '& fieldset': {
-                                                            borderColor: '#E6E0F8 !important',
-                                                            borderWidth: '1px !important',
-                                                        },
-                                                        '&:hover fieldset': {
-                                                            borderColor: '#D9D0FF !important',
-                                                        },
-                                                        '&.Mui-focused fieldset': {
-                                                            borderColor: '#5E2CED !important',
-                                                            borderWidth: '1px !important',
-                                                        },
-                                                        '& .MuiOutlinedInput-input': {
-                                                            padding: '10px 12px',
-                                                            fontSize: '14px',
-                                                            boxShadow: 'none !important',
-                                                            outline: 'none !important',
-                                                            border: 'none !important',
-                                                            backgroundColor: 'transparent !important',
-                                                        }
-                                                    }
-                                                }
+                                                sx: getTextFieldSx(colors),
                                             }
                                         }}
                                     />
                                 </Box>
                                 <Box sx={{ flex: 1 }}>
-                                    <Typography sx={{ fontSize: '14px', fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                                    <Typography sx={{ ...getFieldLabelSx(colors), mb: 1 }}>
                                         {__('Start Time', 'mycred')}
                                     </Typography>
                                     <TimePicker
@@ -519,19 +331,7 @@ export default function GeneralSettings() {
                                             textField: {
                                                 fullWidth: true,
                                                 size: 'small',
-                                                sx: { 
-                                                    '& .MuiOutlinedInput-root': { 
-                                                        borderRadius: '8px',
-                                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                                            borderColor: '#5E2CED !important',
-                                                            borderWidth: '1px !important',
-                                                        }
-                                                    },
-                                                    '& input:focus': {
-                                                        outline: 'none !important',
-                                                        boxShadow: 'none !important',
-                                                    }
-                                                }
+                                                sx: getTextFieldSx(colors, { borderRadius: '8px' }),
                                             }
                                         }}
                                     />
@@ -542,7 +342,7 @@ export default function GeneralSettings() {
 
                             <Box sx={{ display: 'flex', gap: 3 }}>
                                 <Box sx={{ flex: 1 }}>
-                                    <Typography sx={{ fontSize: '14px', fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                                    <Typography sx={{ ...getFieldLabelSx(colors), mb: 1 }}>
                                         {__('End Date', 'mycred')}
                                     </Typography>
                                     <DatePicker
@@ -554,25 +354,13 @@ export default function GeneralSettings() {
                                             textField: {
                                                 fullWidth: true,
                                                 size: 'small',
-                                                sx: { 
-                                                    '& .MuiOutlinedInput-root': { 
-                                                        borderRadius: '8px',
-                                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                                            borderColor: '#5E2CED !important',
-                                                            borderWidth: '1px !important',
-                                                        }
-                                                    },
-                                                    '& input:focus': {
-                                                        outline: 'none !important',
-                                                        boxShadow: 'none !important',
-                                                    }
-                                                }
+                                                sx: getTextFieldSx(colors, { borderRadius: '8px' }),
                                             }
                                         }}
                                     />
                                 </Box>
                                 <Box sx={{ flex: 1 }}>
-                                    <Typography sx={{ fontSize: '14px', fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                                    <Typography sx={{ ...getFieldLabelSx(colors), mb: 1 }}>
                                         {__('End Time', 'mycred')}
                                     </Typography>
                                     <TimePicker
@@ -583,52 +371,16 @@ export default function GeneralSettings() {
                                             textField: {
                                                 fullWidth: true,
                                                 size: 'small',
-                                                sx: { 
-                                                    '& .MuiOutlinedInput-root': { 
-                                                        borderRadius: '8px',
-                                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                                            borderColor: '#5E2CED !important',
-                                                            borderWidth: '1px !important',
-                                                        }
-                                                    },
-                                                    '& input:focus': {
-                                                        outline: 'none !important',
-                                                        boxShadow: 'none !important',
-                                                    }
-                                                }
+                                                sx: getTextFieldSx(colors, { borderRadius: '8px' }),
                                             }
                                         }}
                                     />
                                 </Box>
                             </Box>
                         </Box>
-                    </Paper>
+                    </SettingsCard>
                 </Box>
 
-                {/* Save Button */}
-                <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid #E0E0E0' }}>
-                    <Button
-                        variant="contained"
-                        startIcon={<SaveIcon />}
-                        disabled={loading}
-                        onClick={handleSave}
-                        sx={{
-                            bgcolor: '#5E2CED',
-                            color: '#fff',
-                            textTransform: 'none',
-                            px: 4,
-                            py: 1.25,
-                            fontSize: '14px',
-                            fontWeight: 600,
-                            borderRadius: '8px',
-                            '&:hover': {
-                                bgcolor: '#4E1CDD',
-                            }
-                        }}
-                    >
-                        {loading ? __('Saving...', 'mycred') : __('Save Settings', 'mycred')}
-                    </Button>
-                </Box>
             </Box>
         </LocalizationProvider>
     );

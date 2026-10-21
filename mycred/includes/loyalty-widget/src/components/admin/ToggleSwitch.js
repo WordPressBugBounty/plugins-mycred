@@ -1,7 +1,7 @@
 import { Switch } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
-/** Shared admin toggle — compact 32×16, purple active state (all settings tabs). */
+/** Shared admin toggle — uses MUI theme palette for light/dark support. */
 const ToggleSwitch = styled(Switch)(({ theme }) => ({
     width: 32,
     height: 16,
@@ -23,7 +23,7 @@ const ToggleSwitch = styled(Switch)(({ theme }) => ({
             color: '#fff',
             '& + .MuiSwitch-track': {
                 opacity: 1,
-                backgroundColor: '#5E2CED',
+                backgroundColor: theme.palette.primary.main,
             },
         },
     },
@@ -39,7 +39,6 @@ const ToggleSwitch = styled(Switch)(({ theme }) => ({
     '& .MuiSwitch-track': {
         borderRadius: 9.33,
         opacity: 1,
-        backgroundColor: '#E0E0E0',
         boxSizing: 'border-box',
     },
 }));

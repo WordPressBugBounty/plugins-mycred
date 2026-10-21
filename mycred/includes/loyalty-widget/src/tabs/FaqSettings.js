@@ -11,24 +11,27 @@ import { __ } from '@wordpress/i18n';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import SaveIcon from '@mui/icons-material/Save';
 import { toast } from 'react-hot-toast';
 import { usePreviewSettings } from '../context/PreviewSettingsContext';
 import { saveSectionSettings } from '../services/api';
-
-const SectionHeader = ({ icon: Icon, title, desc }) => (
-    <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-            <Icon sx={{ color: '#5E2CED', fontSize: 20 }} />
-            <Typography sx={{ fontSize: '18px', fontWeight: 600, color: '#1a1a1a' }}>{title}</Typography>
-        </Box>
-        {desc && <Typography sx={{ fontSize: '14px', color: '#666' }}>{desc}</Typography>}
-    </Box>
-);
+import SectionHeader from '../components/admin/SectionHeader';
+import SettingsCard from '../components/admin/SettingsCard';
+import { useRegisterSaveActions } from '../context/SaveActionsContext';
+import { useAdminTheme } from '../../../../src/shared/adminTheme/AdminThemeProvider';
+import {
+    getTabContentSx,
+    getFieldLabelSx,
+    getTextFieldSx,
+    getEmptyStateSx,
+    getFaqCardSx,
+    getAddButtonSx,
+    getSecondaryTextSx,
+} from '../components/admin/formStyles';
 
 const createFaqId = () => `faq_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
 export default function FaqSettings() {
+    const { colors } = useAdminTheme();
     const { faq, setFaq, updateFaq } = usePreviewSettings();
     const [loading, setLoading] = useState(false);
 
@@ -96,16 +99,22 @@ export default function FaqSettings() {
         }
     };
 
+    useRegisterSaveActions({
+        onSave: handleSave,
+        loading,
+        label: __('Update Settings', 'mycred'),
+    });
+
     return (
-        <Box sx={{ p: 4, maxWidth: 720 }}>
-            <Paper sx={{ p: 3, borderRadius: '12px', boxShadow: 'none', border: '1px solid #E0E0E0', mb: 3 }}>
+        <Box sx={getTabContentSx()}>
+            <SettingsCard sx={{ mb: 3 }}>
                 <SectionHeader
                     icon={HelpOutlineIcon}
                     title={__('FAQs', 'mycred')}
                     desc={__('Shown on the Modern template as a header pill. Visitors open a dedicated FAQ screen.', 'mycred')}
                 />
 
-                <Typography sx={{ fontSize: 14, fontWeight: 600, mb: 1, color: '#1a1a1a' }}>
+                <Typography sx={{ ...getFieldLabelSx(colors), mb: 1 }}>
                     {__('Screen title', 'mycred')}
                 </Typography>
                 <TextField
@@ -114,53 +123,29 @@ export default function FaqSettings() {
                     value={screenTitle}
                     onChange={(e) => handleTitleChange(e.target.value)}
                     placeholder={__('FAQs', 'mycred')}
-                    sx={{
-                        mb: 3,
-                        '& .MuiOutlinedInput-root': {
-                            borderRadius: '8px',
-                            height: '40px',
-                            '&.Mui-focused fieldset': { borderColor: '#5E2CED' },
-                        },
-                    }}
+                    sx={{ ...getTextFieldSx(colors, { borderRadius: '8px' }), mb: 3 }}
                 />
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     {items.length === 0 && (
-                        <Box
-                            sx={{
-                                p: 3,
-                                borderRadius: '12px',
-                                bgcolor: '#F8F6FF',
-                                border: '1px dashed #D9D0FF',
-                                textAlign: 'center',
-                            }}
-                        >
-                            <Typography sx={{ fontSize: 14, color: '#666' }}>
+                        <Box sx={getEmptyStateSx(colors)}>
+                            <Typography sx={getSecondaryTextSx(colors)}>
                                 {__('No FAQs yet. Add your first question below.', 'mycred')}
                             </Typography>
                         </Box>
                     )}
 
                     {items.map((item, index) => (
-                        <Paper
-                            key={item.id || index}
-                            sx={{
-                                p: 2.5,
-                                borderRadius: '12px',
-                                boxShadow: 'none',
-                                border: '1px solid #E8E4F5',
-                                bgcolor: '#fff',
-                            }}
-                        >
+                        <Paper key={item.id || index} sx={getFaqCardSx(colors)}>
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-                                <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#5E2CED' }}>
+                                <Typography sx={{ fontSize: 13, fontWeight: 700, color: colors.primary }}>
                                     {__('FAQ', 'mycred')} #{index + 1}
                                 </Typography>
                                 <IconButton size="small" onClick={() => handleRemove(item.id)} aria-label={__('Remove FAQ', 'mycred')}>
-                                    <DeleteOutlineIcon sx={{ fontSize: 20, color: '#999' }} />
+                                    <DeleteOutlineIcon sx={{ fontSize: 20, color: colors.textMuted }} />
                                 </IconButton>
                             </Box>
-                            <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.75, color: '#1a1a1a' }}>
+                            <Typography sx={{ ...getFieldLabelSx(colors), fontSize: 13, mb: 0.75 }}>
                                 {__('Question', 'mycred')}
                             </Typography>
                             <TextField
@@ -169,16 +154,9 @@ export default function FaqSettings() {
                                 value={item.title || ''}
                                 onChange={(e) => handleItemChange(item.id, 'title', e.target.value)}
                                 placeholder={__('How do I earn points?', 'mycred')}
-                                sx={{
-                                    mb: 2,
-                                    '& .MuiOutlinedInput-root': {
-                                        borderRadius: '8px',
-                                        height: '40px',
-                                        '&.Mui-focused fieldset': { borderColor: '#5E2CED' },
-                                    },
-                                }}
+                                sx={{ ...getTextFieldSx(colors, { borderRadius: '8px' }), mb: 2 }}
                             />
-                            <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.75, color: '#1a1a1a' }}>
+                            <Typography sx={{ ...getFieldLabelSx(colors), fontSize: 13, mb: 0.75 }}>
                                 {__('Answer', 'mycred')}
                             </Typography>
                             <TextField
@@ -188,12 +166,7 @@ export default function FaqSettings() {
                                 value={item.answer || ''}
                                 onChange={(e) => handleItemChange(item.id, 'answer', e.target.value)}
                                 placeholder={__('Complete actions listed under Earn to collect points.', 'mycred')}
-                                sx={{
-                                    '& .MuiOutlinedInput-root': {
-                                        borderRadius: '8px',
-                                        '&.Mui-focused fieldset': { borderColor: '#5E2CED' },
-                                    },
-                                }}
+                                sx={getTextFieldSx(colors, { borderRadius: '8px', height: 'auto' })}
                             />
                         </Paper>
                     ))}
@@ -202,43 +175,12 @@ export default function FaqSettings() {
                 <Button
                     startIcon={<AddIcon />}
                     onClick={handleAdd}
-                    sx={{
-                        mt: 2,
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        color: '#5E2CED',
-                        borderRadius: '8px',
-                        border: '1px dashed #D9D0FF',
-                        px: 2,
-                        py: 1,
-                        width: '100%',
-                        '&:hover': { bgcolor: 'rgba(94,44,237,0.04)', borderColor: '#5E2CED' },
-                    }}
+                    sx={getAddButtonSx(colors)}
                 >
                     {__('Add FAQ', 'mycred')}
                 </Button>
-            </Paper>
+            </SettingsCard>
 
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Button
-                    variant="contained"
-                    startIcon={<SaveIcon />}
-                    disabled={loading}
-                    onClick={handleSave}
-                    sx={{
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        bgcolor: '#5E2CED',
-                        borderRadius: '10px',
-                        px: 3,
-                        py: 1.25,
-                        boxShadow: 'none',
-                        '&:hover': { bgcolor: '#4B22C0', boxShadow: 'none' },
-                    }}
-                >
-                    {loading ? __('Saving…', 'mycred') : __('Save FAQs', 'mycred')}
-                </Button>
-            </Box>
         </Box>
     );
 }

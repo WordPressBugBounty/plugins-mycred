@@ -149,7 +149,16 @@ export const TrophyIllustration = ({ assetsUrl, size = 90, top = '68px', left = 
         component="img"
         src={assetsUrl + 'trophy.svg'}
         alt="Trophy"
-        sx={{ width: size, height: size, position: 'absolute', top, left }}
+        sx={{
+            width: `${size}px !important`,
+            height: `${size}px !important`,
+            maxWidth: `${size}px !important`,
+            maxHeight: `${size}px !important`,
+            position: 'absolute',
+            top,
+            left,
+            objectFit: 'contain',
+        }}
     />
 );
 
@@ -170,7 +179,13 @@ export const HeroIllustration = ({
                         component="img"
                         src={heroImageUrl}
                         alt=""
-                        sx={{ width: size, height: size, maxWidth: '100%', objectFit: 'contain' }}
+                        sx={{
+                            width: `${size}px !important`,
+                            height: `${size}px !important`,
+                            maxWidth: `${size}px !important`,
+                            maxHeight: `${size}px !important`,
+                            objectFit: 'contain',
+                        }}
                     />
                 </Box>
             );
@@ -180,7 +195,16 @@ export const HeroIllustration = ({
                 component="img"
                 src={heroImageUrl}
                 alt=""
-                sx={{ width: size, height: size, objectFit: 'contain', position: 'absolute', top, left }}
+                sx={{
+                    width: `${size}px !important`,
+                    height: `${size}px !important`,
+                    maxWidth: `${size}px !important`,
+                    maxHeight: `${size}px !important`,
+                    objectFit: 'contain',
+                    position: 'absolute',
+                    top,
+                    left,
+                }}
             />
         );
     }

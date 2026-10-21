@@ -266,7 +266,7 @@ if ( ! class_exists( 'myCRED_Caching_Module' ) ) :
 
 		<?php if ( $this->mycred_type == MYCRED_DEFAULT_TYPE_KEY ) : ?>
 		<div class="row">
-			<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+			<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
 				<div class="form-group mycred-optimization-cache-options">
 					<label class="mb-3"><?php esc_html_e( 'History', 'mycred' ); ?></label>
 					<div class="radio">
@@ -310,10 +310,10 @@ if ( ! class_exists( 'myCRED_Caching_Module' ) ) :
 						</label>
 					</div>
 					<hr class="mb-3 mt-3" />
-					<button type="button" data-cache="history" data-type="<?php echo esc_attr( $this->mycred_type ); ?>" class="button clear-type-cache-button"<?php if ( $this->caching['history'] == 'off' ) echo ' disabled="disabled"'; ?> id=""><?php esc_html_e( 'Clear Cache Now', 'mycred' ); ?></button>
+					<button type="button" data-cache="history" data-type="<?php echo esc_attr( $this->mycred_type ); ?>" class="button clear-type-cache-button"><?php esc_html_e( 'Clear Cache Now', 'mycred' ); ?></button>
 				</div>
 			</div>
-			<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+			<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
 				<div class="form-group mycred-optimization-cache-options">
 					<label class="mb-3"><?php esc_html_e( 'Leaderboards', 'mycred' ); ?></label>
 					<div class="radio">
@@ -355,10 +355,10 @@ if ( ! class_exists( 'myCRED_Caching_Module' ) ) :
 						</label>
 					</div>
 					<hr class="mb-3 mt-3" />
-					<button type="button" data-cache="leaderboards" data-type="<?php echo esc_attr( $this->mycred_type ); ?>" class="button clear-type-cache-button"<?php if ( $this->caching['leaderboards'] == 'off' ) echo ' disabled="disabled"'; ?> id=""><?php esc_html_e( 'Clear Cache Now', 'mycred' ); ?></button>
+					<button type="button" data-cache="leaderboards" data-type="<?php echo esc_attr( $this->mycred_type ); ?>" class="button clear-type-cache-button"><?php esc_html_e( 'Clear Cache Now', 'mycred' ); ?></button>
 				</div>
 			</div>
-			<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+			<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
 				<div class="form-group">
 					<label for="<?php echo esc_attr( $this->field_id( 'auto-delete' ) ); ?>"><?php esc_html_e( 'Auto Delete Log Entries', 'mycred' ); ?></label>
 					<?php if ( ! MYCRED_ENABLE_LOGGING ) : ?>
@@ -372,7 +372,7 @@ if ( ! class_exists( 'myCRED_Caching_Module' ) ) :
 		</div>
 		<?php else : ?>
 		<div class="row">
-			<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+			<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
 				<div class="form-group">
 					<label for="<?php echo esc_attr( $this->field_id( 'auto-delete' ) ); ?>"><?php esc_html_e( 'Auto Delete Log Entries', 'mycred' ); ?></label>
 					<?php if ( ! MYCRED_ENABLE_LOGGING ) : ?>
@@ -383,7 +383,7 @@ if ( ! class_exists( 'myCRED_Caching_Module' ) ) :
 					<?php endif; ?>
 				</div>
 			</div>
-			<div class="col-lg-8 col-md-8 col-sm-12 col-xs-12"></div>
+			<div class="col-lg-8 col-md-8 col-sm-8 col-xs-8"></div>
 		</div>
 		<?php endif; ?>
 

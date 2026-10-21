@@ -21,43 +21,141 @@ class myCRED_Tools {
 
 		add_action( 'wp_ajax_mycred-tools-select-user', array( $this, 'tools_select_user' ) );
 
-		if( isset( $_GET['page'] ) && $_GET['page'] == 'mycred-tools' )
+		if( isset( $_GET['page'] ) && $_GET['page'] == 'mycred-tools' ) {
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
+		}
 		
 	}
 
 	public function admin_enqueue_scripts() {
+		// Enqueue React app for Tools page
+		wp_enqueue_script(
+			'mycred-tools-react-app',
+			plugins_url('assets/build/tools.bundle.js', __DIR__),
+			array('wp-element'),
+			myCRED_VERSION,
+			true
+		);
 
-		wp_enqueue_script( MYCRED_SLUG . '-select2-script' );
+		// Get editable roles
+		$wp_roles = wp_roles();
+		$roles = array();
+		foreach ($wp_roles->roles as $role => $details) {
+			$roles[] = array(
+				'id' => $role,
+				'name' => $details['name']
+			);
+		}
 
-		wp_enqueue_style( MYCRED_SLUG . '-select2-style' );
+		// Get point types
+		$point_types = array();
+		foreach (mycred_get_types() as $key => $label) {
+			$point_types[] = array(
+				'id' => $key,
+				'name' => $label
+			);
+		}
 
-		wp_enqueue_script( MYCRED_SLUG . '-tools-script', plugins_url( 'assets/js/mycred-tools.js', __DIR__ ), 'jquery', myCRED_VERSION, true );
+		// Get badges
+		$badges = array();
+		if (class_exists('myCRED_Badge')) {
+			$badge_ids = mycred_get_badge_ids();
+			foreach ($badge_ids as $id) {
+				$badges[] = array(
+					'id' => $id,
+					'name' => get_the_title($id)
+				);
+			}
+		}
 
-		wp_localize_script( 
-			MYCRED_SLUG . '-tools-script',
-			'mycredTools',
+		// Get ranks
+		$ranks = array();
+		if (class_exists('myCRED_Ranks_Module')) {
+			foreach (mycred_get_types() as $key => $pt) {
+				if (mycred_manual_ranks($key)) {
+					$mycred_ranks = mycred_get_ranks('publish', '-1', 'ASC', $key);
+					foreach ($mycred_ranks as $value) {
+						$ranks[] = array(
+							'id' => $value->post->ID,
+							'name' => "{$value->post->post_title} ({$pt})"
+						);
+					}
+				}
+			}
+		}
+
+		// Get badge categories for setup export
+		$badge_categories = array();
+		if (class_exists('myCRED_Badge')) {
+			$categories = get_terms(array(
+				'taxonomy' => 'mycred_badge_category',
+				'hide_empty' => false,
+			));
+			if (!is_wp_error($categories)) {
+				foreach ($categories as $cat) {
+					$cat_badges = mycred_get_badges_by_term_id($cat->term_id);
+					$badges_list = array();
+					foreach ($cat_badges as $badge) {
+						$badges_list[] = array(
+							'id' => $badge->ID,
+							'name' => $badge->post_title
+						);
+					}
+					$badge_categories[] = array(
+						'id' => $cat->term_id,
+						'name' => $cat->name,
+						'badges' => $badges_list
+					);
+				}
+			}
+		}
+
+		$uncategorized_badges = array();
+		$has_uncategorized    = false;
+		if ( class_exists( 'myCRED_Tools_Import_Export' ) ) {
+			$import_export = new myCRED_Tools_Import_Export();
+			$uncat_rows    = $import_export->get_uncat_badge_ids();
+			if ( ! empty( $uncat_rows ) ) {
+				$has_uncategorized = true;
+				foreach ( $uncat_rows as $row ) {
+					$uncategorized_badges[] = array(
+						'id'   => (int) $row['ID'],
+						'name' => get_the_title( $row['ID'] ),
+					);
+				}
+			}
+		}
+
+		$is_toolkit_pro_active = false;
+		$active_plugins = (array) get_option( 'active_plugins', array() );
+		if ( in_array( 'mycred-toolkit-pro/mycred-toolkit-pro.php', $active_plugins, true ) || class_exists( 'MyCRED_Toolkit_Core_Pro' ) ) {
+			if ( file_exists( WP_PLUGIN_DIR . '/mycred-toolkit-pro/includes/mycred-toolkit-plan-check.php' ) || class_exists( 'MyCRED_Toolkit_Core_Pro' ) ) {
+				$is_toolkit_pro_active = true;
+			}
+		}
+
+		wp_localize_script(
+			'mycred-tools-react-app',
+			'mycredToolsData',
 			array(
-				'ajax_url' 			   =>	admin_url( 'admin-ajax.php' ),
-				'token'                =>	wp_create_nonce( 'mycred-tools' ),
-				'awardConfirmText'     =>	__( 'Do you really want to bulk award?', 'mycred' ),
-				'revokeConfirmText'    =>	__( 'Do you really want to bulk deduct?', 'mycred' ),
-				'successfullyAwarded'  =>	__( 'Successfully Awarded.', 'mycred' ),
-				'successfullyDeducted' =>	__( 'Successfully Deducted.', 'mycred' ),
-				'pointsRequired'	   =>	__( 'Points field is required.', 'mycred' ),
-				'logEntryRequired'	   =>	__( 'Log Entry is requried.', 'mycred' ),
-				'revokeConfirmText'	   =>	__( 'Do you really want to bulk revoke?', 'mycred' ),
-				'successfullyRevoked'  =>	__( 'Successfully Revoked.', 'mycred' ),
-				'userOrRoleIsRequired' =>	__( 'Username or Role field required.', 'mycred' ),
-				'tryLater'	           =>	__( 'Something went wrong try later.', 'mycred' ),
-				'selectPointType'	   =>	__( 'Please select point type.', 'mycred' ),
-				'accessDenied'	       =>	__( 'Access Denied', 'mycred' ),
-				'selectUser'	       =>	__( 'Please select atleast one user.', 'mycred' ),
-				'selectRank'	       =>	__( 'Please select rank.', 'mycred' ),
-				'badgesFieldRequried'  =>  __( 'Please select atleast one badge.', 'mycred' ),
+				'ajax_url' => admin_url('admin-ajax.php'),
+				'nonce' => wp_create_nonce('mycred-tools'),
+				'roles' => $roles,
+				'pointTypes' => $point_types,
+				'badges' => $badges,
+				'ranks' => $ranks,
+				'badgeCategories' => $badge_categories,
+				'uncategorizedBadges' => $uncategorized_badges,
+				'hasUncategorizedBadges' => $has_uncategorized,
+				'isRanksEnabled' => class_exists('myCRED_Ranks_Module'),
+				'isBadgesEnabled' => class_exists('myCRED_Badge'),
+				'isProActive' => $is_toolkit_pro_active,
+				'proDemoUrl' => 'https://mycred.me/demo/?utm_source=plugin&utm_medium=tools_sidebar',
+				'proPromoImageUrl' => plugins_url( 'assets/images/test.png', myCRED_THIS ),
+				'assetsUrl' => plugins_url('assets/images/', __DIR__),
+				'footerBgUrl' => plugins_url('src/pages/About/icons/footer-bg.svg', dirname(__FILE__)),
 			)
 		);
-		
 	}
 
 	/**
@@ -90,93 +188,27 @@ class myCRED_Tools {
 	 * @version 1.1
 	 */
 	public function tools_page() { 
-		
-		$import = get_mycred_tools_page_url( 'import', 'import-points' );
-		$export = get_mycred_tools_page_url( 'export', 'export-points' );
-
-		// $logs_cleanup = get_mycred_tools_page_url('logs-cleanup');
-		// $reset_data = get_mycred_tools_page_url('reset-data');
-		$import_page = array( 
-			'import-points', 
-			'import-badges', 
-			'import-ranks',
-			'import-setup'
-		);
-
-		$export_page = array( 
-			'export-points', 
-			'export-badges', 
-			'export-ranks',
-			'export-setup'
-		);
+		mycred_render_admin_header();
 		?>
-		<?php mycred_render_admin_header(); ?>
-		
-		<div class="" id="myCRED-wrap">
-			<div class="mycred-tools">
-				<h1>Tools</h1>
-			</div>
-			<div class="clear"></div>
-			<div class="mycred-tools-main-nav">
-				<ul class="subsubsub">
-					<li>
-						<a href="<?php echo esc_url( admin_url('admin.php?page=mycred-tools') ) ?>" class="<?php echo ( !isset( $_GET['import'] ) && !isset( $_GET['export'] ) ) ? 'current' : ''; ?>">Bulk Assign</a>|
-					</li>
-					<li>
-						<a href="<?php echo esc_url( $import ) ?>" class="<?php echo ( isset( $_GET['import'] ) && in_array( $_GET['import'], $import_page ) ) ? 'current' : ''; ?>">Import</a>
-					</li>
-					<li>
-						<a href="<?php echo esc_url( $export ) ?>" class="<?php echo ( isset( $_GET['export'] ) && in_array( $_GET['export'], $export_page ) ) ? 'current' : ''; ?>">Export</a>
-					</li>
-				</ul>
-				<div class="clear"></div>
-			</div>
-		<?php
-
-		if ( isset( $_GET['import'] ) ) {
-
-			if ( in_array( $_GET['import'], $import_page ) )
-			{ 
-				$mycred_tools_import_export = new myCRED_Tools_Import_Export();
-
-				$mycred_tools_import_export->get_header();
-			}
-		}
-
-		elseif ( isset( $_GET['export'] ) ) {
-
-			if ( in_array( $_GET['export'], $export_page ) )
-			{ 
-				$mycred_tools_import_export = new myCRED_Tools_Import_Export();
-
-				$mycred_tools_import_export->get_header();
-			}
-		}
-
-		elseif ( isset( $_GET['mycred-tools'] ) ) {
-			if ( $_GET['mycred-tools'] == 'logs-cleanup' ) { ?>
-				<h1>LOGS-CLEANUP</h1>
-				<?php
-			}
-		}
-
-		elseif ( isset( $_GET['mycred-tools'] ) ) 
-		{
-			if ( $_GET['mycred-tools'] == 'reset-data' ) { ?>
-				<h1>RESET-DATA</h1>
-				<?php
-			}
-		}
-		else
-		{
-
-			$mycred_tools_bulk_assign = new myCRED_Tools_Bulk_Assign();
-			$mycred_tools_bulk_assign->get_header();
-
-		}
-
-		?>
+		<div class="wrap" id="myCRED-wrap" style="width: 90% !important; max-width: 1440px !important; margin: 20px auto !important; padding: 0 !important; background: transparent !important; box-shadow: none !important; border: none !important;">
+			<div id="mycred-tools-ui-root"></div>
 		</div>
+		<style>
+			/* Hide legacy WP UI chrome */
+			#screen-meta-links,
+			.wrap h1,
+			.wp-heading-inline,
+			.notice-info,
+			.update-nag,
+			#wpfooter,
+			.page-title-action {
+				display: none !important;
+			}
+			#mycred-tools-ui-root {
+				width: 100%;
+				box-sizing: border-box;
+			}
+		</style>
 		<?php
 	}
 
@@ -228,35 +260,40 @@ class myCRED_Tools {
 
 		check_ajax_referer( 'mycred-tools', 'token' );
 
-		$user_count = count_users();
-        $user_count = $user_count['total_users'];
-        $total_ajax_request = ceil( $user_count / 100 );
-        $run_again = false;
+		$user_count         = count_users();
+		$user_count         = (int) $user_count['total_users'];
+		$total_ajax_request = (int) ceil( $user_count / 100 );
+		$run_again          = false;
 
-        $loop = isset( $_POST['loop'] ) ? $_POST['loop'] : '';
-        $offset = $loop * 100;
+		$loop   = isset( $_POST['loop'] ) ? absint( $_POST['loop'] ) : 0;
+		$offset = $loop * 100;
 
-        if ( $loop != $total_ajax_request ) {
-        	$run_again = true;
-        }
+		$award_to_all_users = isset( $_REQUEST['award_to_all_users'] )
+			&& sanitize_key( wp_unslash( $_REQUEST['award_to_all_users'] ) ) === 'true';
 
-		$this->response = array( 
+		// Selected users/roles are returned in full (no offset pagination).
+		// Only "award to all" uses batched loops of 100.
+		if ( $award_to_all_users ) {
+			$run_again = ( $loop + 1 ) < $total_ajax_request;
+		}
+
+		$this->response = array(
 			'success' => 'tryLater',
 		);
 
-		if( isset( $_REQUEST['selected_type'] ) ) {
+		if ( isset( $_REQUEST['selected_type'] ) ) {
 
 			$selected_type = sanitize_key( $_REQUEST['selected_type'] );
 
 			switch ( $selected_type ) {
 				case 'mycred-tools':
-					$this->process_points( $offset, $run_again, $user_count );
+					$this->process_points( $offset, $run_again, $user_count, $total_ajax_request );
 					break;
 				case 'ranks':
-					$this->process_ranks( $offset, $run_again, $user_count );
+					$this->process_ranks( $offset, $run_again, $user_count, $total_ajax_request );
 					break;
 				case 'badges':
-					$this->process_badges( $offset, $run_again, $user_count );
+					$this->process_badges( $offset, $run_again, $user_count, $total_ajax_request );
 					break;
 				default:
 					break;
@@ -269,7 +306,7 @@ class myCRED_Tools {
 
 	}
 
-	private function process_points( $offset = 0, $run_again = false , $user_count = 0 ) {
+	private function process_points( $offset = 0, $run_again = false , $user_count = 0, $total_ajax_request = 1 ) {
 
 		if ( ! isset( $_REQUEST['point_type'] ) ) {
 
@@ -337,14 +374,15 @@ class myCRED_Tools {
 		}
 
 		$this->response = array(
-			'success' => true,
-			'run_again' => $run_again,
-			'user_count' => $user_count
+			'success'            => true,
+			'run_again'          => $run_again,
+			'user_count'         => $user_count,
+			'total_ajax_request' => $total_ajax_request,
 		);
 
 	}
 
-	private function process_ranks( $offset = 0, $run_again = false , $user_count = 0 ) {
+	private function process_ranks( $offset = 0, $run_again = false , $user_count = 0, $total_ajax_request = 1 ) {
 
 		if( class_exists( 'myCRED_Ranks_Module' ) && mycred_manual_ranks() ) {
 
@@ -380,16 +418,17 @@ class myCRED_Tools {
 			}
 
 			$this->response = array(
-				'success' => true,
-				'run_again' => $run_again,
-				'user_count' => $user_count
+				'success'            => true,
+				'run_again'          => $run_again,
+				'user_count'         => $user_count,
+				'total_ajax_request' => $total_ajax_request,
 			);
 
 		}
 
 	}
 
-	private function process_badges( $offset = 0, $run_again = false , $user_count = 0 ) {
+	private function process_badges( $offset = 0, $run_again = false , $user_count = 0, $total_ajax_request = 1 ) {
 
 		$current_user_id = get_current_user_id();
 		$mycred          = mycred();
@@ -443,9 +482,10 @@ class myCRED_Tools {
 		}
 
 		$this->response = array(
-			'success' => true,
-			'run_again' => $run_again,
-			'user_count' => $user_count
+			'success'            => true,
+			'run_again'          => $run_again,
+			'user_count'         => $user_count,
+			'total_ajax_request' => $total_ajax_request,
 		);
 
 	}

@@ -81,139 +81,35 @@ if ( ! class_exists( 'myCRED_Connect_Membership' ) ) :
         }
 
          public function mycred_support_callback() {
+            wp_enqueue_script( 'mycred-support-react-app', plugins_url( 'assets/build/support.bundle.js', myCRED_THIS ), array( 'wp-element' ), myCRED_VERSION, true );
+            
+            wp_localize_script( 'mycred-support-react-app', 'mycredSupportData', array(
+                'logReferences' => mycred_get_all_references(),
+                'footerBgUrl'   => plugins_url( 'src/pages/About/icons/footer-bg.svg', myCRED_THIS ),
+            ) );
 
-            $references  = mycred_get_all_references();
+            mycred_render_admin_header();
             ?>
-            <?php mycred_render_admin_header(); ?>
-            <div class="wrap mycred-support-page-container">
-                <h1 class="wp-heading-inline">myCred Help and Support</h1>
-                <div class="mycred-support-page-content">
-                    <h2>About myCred:</h2>
-                    <p>myCred is an intelligent and adaptive points management system that allows you to build and manage a broad range of digital rewards including points, ranks and, badges on your WordPress-powered website.</p>
-                    <hr>
-                    <h2>Documentation:</h2>
-                    <p>For complete information about myCred and its collection of add-ons, visit the <a target="_blank" href="https://codex.mycred.me/?utm_source=plugin&utm_medium=support_page_doc">official documentation</a>.</p>
-                    <hr>
-                    <h2>Help/Support:</h2>
-                    <p>Connect with us for support or feature enhancements - myCred Support Forums or <a target="_blank" href="https://mycred.me/support/?utm_source=plugin&utm_medium=support_page_help">Open a support ticket</a>.</p>
-                    <hr>
-                    <h2>Suggestion:</h2>
-                    <p>If you have suggestions for myCred and their addons, feel free to add them <a target="_blank" href="https://app.loopedin.io/mycred">here</a>.</p>
-                    <hr>
-                    <h2>Add-ons</h2>
-                    <p> Power your WordPress website with 30+ myCred addons. Improve your website's functionality with our add-ons for store gateways, third-party bridges, and gamification. Enjoy the best that <a target="_blank" href="https://mycred.me/store/?utm_source=plugin&utm_medium=support_page_addons">myCred store</a> has to offer with our collection of add-ons that enable you to perform complex tasks such as buy or sell points in exchange for real money or create a points management system for your WooCommerce store.</p>
-                    <hr>
-                    <h2>Customization:</h2>
-                    <p>If you need to build a custom feature, simply <a href="https://mycred.me/customization-request/?utm_source=plugin&utm_medium=support_page_custom">submit a request</a> on our myCred website.</p>
-                    <hr>
-                    <h2>myCred Log References:</h2>
-                    <div class="row mycred-all-references-list">
-                        <?php foreach ( $references as $key => $entry ):?>   
-                        <div class="col-md-6 mb-2"><code><?php echo esc_html( $key );?></code> - <?php echo esc_html( $entry );?></div>
-                        <?php endforeach;?>
-                    </div>
-                </div>
-            </div>
-           <?php
+            <div id="mycred-support-ui-root"></div>
+            <?php
         }
 
         /**
          * Treasures menu callback
          */
-        public function mycred_treasures_callback() {?>
-            <?php mycred_render_admin_header(); ?>
-            <div class="wrap" id="myCRED-wrap">
-                <div class="mycred-addon-outer">    
-                    <div class="myCRED-addon-heading">
-                        <h1>Treasures </h1>
-                    </div>
-                    <div class="clear"></div>        
-                </div>
-                <div class="theme-browser">
-                    <div class="themes">
-                        <div class="theme active mycred-treasure-pack">
-                            <div class="mycred-treasure-pack-content">
-                                <img src="<?php echo esc_url( plugins_url( 'assets/images/treasures/badges.png', myCRED_THIS ) );?>" alt="Treasure Badges">
-                                <h3>Badges</h3>
-                                <p>40 unique and beautifully designed Badge designs available in Gold, Silver and Bronze.</p>
-                            </div>
-                            <div class="theme-id-container">
-                                <h2 class="theme-name">Get Info</h2>
-                                <div class="theme-actions">
-                                    <a href="https://mycred.me/treasure/badges/?utm_source=plugin&utm_medium=treasure_page" target="_blank" class="button button-primary mycred-action">Get this Asset</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="theme active mycred-treasure-pack">
-                            <div class="mycred-treasure-pack-content">
-                                <img src="<?php echo esc_url( plugins_url( 'assets/images/treasures/rank.png', myCRED_THIS ) );?>" alt="Treasure Ranks">
-                                <h3>Ranks</h3>
-                                <p>40 unique and beautifully designed virtual Ranks are available in Red, Silver and Gold.</p>
-                            </div>
-                            <div class="theme-id-container">
-                                <h2 class="theme-name">Get Info</h2>
-                                <div class="theme-actions">
-                                    <a href="https://mycred.me/treasure/ranks/?utm_source=plugin&utm_medium=treasure_page" target="_blank" class="button button-primary mycred-action">Get this Asset</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="theme active mycred-treasure-pack">
-                            <div class="mycred-treasure-pack-content">
-                                <img src="<?php echo esc_url( plugins_url( 'assets/images/treasures/currency.png', myCRED_THIS ) );?>" alt="Treasure Currencies">
-                                <h3>Currency</h3>
-                                <p>17 unique and beautifully designed Currency designs available in Gold, Silver & Bronze.</p>
-                            </div>
-                            <div class="theme-id-container">
-                                <h2 class="theme-name">Get Info</h2>
-                                <div class="theme-actions">
-                                    <a href="https://mycred.me/treasure/currency/?utm_source=plugin&utm_medium=treasure_page" target="_blank" class="button button-primary mycred-action">Get this Asset</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="theme active mycred-treasure-pack">
-                            <div class="mycred-treasure-pack-content">
-                                <img src="<?php echo esc_url( plugins_url( 'assets/images/treasures/learning.png', myCRED_THIS ) );?>" alt="Treasure Learning">
-                                <h3>Learning</h3>
-                                <p>30 unique and beautifully designed Learning icons are available in four different shapes.</p>
-                            </div>
-                            <div class="theme-id-container">
-                                <h2 class="theme-name">Get Info</h2>
-                                <div class="theme-actions">
-                                    <a href="https://mycred.me/treasure/learning/?utm_source=plugin&utm_medium=treasure_page" target="_blank" class="button button-primary mycred-action">Get this Asset</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="theme active mycred-treasure-pack">
-                            <div class="mycred-treasure-pack-content">
-                                <img src="<?php echo esc_url( plugins_url( 'assets/images/treasures/fitness.png', myCRED_THIS ) );?>" alt="Treasure Fitness">
-                                <h3>Fitness</h3>
-                                <p>30 unique and beautifully designed Fitness icons are available in three different shapes.</p>
-                            </div>
-                            <div class="theme-id-container">
-                                <h2 class="theme-name">Get Info</h2>
-                                <div class="theme-actions">
-                                    <a href="https://mycred.me/treasure/fitness/?utm_source=plugin&utm_medium=treasure_page" target="_blank" class="button button-primary mycred-action">Get this Asset</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="theme active mycred-treasure-pack">
-                            <div class="mycred-treasure-pack-content">
-                                <img src="<?php echo esc_url( plugins_url( 'assets/images/treasures/gems.png', myCRED_THIS ) );?>" alt="Treasure Gems">
-                                <h3>Gems</h3>
-                                <p>500 unique and beautifully designed gem icons are available in four different shapes.</p>
-                            </div>
-                            <div class="theme-id-container">
-                                <h2 class="theme-name">Get Info</h2>
-                                <div class="theme-actions">
-                                    <a href="https://mycred.me/treasure/gems/?utm_source=plugin&utm_medium=treasure_page" target="_blank" class="button button-primary mycred-action">Get this Asset</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="clear"></div>
-                    </div>
-                </div>
-            </div>        
-           <?php
+        public function mycred_treasures_callback() {
+            wp_enqueue_script( 'mycred-treasures-react-app', plugins_url( 'assets/build/treasures.bundle.js', myCRED_THIS ), array( 'wp-element' ), myCRED_VERSION, true );
+            
+            wp_localize_script( 'mycred-treasures-react-app', 'mycredTreasuresData', array(
+                'assetsUrl'   => plugins_url( 'assets/images/treasures/', myCRED_THIS ),
+                'footerBgUrl' => plugins_url( 'src/pages/About/icons/footer-bg.svg', myCRED_THIS ),
+                'ctaBlockUrl' => plugins_url( 'src/pages/About/icons/cta-block.svg', myCRED_THIS ),
+            ) );
+
+            mycred_render_admin_header();
+            ?>
+            <div id="mycred-treasures-ui-root"></div>
+            <?php
         }
 
     }

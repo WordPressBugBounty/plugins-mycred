@@ -1,0 +1,368 @@
+/**
+ * Freemius connect / opt-in screen — myCred admin theme overrides.
+ * Scoped to body.mycred-freemius-connect-page (activation only).
+ */
+
+body.mycred-freemius-connect-page,
+body.mycred-freemius-connect-page #wpcontent,
+body.mycred-freemius-connect-page #wpbody,
+body.mycred-freemius-connect-page #wpbody-content {
+	background: #f8f6ff !important;
+	font-family: "Figtree", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body.mycred-freemius-connect-page #screen-meta,
+body.mycred-freemius-connect-page #screen-meta-links,
+body.mycred-freemius-connect-page #wpfooter,
+body.mycred-freemius-connect-page .notice,
+body.mycred-freemius-connect-page .update-nag {
+	display: none !important;
+}
+
+body.mycred-freemius-connect-page #fs_connect {
+	float: none;
+	font-family: inherit;
+	margin: 48px auto 32px;
+	max-width: 600px;
+	width: 100%;
+}
+
+body.mycred-freemius-connect-page #fs_connect.wrap {
+	padding: 0;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-box-container {
+	background: #ffffff !important;
+	border: 1px solid #e5dff6;
+	border-radius: 12px;
+	box-shadow: 0 10px 40px rgba(45, 21, 114, 0.08);
+	overflow: hidden;
+	padding-top: 0 !important;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-header {
+	background: linear-gradient(180deg, #f8f6ff 0%, #ffffff 100%);
+	height: auto !important;
+	line-height: normal !important;
+	padding: 32px 28px 12px !important;
+	position: relative;
+	text-align: center;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-header .fs-plugin-icon {
+	background: #ffffff url("{{MYCRED_MASCOT_URL}}") center center / 56px 56px no-repeat;
+	border: 1px solid #e5dff6;
+	border-radius: 16px;
+	box-shadow: 0 4px 16px rgba(45, 21, 114, 0.08);
+	display: inline-block !important;
+	height: 96px !important;
+	left: auto !important;
+	margin: 0 auto !important;
+	overflow: hidden;
+	padding: 0 !important;
+	position: relative !important;
+	top: 0 !important;
+	width: 96px !important;
+	z-index: 1;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-header .fs-plugin-icon img {
+	height: 96px !important;
+	opacity: 0;
+	width: 96px !important;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-content {
+	background: #ffffff;
+	padding: 8px 32px 16px;
+	text-align: center;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-content h2 {
+	color: #2d1572;
+	font-family: inherit;
+	font-size: 22px;
+	font-weight: 700;
+	line-height: 1.35;
+	margin: 0 auto 12px;
+	max-width: 480px;
+	text-align: center !important;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-content p {
+	color: #6b57a1;
+	font-family: inherit;
+	font-size: 14px;
+	line-height: 1.6;
+	margin: 0 auto;
+	max-width: 480px;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-content a {
+	color: #8559ff;
+	text-decoration: none;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-content a:hover {
+	color: #6a47ff;
+	text-decoration: underline;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-content .fs-error {
+	background: #fff2f2;
+	border: 1px solid #f16060;
+	border-radius: 8px;
+	color: #f16060;
+	font-size: 13px;
+	margin: 0 auto 12px;
+	max-width: 480px;
+	padding: 10px 12px;
+	text-align: left;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-actions {
+	align-items: center;
+	background: #ffffff;
+	border-color: #e5dff6;
+	border-style: solid;
+	border-width: 1px 0 0;
+	display: flex;
+	flex-direction: row-reverse;
+	flex-wrap: wrap;
+	gap: 12px;
+	justify-content: center;
+	padding: 20px 32px;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-actions form {
+	margin: 0;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-actions .button {
+	align-items: center !important;
+	border-radius: 8px !important;
+	display: inline-flex !important;
+	float: none !important;
+	font-family: inherit !important;
+	font-size: 14px !important;
+	font-weight: 600 !important;
+	height: 40px !important;
+	justify-content: center !important;
+	line-height: 1 !important;
+	margin: 0 !important;
+	min-height: 40px !important;
+	padding: 0 24px !important;
+	text-shadow: none !important;
+	transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-actions .button.button-primary {
+	background: #5e2ced !important;
+	border: 1px solid #5e2ced !important;
+	box-shadow: none !important;
+	color: #ffffff !important;
+	min-width: 200px;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-actions .button.button-primary::after {
+	content: none !important;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-actions .button.button-primary:hover,
+body.mycred-freemius-connect-page #fs_connect .fs-actions .button.button-primary:focus {
+	background: #6a47ff !important;
+	border-color: #6a47ff !important;
+	color: #ffffff !important;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-actions .button.button-secondary,
+body.mycred-freemius-connect-page #fs_connect .fs-actions #skip_activation {
+	background: transparent !important;
+	border: 1px solid #ddd2f9 !important;
+	box-shadow: none !important;
+	color: #2d1572 !important;
+	min-width: 120px;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-actions .button.button-secondary:hover,
+body.mycred-freemius-connect-page #fs_connect .fs-actions #skip_activation:hover {
+	background: #f8f6ff !important;
+	border-color: #8559ff !important;
+	color: #2d1572 !important;
+}
+
+body.mycred-freemius-connect-page #fs_connect.fs-anonymous-disabled .fs-actions .button.button-primary {
+	width: auto;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-permissions {
+	background: #fcfbfe;
+	border-top: 1px solid #e5dff6;
+	margin: 0;
+	padding: 16px 32px 20px;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-permissions > .fs-trigger {
+	align-items: center;
+	background: #f2effb;
+	border: 1px solid #e5dff6;
+	border-radius: 8px;
+	color: #2d1572 !important;
+	display: flex;
+	font-size: 13px;
+	font-weight: 600;
+	justify-content: space-between;
+	padding: 12px 14px;
+	text-align: left;
+	text-decoration: none !important;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-permissions > .fs-trigger .button-link,
+body.mycred-freemius-connect-page #fs_connect .fs-permissions > .fs-trigger nobr {
+	color: #5e2ced !important;
+	font-weight: 700;
+	text-decoration: none !important;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-permissions > .fs-trigger .fs-arrow::after {
+	color: #8559ff;
+	content: "↓" !important;
+	display: inline-block;
+	font-weight: 700;
+	width: auto;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-permissions.fs-open > .fs-trigger .fs-arrow::after {
+	content: "↑" !important;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-permissions.fs-open {
+	background: #ffffff;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-permissions.fs-open ul {
+	height: auto !important;
+	margin: 12px 0 0 !important;
+	overflow: visible !important;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-permissions ul li {
+	border-bottom: 1px solid #ece8f6;
+	margin: 0;
+	padding: 14px 4px;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-permissions ul li:last-child {
+	border-bottom: none;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-permissions ul li > i.dashicons {
+	color: #8559ff;
+	float: left;
+	font-size: 28px;
+	height: 28px;
+	padding: 0;
+	width: 28px;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-permissions ul li .fs-permission-description {
+	margin-left: 48px;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-permissions ul li .fs-permission-description span {
+	color: #2d1572;
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-permissions ul li .fs-permission-description p {
+	color: #6b57a1;
+	font-size: 13px;
+	line-height: 1.5;
+	margin-top: 4px;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-permissions .fs-switch {
+	border-color: #ddd2f9 !important;
+	box-shadow: none !important;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-permissions .fs-switch.fs-on {
+	background: #5e2ced !important;
+	border-color: #5e2ced !important;
+	color: #ffffff !important;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-permissions .fs-switch.fs-off {
+	background: #ebe4ff !important;
+	border-color: #ddd2f9 !important;
+	color: #978abc !important;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-terms {
+	border-top: 1px solid #ece8f6;
+	color: #978abc;
+	font-size: 12px;
+	line-height: 1.6;
+	padding: 14px 24px 22px;
+	text-align: center;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-terms a {
+	color: #8559ff;
+	text-decoration: none;
+}
+
+body.mycred-freemius-connect-page #fs_connect .fs-terms a:hover {
+	color: #6a47ff;
+	text-decoration: underline;
+}
+
+body.mycred-freemius-connect-page #fs_connect #license_issues_link {
+	color: #8559ff;
+	display: block;
+	font-size: 13px;
+	margin-top: 8px;
+	text-align: center;
+	width: 100%;
+}
+
+@media screen and (max-width: 782px) {
+	body.mycred-freemius-connect-page #fs_connect {
+		margin: 24px 16px 32px;
+		max-width: none;
+		width: auto;
+	}
+
+	body.mycred-freemius-connect-page #fs_connect .fs-box-container {
+		box-shadow: 0 4px 20px rgba(45, 21, 114, 0.06);
+	}
+
+	body.mycred-freemius-connect-page #fs_connect .fs-header,
+	body.mycred-freemius-connect-page #fs_connect .fs-content,
+	body.mycred-freemius-connect-page #fs_connect .fs-actions,
+	body.mycred-freemius-connect-page #fs_connect .fs-permissions {
+		padding-left: 20px;
+		padding-right: 20px;
+	}
+
+	body.mycred-freemius-connect-page #fs_connect .fs-actions {
+		flex-direction: column;
+	}
+
+	body.mycred-freemius-connect-page #fs_connect .fs-actions form {
+		order: -1;
+		width: 100%;
+	}
+
+	body.mycred-freemius-connect-page #fs_connect .fs-actions .button,
+	body.mycred-freemius-connect-page #fs_connect .fs-actions #skip_activation {
+		min-width: 0;
+		width: 100%;
+	}
+
+	body.mycred-freemius-connect-page #fs_connect .fs-actions form .button {
+		width: 100%;
+	}
+}

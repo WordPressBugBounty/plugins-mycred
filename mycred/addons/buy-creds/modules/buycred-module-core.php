@@ -64,6 +64,29 @@ if ( ! class_exists( 'myCRED_buyCRED_Module' ) ) :
 
 			add_action( 'pre_get_comments',             array( $this, 'hide_buycred_transactions' ) );
 
+			add_action( 'rest_api_init',               array( $this, 'register_buycred_gateways_rest_routes' ) );
+			add_action( 'admin_enqueue_scripts',       array( $this, 'enqueue_react_gateways_scripts' ) );
+
+			add_filter( 'mycred_central_banking_ignore', array( $this, 'ignore_central_banking_for_buycred' ) );
+
+		}
+
+		/**
+		 * Ignore Central Banking for buyCred
+		 * buyCred real-money purchases should not be blocked if the central bank has no funds.
+		 */
+		public function ignore_central_banking_for_buycred( $ignored ) {
+			if ( ! is_array( $ignored ) ) {
+				$ignored = array();
+			}
+			$gateways = buycred_get_installed_gateways();
+			if ( ! empty( $gateways ) ) {
+				foreach ( $gateways as $gateway_id => $gateway ) {
+					$safe_id = str_replace( array( ' ', '-' ), '_', $gateway_id );
+					$ignored[] = 'buy_creds_with_' . $safe_id;
+				}
+			}
+			return $ignored;
 		}
 
 		/**
@@ -776,161 +799,12 @@ if ( ! class_exists( 'myCRED_buyCRED_Module' ) ) :
 			// Security
 			if ( ! $this->core->user_is_point_admin() ) wp_die( 'Access Denied' );
 
-			$installed = $this->get();
-
+			mycred_render_admin_header();
 ?>
-<?php mycred_render_admin_header(); ?>
-<div class="wrap mycred-metabox" id="myCRED-wrap">
-	<h1><?php esc_html_e( 'buyCred Payment Gateways', 'mycred' ); ?></h1>
-<?php
-
-			// Updated settings
-			if ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] == true )
-				echo wp_kses_post( '<div class="updated settings-error"><p>' . __( 'Settings Updated', 'mycred' ) . '</p></div>' );
-
-?>
-	<form method="post" action="options.php" class="form">
-
-		<?php settings_fields( $this->settings_name ); ?>
-
-		<?php do_action( 'mycred_before_buycreds_page', $this ); ?>
-
-		<div class="list-items expandable-li" id="accordion">
-<?php
-
-			if ( ! empty( $installed ) ) {
-				foreach ( $installed as $key => $data ) {
-
-					$has_documentation = ( array_key_exists( 'documentation', $data ) && ! empty( $data['documentation'] ) ) ? esc_url_raw( $data['documentation'] ) : false;
-					$has_test_mode     = ( array_key_exists( 'sandbox', $data ) ) ? (bool) $data['sandbox'] : false;
-					$sandbox_mode      = ( array_key_exists( $key, $this->gateway_prefs ) && array_key_exists( 'sandbox', $this->gateway_prefs[ $key ] ) && $this->gateway_prefs[ $key ]['sandbox'] === 1 ) ? true : false;
-
-					if ( ! array_key_exists( 'icon', $data ) )
-						$data['icon'] = 'dashicons-admin-plugins';
-
-					$column_class = 'col-lg-6 col-md-6 col-sm-12 col-xs-12';
-					if ( ! $has_documentation && ! $has_test_mode )
-						$column_class = 'col-lg-12 col-md-12 col-sm-12 col-xs-12';
-					elseif ( $has_documentation && $has_test_mode )
-						$column_class = 'col-lg-4 col-md-4 col-sm-12 col-xs-12';
-
-?>
-			<div class="mycred-ui-accordion">
-				<div class="mycred-ui-accordion-header">
-					<h4 class="mycred-ui-accordion-header-title">
-						<span class="dashicons <?php echo esc_attr( $data['icon'] ); ?><?php if ( $this->is_active( $key ) ) { if ( $sandbox_mode ) echo ' debug'; else echo ' active'; } else echo ' static'; ?> mycred-ui-accordion-header-icon"></span>
-						<label><?php echo esc_html( $this->core->template_tags_general( $data['title'] ) ); ?></label>
-					</h4>
-					<div class="mycred-ui-accordion-header-actions hide-if-no-js">
-						<button type="button" aria-expanded="true">
-							<span class="mycred-ui-toggle-indicator" aria-hidden="true"></span>
-						</button>
-					</div>
-				</div>
-				<div class="body mycred-ui-accordion-body" style="display: none;">
-
-					<div class="row">
-						<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-							<div class="form-group">
-								<div>&nbsp;</div>
-								<label for="buycred-gateway-<?php echo esc_attr( $key ); ?>"><input type="checkbox" name="mycred_pref_buycreds[active][]" id="buycred-gateway-<?php echo esc_attr( $key ); ?>" value="<?php echo esc_attr( $key ); ?>"<?php if ( $this->is_active( $key ) ) echo ' checked="checked"'; ?> /> <?php esc_html_e( 'Enable', 'mycred' ); ?></label>
-							</div>
-						</div>
-						<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-							<?php if ( $has_test_mode ) : ?>
-							<div class="form-group">
-								<div>&nbsp;</div>
-								<label for="buycred-gateway-<?php echo esc_attr( $key ); ?>-sandbox"><input type="checkbox" name="mycred_pref_buycreds[gateway_prefs][<?php echo esc_attr( $key ); ?>][sandbox]" id="buycred-gateway-<?php echo esc_attr( $key ); ?>-sandbox" value="<?php echo esc_attr( $key ); ?>"<?php if ( $sandbox_mode ) echo ' checked="checked"'; ?> /> <?php esc_html_e( 'Sandbox Mode', 'mycred' ); ?></label>
-							</div>
-							<?php endif; ?>
-						</div>
-						<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" style="text-align: right;">
-							<?php if ( MYCRED_DEFAULT_LABEL === 'myCRED' && $has_documentation ) : ?>
-							<div class="form-group">
-								<div>&nbsp;</div>
-								<a href="<?php echo esc_url( $has_documentation ); ?>" target="_blank"><?php esc_html_e( 'Documentation', 'mycred' ); ?></a>
-							</div>
-							<?php endif; ?>
-						</div>
-					</div>
-					<hr />
-					<br />
-
-					<?php $this->call( 'preferences', $data['callback'] ); ?>
-
-					<input type="hidden" name="mycred_pref_buycreds[installed]" value="<?php echo esc_attr( $key ); ?>" />
-				</div>
-			</div>
-<?php
-
-				}
-			}
-
-			$more_gateways_tab = mycred_build_gateway_upsell_tabs( 'buycred', $installed );
-			if ( function_exists( 'mycred_build_toolkit_free_gateway_upsell_tabs' ) ) {
-				$more_gateways_tab = array_merge(
-					mycred_build_toolkit_free_gateway_upsell_tabs( 'buycred', $installed ),
-					$more_gateways_tab
-				);
-			}
-
-			if( MYCRED_SHOW_PREMIUM_ADDONS ) {
-
-				foreach( $more_gateways_tab as $key => $gateway ) {
-
-					if ( isset( $gateway['plugin'] ) && $gateway['plugin'] !== '' ) {
-						if ( ! function_exists( 'is_plugin_active' ) ) {
-							require_once ABSPATH . 'wp-admin/includes/plugin.php';
-						}
-						if ( is_plugin_active( $gateway['plugin'] ) ) {
-							continue;
-						}
-					}
-
-					$disabled_class = ( isset( $gateway['status'] ) && $gateway['status'] == 'disabled' ) ? 'disabled' : ''; 
-
-					?>
-
-<div class="mycred-ui-accordion <?php esc_attr_e( $disabled_class );?>">
-	<div class="mycred-ui-accordion-header buycred-cashcred-more-tab-btn" data-url="<?php esc_attr_e( $gateway['url'] );?>">
-		<h4 class="mycred-ui-accordion-header-title">
-			<span class="dashicons <?php esc_html_e( $gateway['icon'] );?> static mycred-ui-accordion-header-icon"></span>
-			<label><?php esc_html_e( $gateway['text'] ); ?></label>
-			<?php if( array_key_exists( 'additional_text', $gateway )  && ! empty( $gateway['additional_text'] ) ): ?>
-			<span class="mycred-ui-badge"><?php esc_html_e( $gateway['additional_text'] );?></span>
-			<?php endif;?>
-		</h4>
-	</div>
-	<div class="body" style="display:none; padding: 0px; border: none;"></div>
-</div>
-
-					<?php
-				}
-			}
-?>
-
-		</div>
-
-		<?php do_action( 'mycred_after_buycreds_page', $this ); ?>
-
-		<?php submit_button( __( 'Update Settings', 'mycred' ), 'mycred-ui-mt20 mycred-ui-btn-purple', 'submit', false ); ?>
-
-	</form>
-
-	<?php do_action( 'mycred_bottom_buycreds_page', $this ); ?>
-
-<script type="text/javascript">
-jQuery(function($) {
-	$( 'select.currency' ).change(function(){
-		var target = $(this).attr( 'data-update' );
-		$( '.' + target ).empty();
-		$( '.' + target ).text( $(this).val() );
-	});
-});
-</script>
+<div class="wrap" id="myCRED-wrap" style="width: 90% !important; max-width: 1440px !important; margin: 20px auto !important; padding: 0 !important; background: transparent !important; box-shadow: none !important; border: none !important;">
+	<div id="mycred-buycred-gateways-root"></div>
 </div>
 <?php
-
 		}
 
 		/**
@@ -945,15 +819,47 @@ jQuery(function($) {
 
 			if ( empty( $installed ) ) return $data;
 
+			$existing         = mycred_get_option( $this->option_id, array() );
+			$existing_active  = ( ! empty( $existing['active'] ) && is_array( $existing['active'] ) ) ? array_map( 'strval', $existing['active'] ) : array();
+			$existing_prefs   = ( ! empty( $existing['gateway_prefs'] ) && is_array( $existing['gateway_prefs'] ) ) ? $existing['gateway_prefs'] : array();
+			$posted_pref_ids  = ( ! empty( $data['gateway_prefs'] ) && is_array( $data['gateway_prefs'] ) ) ? array_map( 'strval', array_keys( $data['gateway_prefs'] ) ) : array();
+			$posted_active    = ( ! empty( $data['active'] ) && is_array( $data['active'] ) ) ? array_map( 'strval', $data['active'] ) : array();
+
+			// Preserve prefs for gateways not included in this (often single-gateway) save.
+			if ( ! isset( $data['gateway_prefs'] ) || ! is_array( $data['gateway_prefs'] ) ) {
+				$data['gateway_prefs'] = array();
+			}
+			foreach ( $existing_prefs as $gateway_id => $prefs ) {
+				$gateway_id = (string) $gateway_id;
+				if ( ! array_key_exists( $gateway_id, $data['gateway_prefs'] ) ) {
+					$data['gateway_prefs'][ $gateway_id ] = $prefs;
+				}
+			}
+
 			foreach ( $installed as $gateway_id => $gateway ) {
 
 				$gateway_id     = (string) $gateway_id;
 				$submitted_data = ( ! empty( $data['gateway_prefs'] ) && array_key_exists( $gateway_id, $data['gateway_prefs'] ) ) ? $data['gateway_prefs'][ $gateway_id ] : false;
 
-				// No need to do anything if we have no data
-				if ( $submitted_data !== false )
+				// Only re-sanitise gateways that were actually posted this request.
+				if ( in_array( $gateway_id, $posted_pref_ids, true ) && $submitted_data !== false )
 					$data['gateway_prefs'][ $gateway_id ] = $this->call( 'sanitise_preferences', $installed[ $gateway_id ]['callback'], $submitted_data );
 
+			}
+
+			// Partial React detail saves only post one gateway's Enable checkbox — merge active list.
+			$is_partial_save = ! empty( $posted_pref_ids ) && count( $posted_pref_ids ) < count( $installed );
+			if ( $is_partial_save ) {
+				$merged_active = $existing_active;
+				foreach ( $posted_pref_ids as $gateway_id ) {
+					$merged_active = array_values( array_diff( $merged_active, array( $gateway_id ) ) );
+					if ( in_array( $gateway_id, $posted_active, true ) ) {
+						$merged_active[] = $gateway_id;
+					}
+				}
+				$data['active'] = array_values( array_unique( $merged_active ) );
+			} elseif ( ! isset( $data['active'] ) || ! is_array( $data['active'] ) ) {
+				$data['active'] = $existing_active;
 			}
 
 			return $data;
@@ -1524,6 +1430,114 @@ jQuery(function($) {
 
 			}
 		    
+		}
+
+		// React bundle enqueueing for buyCred Gateways page.
+		public function enqueue_react_gateways_scripts() {
+
+			$screen = get_current_screen();
+			if ( ! $screen ) return;
+
+			// Check multiple possible screen IDs (varies depending on whether buyCred is under myCRED main menu or submenus)
+			$is_gateways_page = (
+				strpos( $screen->id, 'mycred-gateways' ) !== false ||
+				( isset( $_GET['page'] ) && sanitize_key( $_GET['page'] ) === MYCRED_SLUG . '-gateways' )
+			);
+
+			if ( ! $is_gateways_page ) return;
+
+			$bundle_path = myCRED_ROOT_DIR . 'addons/build/buycred-gateways.bundle.js';
+			$bundle_url  = plugins_url( 'addons/build/buycred-gateways.bundle.js', myCRED_THIS );
+
+			if ( ! file_exists( $bundle_path ) ) return;
+
+			wp_enqueue_editor();
+
+			wp_enqueue_script(
+				'mycred-buycred-gateways-react',
+				$bundle_url,
+				array( 'wp-element', 'editor', 'wp-util' ),
+				filemtime( $bundle_path ),
+				true
+			);
+
+			$api_url = rest_url( 'mycred/v1/buycred-gateways' );
+			wp_localize_script( 'mycred-buycred-gateways-react', 'mycredBuycredGateways', array(
+				'apiUrl'      => $api_url,
+				'apiNonce'    => wp_create_nonce( 'wp_rest' ),
+				'isProActive' => class_exists( 'MyCRED_Toolkit_Core_Pro' ) || ( function_exists( 'is_plugin_active' ) && is_plugin_active( 'mycred-toolkit-pro/mycred-toolkit-pro.php' ) ),
+				'proPromoImageUrl' => plugins_url( 'assets/images/test.png', myCRED_THIS ),
+			) );
+		}
+
+		// REST Routes for buyCred Gateways page data.
+		public function register_buycred_gateways_rest_routes() {
+			register_rest_route( 'mycred/v1', '/buycred-gateways', array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_buycred_gateways_rest' ),
+				'permission_callback' => function() {
+					return current_user_can( $this->core->edit_creds_cap() );
+				},
+			) );
+		}
+
+		public function get_buycred_gateways_rest() {
+			$installed = $this->get();
+			$gateways  = array();
+
+			foreach ( $installed as $id => $data ) {
+				// Capture preferences HTML via output buffering
+				ob_start();
+				$this->call( 'preferences', $data['callback'] );
+				$prefs_html = ob_get_clean();
+
+				$sandbox_mode = ( array_key_exists( $id, $this->gateway_prefs )
+					&& array_key_exists( 'sandbox', $this->gateway_prefs[ $id ] )
+					&& $this->gateway_prefs[ $id ]['sandbox'] === 1 ) ? true : false;
+
+				$gateways[] = array(
+					'id'               => $id,
+					'title'            => $this->core->template_tags_general( $data['title'] ),
+					'is_active'        => $this->is_active( $id ),
+					'sandbox_mode'     => $sandbox_mode,
+					'has_sandbox'      => ! empty( $data['sandbox'] ),
+					'documentation_url'=> ! empty( $data['documentation'] ) ? $data['documentation'] : '',
+					'preferences_html' => $prefs_html,
+				);
+			}
+
+			// Build upsell tabs
+			$more_gateways_tab = mycred_build_gateway_upsell_tabs( 'buycred', $installed );
+			if ( function_exists( 'mycred_build_toolkit_free_gateway_upsell_tabs' ) ) {
+				$more_gateways_tab = array_merge(
+					mycred_build_toolkit_free_gateway_upsell_tabs( 'buycred', $installed ),
+					$more_gateways_tab
+				);
+			}
+
+			$upsell = array();
+			foreach ( $more_gateways_tab as $gw ) {
+				if ( isset( $gw['plugin'] ) && $gw['plugin'] !== '' ) {
+					if ( ! function_exists( 'is_plugin_active' ) ) {
+						require_once ABSPATH . 'wp-admin/includes/plugin.php';
+					}
+					if ( is_plugin_active( $gw['plugin'] ) ) continue;
+				}
+				$upsell[] = $gw;
+			}
+
+			// Settings nonce fields for the form
+			ob_start();
+			settings_fields( $this->settings_name );
+			$nonce_html = ob_get_clean();
+
+			return rest_ensure_response( array(
+				'gateways'       => $gateways,
+				'upsell_gateways'=> array_slice( $upsell, 0, 5 ),
+				'more_gateways'  => array_slice( $upsell, 5 ),
+				'settings_nonce' => $nonce_html,
+				'settings_action'=> admin_url( 'options.php' ),
+			) );
 		}
 
 	}

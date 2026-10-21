@@ -14,6 +14,7 @@
   --mycred-addons-brand-soft: #f2eeff;
   --mycred-addons-brand-ring: rgba(133, 89, 255, 0.22);
   --mycred-addons-icon-bg: #f2eeff;
+  --mycred-addons-icon-glyph: #5e2ced;
   --mycred-addons-plan-badge: #9077d2;
   --mycred-addons-tier-basic-text: #9077d2;
   --mycred-addons-tier-basic-border: #d0c6ec;
@@ -24,6 +25,12 @@
   --mycred-addons-info-bg: #f0f6ff;
   --mycred-addons-info-text: #004cbe;
   --mycred-addons-stats-sep-color: #d8d3e7;
+  --mycred-addons-switch-track: #dcdce6;
+  --mycred-addons-switch-knob: #fcfcfd;
+  --mycred-addons-skeleton-from: #eee;
+  --mycred-addons-skeleton-mid: #f5f5f5;
+  --mycred-addons-menu-shadow: 0 4px 6px rgba(45, 21, 114, 0.04),
+    0 16px 40px -12px rgba(45, 21, 114, 0.18);
   --mycred-addons-r: 8px;
 
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -52,15 +59,16 @@
 }
 
 #mycred-addons .mycred-addons-shell {
-  background: #fff;
+  background: var(--mycred-addons-card);
   border: 1px solid var(--mycred-addons-header-border);
   border-radius: var(--mycred-addons-r);
-  overflow: hidden;
+  /* visible so filter dropdown is not clipped when content (empty state) is short */
+  overflow: visible;
 }
 
 #mycred-addons .mycred-addons-shell-body {
   padding: 0 24px 24px;
-  background: #fff;
+  background: var(--mycred-addons-card);
 }
 
 /* Page header */
@@ -114,9 +122,9 @@
 }
 
 #mycred-addons .mycred-addons-user-plan-badge--free {
-  background: #fff;
-  border: 1px solid #5e2ced;
-  color: #5e2ced;
+  background: var(--mycred-addons-brand-soft);
+  border: 1px solid var(--mycred-addons-brand);
+  color: var(--mycred-addons-brand);
 }
 
 #mycred-addons .mycred-addons-user-plan-badge--basic {
@@ -322,14 +330,13 @@
   background: var(--mycred-addons-card);
   border: 1px solid var(--mycred-addons-line);
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(45, 21, 114, 0.04),
-    0 16px 40px -12px rgba(45, 21, 114, 0.18);
+  box-shadow: var(--mycred-addons-menu-shadow);
   padding: 8px;
   opacity: 0;
   transform: translateY(-4px);
   pointer-events: none;
   transition: opacity 0.15s, transform 0.15s;
-  z-index: 70;
+  z-index: 1000;
 }
 
 #mycred-addons .mycred-addons-menu.mycred-addons-open {
@@ -515,14 +522,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 45px;
+  height: 45px;
   line-height: 0;
 }
 
 #mycred-addons .mycred-addons-icon-svg svg {
-  width: 32px;
-  height: 32px;
+  width: 45px;
+  height: 45px;
   display: block;
 }
 
@@ -542,7 +549,7 @@
   font-weight: 600;
   letter-spacing: 0.6px;
   text-transform: uppercase;
-  background: #fff;
+  background: var(--mycred-addons-card);
   border: 1px solid transparent;
   border-radius: 4px;
   padding: 4px 8px;
@@ -681,7 +688,7 @@
   position: absolute;
   inset: 0;
   border-radius: 9px;
-  background: #dcdce6;
+  background: var(--mycred-addons-switch-track);
   transition: background 0.2s;
 }
 
@@ -692,7 +699,7 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #fcfcfd;
+  background: var(--mycred-addons-switch-knob);
   box-shadow: 0 0.7px 2px rgba(16, 24, 40, 0.1), 0 0.7px 1.4px rgba(16, 24, 40, 0.06);
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
@@ -716,7 +723,7 @@
 
 #mycred-addons .mycred-addons-upgrade-btn {
   margin-left: auto;
-  background: #fff;
+  background: var(--mycred-addons-card);
   border: 1px solid var(--mycred-addons-line-strong);
   border-radius: var(--mycred-addons-r);
   padding: 8px 12px;
@@ -778,7 +785,12 @@
 
 /* Skeleton */
 #mycred-addons .mycred-addons-skeleton {
-  background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+  background: linear-gradient(
+    90deg,
+    var(--mycred-addons-skeleton-from) 25%,
+    var(--mycred-addons-skeleton-mid) 50%,
+    var(--mycred-addons-skeleton-from) 75%
+  );
   background-size: 200% 100%;
   animation: mycred-addons-shimmer 1.2s infinite;
   border-radius: 6px;
@@ -857,13 +869,13 @@ body.mycred-addons-admin-page #wpwrap,
 body.mycred-addons-admin-page #wpcontent,
 body.mycred-addons-admin-page #wpbody,
 body.mycred-addons-admin-page #wpbody-content {
-  background-color: #fafafc !important;
+  background-color: var(--mycred-addons-bg, #fafafc) !important;
 }
 
 body.mycred-addons-admin-page #wpfooter {
-  background-color: #fafafc !important;
+  background-color: var(--mycred-addons-bg, #fafafc) !important;
   border-top: none;
-  color: #6b57a1;
+  color: var(--mycred-addons-muted, #6b57a1);
 }
 
 body.mycred-addons-admin-page #myCRED-wrap > h1 {
@@ -910,5 +922,5 @@ body.mycred-addons-admin-page #myCRED-wrap {
 
 /* Toast notifications */
 .mycred-addons-toaster [data-type="success"] > div > svg {
-  color: #8559ff;
+  color: var(--mycred-addons-brand, #8559ff);
 }

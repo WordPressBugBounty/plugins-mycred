@@ -376,19 +376,22 @@ if ( ! class_exists( 'myCRED_Hook_Video_Views' ) ) :
 <script type="text/javascript">
 jQuery(function($){
 
-	$( '#sidebar-active .toggle-hook-option' ).change(function(){
+	$(document).off('change.mycredVideoLogic', '.toggle-hook-option').on('change.mycredVideoLogic', '.toggle-hook-option', function(){
+
+		var intervalPanel = $( '#<?php echo esc_js( $this->field_id( array( 'logic-option-interval' ) ) ); ?>' );
+		var fullPanel     = $( '#<?php echo esc_js( $this->field_id( array( 'logic-option-full' ) ) ); ?>' );
 
 		if ( $(this).val() == 'interval' ) {
-			$( '#<?php echo esc_js( $this->field_id( array( 'logic-option-interval' ) ) ); ?>' ).show();
-			$( '#<?php echo esc_js( $this->field_id( array( 'logic-option-full' ) ) ); ?>' ).hide();
+			intervalPanel.show();
+			fullPanel.hide();
 		}
 		else if ( $(this).val() == 'full' ) {
-			$( '#<?php echo esc_js( $this->field_id( array( 'logic-option-full' ) ) ); ?>' ).show();
-			$( '#<?php echo esc_js( $this->field_id( array( 'logic-option-interval' ) ) ); ?>' ).hide();
+			fullPanel.show();
+			intervalPanel.hide();
 		}
 		else {
-			$( '#<?php echo esc_js( $this->field_id( array( 'logic-option-full' ) ) ); ?>' ).hide();
-			$( '#<?php echo esc_js( $this->field_id( array( 'logic-option-interval' ) ) ); ?>' ).hide();
+			fullPanel.hide();
+			intervalPanel.hide();
 		}
 
 	});

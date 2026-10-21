@@ -617,10 +617,9 @@ if ( ! function_exists( 'mycred_remote_settings_page' ) ) :
 				<div class="mycred-remote-key-wrapper">
 					<div class="form-group">
 						<label for="myCRED-remote-key"><?php esc_html_e( 'Key', 'mycred' ); ?></label>
-						<input type="text" name="mycred_pref_core[remote][key]" id="myCRED-remote-key" value="<?php echo esc_attr( $settings['key'] ); ?>" placeholder="<?php esc_attr_e( '12, 16, 24 or 32 characters', 'mycred' ); ?>" class="form-control" />
+						<input type="text" name="mycred_pref_core[remote][key]" id="myCRED-remote-key" value="<?php echo esc_attr( $settings['key'] ); ?>" placeholder="<?php esc_attr_e( '12, 16, 24 or 32 characters', 'mycred' ); ?>" class="form-control" minlength="12" autocomplete="off" />
 						<p><?php esc_html_e( 'A minimum of 12 characters is required.', 'mycred' ); ?></p>
-						<div style="color:<?php if ( $key_length == 0 ) echo 'gray'; elseif ( $key_length >= 12 ) echo 'green'; ?>">(<span id="mycred-length-counter"><?php echo esc_html( $key_length ); ?></span>)</span>
-						</div>
+						<div id="mycred-remote-key-length" style="color:<?php echo ( $key_length == 0 ) ? 'gray' : ( ( $key_length >= 12 ) ? 'green' : 'red' ); ?>">(<span id="mycred-length-counter"><?php echo esc_html( $key_length ); ?></span>)</div>
 					</div>
 					<input type="button" id="mycred-generate-api-key" value="<?php esc_attr_e( 'Generate New Key', 'mycred' ); ?>" class="button button-large button-primary" />
 				</div>
@@ -669,10 +668,24 @@ if ( ! function_exists( 'mycred_remote_save_settings' ) ) :
 		else
 			$new_remote['enabled'] = 0;
 
-		if ( isset( $post['remote']['key'] ) )
-			$new_remote['key'] = sanitize_text_field( $post['remote']['key'] );
-		else
+		if ( isset( $post['remote']['key'] ) ) {
+			$key = sanitize_text_field( $post['remote']['key'] );
+
+			// Empty clears the key; non-empty keys must be at least 12 characters.
+			if ( $key !== '' && strlen( $key ) < 12 ) {
+				$new_remote['key'] = $current['key'];
+				add_settings_error(
+					'mycred_pref_remote',
+					'mycred_remote_key_length',
+					__( 'Remote Access API key must be at least 12 characters. The previous key was kept.', 'mycred' ),
+					'error'
+				);
+			} else {
+				$new_remote['key'] = $key;
+			}
+		} else {
 			$new_remote['key'] = $current['key'];
+		}
 
 		if ( isset( $post['remote']['uri'] ) )
 			$new_remote['uri'] = sanitize_text_field( $post['remote']['uri'] );

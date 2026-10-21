@@ -229,6 +229,8 @@ if ( ! class_exists( 'myCRED_Install' ) ) :
 			if ( $can_remove_types ) {
                 
                 $options_to_delete[] = 'mycred_setup_completed';
+				$options_to_delete[] = 'mycred_tour_guide_completed';
+				$options_to_delete[] = 'mycred_needs_onboarding';
 				$options_to_delete[] = 'mycred_version';
 				$options_to_delete[] = 'mycred_version_db';
 				$options_to_delete[] = 'mycred_key';

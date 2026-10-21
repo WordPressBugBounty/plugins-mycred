@@ -1,0 +1,87 @@
+/**
+ * myCred design tokens as CSS custom properties.
+ * Use for HTML mockups and any non-bundled admin chrome.
+ * Mirror of src/shared/adminTheme/tokens.js — keep in sync when changing colors.
+ */
+:root {
+  /* Surfaces */
+  --mycred-bg: #f8f6ff;
+  --mycred-paper: #ffffff;
+  --mycred-paper-muted: #f2effb;
+  --mycred-content-bg: #fcfbfe;
+  --mycred-input-bg: #f9f7fc;
+  --mycred-shell-bg: #ffffff;
+  --mycred-hover: #f8f6ff;
+  --mycred-nav-card-hover: #fbfaff;
+  --mycred-hook-inactive-bg: #faf9fe;
+  --mycred-hook-card-inactive-bg: #ffffff;
+  --mycred-filter-active-bg: #f2eeff;
+  --mycred-pagination-active: #ebe4ff;
+
+  /* Text */
+  --mycred-text-primary: #2d1572;
+  --mycred-text-secondary: #6b57a1;
+  --mycred-text-muted: #978abc;
+  --mycred-table-header-text: #715da9;
+  --mycred-white: #ffffff;
+
+  /* Brand */
+  --mycred-primary: #5e2ced;
+  --mycred-primary-light: #ebe4ff;
+  --mycred-primary-hover: #6a47ff;
+  --mycred-configure: #8559ff;
+  --mycred-configure-hover: #734bd6;
+
+  /* Borders */
+  --mycred-border: #e2ddee;
+  --mycred-border-input: #ddd2f9;
+  --mycred-border-popover: #e7dffb;
+  --mycred-hook-card-border: #e5dff6;
+  --mycred-nested-card-border: #e5dbff;
+  --mycred-radio-border: #9e7cff;
+  --mycred-switch-track-off: #e6e0f5;
+  --mycred-toggle-off: #ddd6f1;
+
+  /* Semantic */
+  --mycred-danger: #f16060;
+  --mycred-danger-bg: #fff2f2;
+  --mycred-success: #16a34a;
+  --mycred-success-bg: rgba(34, 197, 94, 0.12);
+  --mycred-warning-bg: #fffbeb;
+  --mycred-warning-border: #fef3c7;
+  --mycred-warning-text: #92400e;
+
+  /* Radius */
+  --mycred-radius-xs: 4px;
+  --mycred-radius-sm: 8px;
+  --mycred-radius-md: 10px;
+  --mycred-radius-lg: 12px;
+  --mycred-radius-control: 8px;
+  --mycred-radius-card: 8px;
+  --mycred-radius-section: 14px;
+  --mycred-radius-icon-well: 12px;
+  --mycred-radius-pill: 999px;
+
+  /* Shadows */
+  --mycred-shadow-shell: 0 20px 40px rgba(0, 0, 0, 0.05);
+  --mycred-shadow-shell-soft: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --mycred-shadow-soft: 0px 10px 40px rgba(0, 0, 0, 0.08);
+  --mycred-shell-chrome: #E0E0E0;
+  --mycred-shadow-focus: 0 0 0 3px rgba(94, 44, 237, 0.12);
+  --mycred-shadow-content-card: 0 2px 12px rgba(45, 21, 114, 0.03);
+
+  /* Type / layout */
+  --mycred-font-sans: "Figtree", "Inter", sans-serif;
+  --mycred-control-height: 44px;
+  --mycred-content-max: 1200px;
+  --mycred-shell-max: 1400px;
+  --mycred-form-column-max: 888px;
+  --mycred-settings-sidebar: 288px;
+  --mycred-icon-sm: 32px;
+  --mycred-icon-md: 40px;
+  --mycred-space-xs: 8px;
+  --mycred-space-sm: 12px;
+  --mycred-space-md: 16px;
+  --mycred-space-lg: 24px;
+  --mycred-space-xl: 32px;
+}

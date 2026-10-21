@@ -1,7 +1,31 @@
-import { useState } from '@wordpress/element';
-import { Box, Tabs, Tab, Typography, createTheme, ThemeProvider, ScopedCssBaseline, GlobalStyles } from '@mui/material';
+import { useState, useMemo, useCallback } from '@wordpress/element';
+import { ThemeProvider } from '@mui/material/styles';
+import { Box, Typography, Button, GlobalStyles } from '@mui/material';
 import { __ } from '@wordpress/i18n';
-import Header from './components/Header';
+import { Toaster } from 'react-hot-toast';
+import SettingsIcon from '@mui/icons-material/Settings';
+import PaletteIcon from '@mui/icons-material/Palette';
+import ArticleIcon from '@mui/icons-material/Article';
+import ViewListIcon from '@mui/icons-material/ViewList';
+import EventIcon from '@mui/icons-material/Event';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import { useAdminTheme } from '../../../src/shared/adminTheme/AdminThemeProvider';
+import {
+    ADMIN_SIDEBAR_SX,
+    ADMIN_SIDEBAR_NAV_SX,
+    ADMIN_SIDEBAR_PROMO_SX,
+    ADMIN_CONTENT_COLUMN_SX,
+    ADMIN_SETTINGS_FONT,
+    ADMIN_SETTINGS_SIDEBAR_WIDTH,
+} from '../../../src/shared/adminShell/layout';
+import AdminPageWrap from '../../../src/shared/adminShell/AdminPageWrap';
+import AdminSettingsShell from '../../../src/shared/adminShell/AdminSettingsShell';
+import AdminContentHeader from '../../../src/shared/adminShell/AdminContentHeader';
+import AdminSettingsFooter from '../../../src/shared/adminShell/AdminSettingsFooter';
+import AdminSettingsNavItem from '../../../src/shared/adminShell/AdminSettingsNavItem';
+import AdminPrimaryButton from '../../../src/shared/adminShell/AdminPrimaryButton';
+import { getLoyaltyWidgetTheme } from './theme';
+import SidebarPromoCard from '../../../src/shared/components/SidebarPromoCard';
 import GeneralSettings from './tabs/GeneralSettings';
 import DesignSettings from './tabs/DesignSettings';
 import ContentSettings from './tabs/ContentSettings';
@@ -9,204 +33,194 @@ import TabsSettings from './tabs/TabsSettings';
 import EventTriggersSettings from './tabs/EventTriggersSettings';
 import FaqSettings from './tabs/FaqSettings';
 import { PreviewSettingsProvider } from './context/PreviewSettingsContext';
-import SettingsIcon from '@mui/icons-material/Settings';
-import PaletteIcon from '@mui/icons-material/Palette';
-import ArticleIcon from '@mui/icons-material/Article';
-import ViewListIcon from '@mui/icons-material/ViewList';
-import EventIcon from '@mui/icons-material/Event';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import { Toaster } from 'react-hot-toast';
+import { SaveActionsProvider, useSaveActions } from './context/SaveActionsContext';
 
-// Create a theme instance matching the dashboard.
-const theme = createTheme({
-    palette: {
-        primary: {
-            main: '#5E2CED',
-        },
-        background: {
-            default: '#F8F6FF'
-        }
-    },
-    typography: {
-        fontFamily: 'Poppins, sans-serif',
-    },
-    components: {
-        MuiScopedCssBaseline: {
-            styleOverrides: {
-                root: {
-                    fontFamily: 'Poppins, sans-serif',
-                    '& .mycred-react-root': {
-                        backgroundColor: '#F8F6FF',
-                        minHeight: '100vh',
-                    }
-                }
-            }
-        }
-    }
-});
+const TAB_CONFIG = [
+    { id: 'general', hash: '#general', label: __('General', 'mycred'), icon: SettingsIcon, subtitle: __('Enable widget, position, visibility and campaign scheduling', 'mycred') },
+    { id: 'design', hash: '#design', label: __('Design', 'mycred'), icon: PaletteIcon, subtitle: __('Colors, templates, launcher and live widget preview', 'mycred') },
+    { id: 'content', hash: '#content', label: __('Content', 'mycred'), icon: ArticleIcon, subtitle: __('Guest/member labels, messages and redirect URLs', 'mycred') },
+    { id: 'tabs', hash: '#tabs', label: __('Tabs', 'mycred'), icon: ViewListIcon, subtitle: __('Enable/disable widget tabs and leaderboard options', 'mycred') },
+    { id: 'faqs', hash: '#faqs', label: __('FAQs', 'mycred'), icon: HelpOutlineIcon, subtitle: __('FAQ screen title and Q&A items', 'mycred') },
+    { id: 'event-triggers', hash: '#event-triggers', label: __('Event triggers', 'mycred'), icon: EventIcon, subtitle: __('Which hooks appear in the Earn tab', 'mycred') },
+];
 
-function TabPanel(props) {
-    const { children, value, index, ...other } = props;
+const TAB_PANELS = {
+    general: GeneralSettings,
+    design: DesignSettings,
+    content: ContentSettings,
+    tabs: TabsSettings,
+    faqs: FaqSettings,
+    'event-triggers': EventTriggersSettings,
+};
 
-    return (
-        <div
-            role="tabpanel"
-            hidden={value !== index}
-            id={`vertical-tabpanel-${index}`}
-            aria-labelledby={`vertical-tab-${index}`}
-            {...other}
-            style={{ width: '100%' }}
-        >
-            {value === index && (
-                <Box sx={{ p: 0 }}>
-                    {children}
-                </Box>
-            )}
-        </div>
-    );
-}
+function AppContent() {
+    const { colors } = useAdminTheme();
+    const theme = useMemo(() => getLoyaltyWidgetTheme(), []);
+    const { saveActions } = useSaveActions();
 
-function a11yProps(index) {
-    return {
-        id: `vertical-tab-${index}`,
-        'aria-controls': `vertical-tabpanel-${index}`,
-    };
-}
-
-export default function App() {
-    const tabHashes = ['#general', '#design', '#content', '#tabs', '#faqs', '#event-triggers'];
-    
-    const getInitialTab = () => {
+    const getInitialTab = useCallback(() => {
         const hash = window.location.hash;
-        const index = tabHashes.indexOf(hash);
-        return index !== -1 ? index : 0;
-    };
+        const match = TAB_CONFIG.find((tab) => tab.hash === hash);
+        return match ? match.id : 'general';
+    }, []);
 
-    const [value, setValue] = useState(getInitialTab);
+    const [activeTab, setActiveTab] = useState(getInitialTab);
 
-    const handleChange = (event, newValue) => {
-        setValue(newValue);
+    const handleTabChange = (tabId, hash) => {
+        setActiveTab(tabId);
         if (window.history.replaceState) {
-            window.history.replaceState(null, null, tabHashes[newValue]);
+            window.history.replaceState(null, null, hash);
         } else {
-            window.location.hash = tabHashes[newValue];
+            window.location.hash = hash;
         }
     };
+
+    const activeConfig = TAB_CONFIG.find((tab) => tab.id === activeTab) || TAB_CONFIG[0];
+    const ActivePanel = TAB_PANELS[activeTab] || GeneralSettings;
+    const showPromoCard = !window.mycredLoyaltyWidgetData?.isProActive;
+
+    const toastOptions = useMemo(() => ({
+        style: {
+            background: colors.paper,
+            color: colors.textPrimary,
+            border: `1px solid ${colors.border}`,
+            fontFamily: ADMIN_SETTINGS_FONT,
+            fontWeight: 500,
+        },
+        success: {
+            iconTheme: { primary: colors.primary, secondary: colors.white },
+        },
+    }), [colors]);
 
     return (
         <ThemeProvider theme={theme}>
-            <ScopedCssBaseline>
-                <GlobalStyles
-                    styles={{
-                        '#wpcontent, #wpbody-content, #wpfooter': {
-                            backgroundColor: '#F8F6FF !important',
-                        },
-                        '.mycred-react-root': {
-                            fontFamily: 'Poppins, sans-serif !important',
-                        },
-                        '.mycred-react-root input[type="text"], .mycred-react-root input[type="number"], .mycred-react-root textarea, .mycred-react-root select, .mycred-react-root input[type="email"], .mycred-react-root input[type="password"]': {
-                            border: 'none !important',
-                            boxShadow: 'none !important',
-                            backgroundColor: 'transparent !important',
-                            minHeight: 'auto !important',
-                            padding: '10px 14px !important',
-                            boxSizing: 'border-box !important',
-                        },
-                        '.mycred-react-root legend': {
-                            width: 'auto',
-                            display: 'block',
-                            padding: 0,
-                            marginBottom: 0,
-                        }
-                    }}
-                />
-                <Box className="mycred-react-root" sx={{ bgcolor: '#F8F6FF', minHeight: '100vh' }}>
-                    <Toaster
-                        position="bottom-right"
-                        toastOptions={{
-                            success: {
-                                iconTheme: {
-                                    primary: '#5E2CED',
-                                    secondary: '#fff',
-                                },
-                            },
-                        }}
-                    />
-                    <Header />
-                    <Box sx={{ maxWidth: '1400px', width: '90%', margin: '40px auto' }}>
-                        <Box sx={{
-                            flexGrow: 1,
-                            bgcolor: 'background.paper',
-                            display: 'flex',
-                            height: 'auto',
-                            minHeight: '600px',
-                            borderRadius: '12px',
-                            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                            overflow: 'hidden',
-                            border: '1px solid #E0E0E0'
-                        }}>
-                            <Tabs
-                                orientation="vertical"
-                                variant="scrollable"
-                                value={value}
-                                onChange={handleChange}
-                                aria-label="Loyalty Widget Settings Tabs"
+            <GlobalStyles
+                styles={{
+                    '.mycred-react-root, .mycred-react-root .MuiTypography-root': {
+                        fontFamily: 'Figtree, Inter, sans-serif !important',
+                    },
+                }}
+            />
+            <Toaster position="bottom-right" toastOptions={toastOptions} />
+            <Box
+                className="mycred-react-root"
+                sx={{
+                    boxSizing: 'border-box',
+                    bgcolor: colors.bg,
+                    overflowX: 'hidden',
+                    width: '100%',
+                    fontFamily: ADMIN_SETTINGS_FONT,
+                }}
+            >
+                <AdminPageWrap>
+                    <AdminSettingsShell>
+                        <Box
+                            sx={{
+                                ...ADMIN_SIDEBAR_SX,
+                                width: ADMIN_SETTINGS_SIDEBAR_WIDTH,
+                                minWidth: ADMIN_SETTINGS_SIDEBAR_WIDTH,
+                                bgcolor: colors.sidebarBg,
+                                borderRight: `1px solid ${colors.hookCardBorder || colors.border}`,
+                            }}
+                        >
+                            <Box sx={{ ...ADMIN_SIDEBAR_NAV_SX, py: 2, px: 0 }}>
+                                <Box sx={{ px: 3, py: 1, mb: 0.5 }}>
+                                    <Typography sx={{
+                                        fontFamily: ADMIN_SETTINGS_FONT,
+                                        fontSize: 12,
+                                        fontWeight: 700,
+                                        color: colors.textSecondary,
+                                        letterSpacing: '0.48px',
+                                        lineHeight: '16px',
+                                    }}>
+                                        {__('WIDGET SETTINGS', 'mycred')}
+                                    </Typography>
+                                </Box>
+
+                                <Box sx={{ px: 2 }}>
+                                    {TAB_CONFIG.map((tab) => (
+                                        <AdminSettingsNavItem
+                                            key={tab.id}
+                                            colors={colors}
+                                            active={activeTab === tab.id}
+                                            label={tab.label}
+                                            icon={tab.icon}
+                                            onClick={() => handleTabChange(tab.id, tab.hash)}
+                                        />
+                                    ))}
+                                </Box>
+                            </Box>
+
+                            {showPromoCard && (
+                                <Box sx={{ ...ADMIN_SIDEBAR_PROMO_SX, px: 2 }}>
+                                    <SidebarPromoCard colors={colors} utmMedium="loyalty_widget_sidebar" />
+                                </Box>
+                            )}
+                        </Box>
+
+                        <Box sx={{ ...ADMIN_CONTENT_COLUMN_SX, bgcolor: colors.paper, flex: 1, minHeight: 0 }}>
+                            <AdminContentHeader
+                                title={activeConfig.label}
+                                subtitle={activeConfig.subtitle}
+                            />
+
+                            <Box
                                 sx={{
-                                    borderRight: 1,
-                                    borderColor: 'divider',
-                                    minWidth: '220px',
-                                    '& .MuiTab-root': {
-                                        textTransform: 'none',
-                                        fontWeight: 500,
-                                        fontSize: '15px',
-                                        py: 2.5,
-                                        px: 3,
-                                        minHeight: 'auto',
-                                        alignItems: 'center',
-                                        justifyContent: 'flex-start',
-                                        textAlign: 'left',
-                                        color: '#666',
-                                        '&.Mui-selected': {
-                                            color: '#5E2CED',
-                                            bgcolor: 'rgba(94, 44, 237, 0.04)'
-                                        }
-                                    }
+                                    flex: 1,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    minHeight: 0,
                                 }}
                             >
-                                <Tab icon={<SettingsIcon sx={{ mr: 1.5 }} />} iconPosition="start" label={__('General', 'mycred')} {...a11yProps(0)} />
-                                <Tab icon={<PaletteIcon sx={{ mr: 1.5 }} />} iconPosition="start" label={__('Design', 'mycred')} {...a11yProps(1)} />
-                                <Tab icon={<ArticleIcon sx={{ mr: 1.5 }} />} iconPosition="start" label={__('Content', 'mycred')} {...a11yProps(2)} />
-                                <Tab icon={<ViewListIcon sx={{ mr: 1.5 }} />} iconPosition="start" label={__('Tabs', 'mycred')} {...a11yProps(3)} />
-                                <Tab icon={<HelpOutlineIcon sx={{ mr: 1.5 }} />} iconPosition="start" label={__('FAQs', 'mycred')} {...a11yProps(4)} />
-                                <Tab icon={<EventIcon sx={{ mr: 1.5 }} />} iconPosition="start" label={__('Event triggers', 'mycred')} {...a11yProps(5)} />
-                            </Tabs>
-    
-                            <PreviewSettingsProvider>
-                                <Box sx={{ flexGrow: 1, bgcolor: '#fff', width: '100%' }}>
-                                    <TabPanel value={value} index={0}>
-                                        <GeneralSettings />
-                                    </TabPanel>
-                                    <TabPanel value={value} index={1}>
-                                        <DesignSettings />
-                                    </TabPanel>
-                                    <TabPanel value={value} index={2}>
-                                        <ContentSettings />
-                                    </TabPanel>
-                                    <TabPanel value={value} index={3}>
-                                        <TabsSettings />
-                                    </TabPanel>
-                                    <TabPanel value={value} index={4}>
-                                        <FaqSettings />
-                                    </TabPanel>
-                                    <TabPanel value={value} index={5}>
-                                        <EventTriggersSettings />
-                                    </TabPanel>
+                                <Box sx={{ flex: 1, width: '100%' }}>
+                                    <PreviewSettingsProvider>
+                                        <ActivePanel />
+                                    </PreviewSettingsProvider>
                                 </Box>
-                            </PreviewSettingsProvider>
+
+                                <AdminSettingsFooter>
+                                    {saveActions?.onReset && (
+                                        <Button
+                                            variant="outlined"
+                                            onClick={saveActions.onReset}
+                                            disabled={saveActions.loading}
+                                            sx={{
+                                                mr: 1.5,
+                                                borderColor: colors.borderInput,
+                                                color: colors.textSecondary,
+                                                fontFamily: ADMIN_SETTINGS_FONT,
+                                                fontSize: 14,
+                                                '&:hover': {
+                                                    borderColor: colors.primary,
+                                                    bgcolor: colors.paperMuted,
+                                                },
+                                            }}
+                                        >
+                                            {saveActions.resetLabel || __('Reset', 'mycred')}
+                                        </Button>
+                                    )}
+                                    <AdminPrimaryButton
+                                        colors={colors}
+                                        onClick={saveActions?.onSave}
+                                        loading={saveActions?.loading}
+                                        disabled={!saveActions?.onSave}
+                                    >
+                                        {saveActions?.label || __('Update Settings', 'mycred')}
+                                    </AdminPrimaryButton>
+                                </AdminSettingsFooter>
+                            </Box>
                         </Box>
-                    </Box>
-                </Box>
-            </ScopedCssBaseline>
+                    </AdminSettingsShell>
+                </AdminPageWrap>
+            </Box>
         </ThemeProvider>
+    );
+}
+
+export default function App() {
+    return (
+        <SaveActionsProvider>
+            <AppContent />
+        </SaveActionsProvider>
     );
 }

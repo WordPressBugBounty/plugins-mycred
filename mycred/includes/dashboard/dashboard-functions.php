@@ -6,6 +6,33 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+if ( ! function_exists( 'mycred_dashboard_is_pro_active' ) ) :
+    /**
+     * Whether Toolkit Pro is active for dashboard feature gating.
+     *
+     * @return bool
+     */
+    function mycred_dashboard_is_pro_active() {
+        return class_exists( 'myCRED_Toolkit_Pro' );
+    }
+endif;
+
+if ( ! function_exists( 'mycred_dashboard_clamp_range_for_plan' ) ) :
+    /**
+     * Restrict free users to the current month range.
+     *
+     * @param string $range_key Requested range key.
+     * @return string
+     */
+    function mycred_dashboard_clamp_range_for_plan( $range_key ) {
+        if ( mycred_dashboard_is_pro_active() ) {
+            return $range_key;
+        }
+
+        return 'this_month';
+    }
+endif;
+
 function mycred_dashboard_resolve_range_bounds( $range, $custom_start = null, $custom_end = null ) {
     $now = current_time( 'timestamp' );
 

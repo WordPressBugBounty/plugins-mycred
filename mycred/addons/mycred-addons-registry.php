@@ -216,7 +216,7 @@ if ( ! function_exists( 'mycred_can_enable_toolkit_addon' ) ) :
 			__( 'This add-on is not available in your current plan or could not be found.', 'mycred' )
 		);
 	}
-endif;
+	endif;
 
 if ( ! function_exists( 'mycred_get_child_addon_map' ) ) :
 	/**
@@ -319,7 +319,22 @@ if ( ! function_exists( 'mycred_child_addon_is_active' ) ) :
 			return false;
 		}
 
-		return in_array( $slug, mycred_get_active_addon_slugs(), true );
+		if ( ! in_array( $slug, mycred_get_active_addon_slugs(), true ) ) {
+			return false;
+		}
+
+		// Stored slugs alone are not enough for toolkit child add-ons — they must be loadable.
+		if ( mycred_is_child_addon( $slug ) ) {
+			if ( function_exists( 'mycred_is_toolkit_pro_plugin_active' ) && ! mycred_is_toolkit_pro_plugin_active() ) {
+				return false;
+			}
+
+			if ( function_exists( 'mycred_toolkit_addon_file_exists' ) && ! mycred_toolkit_addon_file_exists( $slug ) ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 endif;
 
@@ -522,21 +537,21 @@ if ( ! function_exists( 'mycred_build_gateway_upsell_tabs' ) ) :
 			);
 		}
 
-		if ( ! empty( $tabs ) ) {
-			if ( $type === 'buycred' ) {
-				$tabs[] = array(
-					'icon' => 'dashicons dashicons-admin-generic static',
-					'text' => 'More Gateways',
-					'url'  => 'https://mycred.me/product-category/buycred-gateways/',
-				);
-			} elseif ( $type === 'cashcred' ) {
-				$tabs[] = array(
-					'icon' => 'dashicons dashicons-admin-generic static',
-					'text' => 'More Gateways',
-					'url'  => 'https://mycred.me/product-category/cashcred-gateways/',
-				);
-			}
-		}
+		// if ( ! empty( $tabs ) ) {
+		// 	if ( $type === 'buycred' ) {
+		// 		$tabs[] = array(
+		// 			'icon' => 'dashicons dashicons-admin-generic static',
+		// 			'text' => 'More Gateways',
+		// 			'url'  => 'https://mycred.me/product-category/buycred-gateways/',
+		// 		);
+		// 	} elseif ( $type === 'cashcred' ) {
+		// 		$tabs[] = array(
+		// 			'icon' => 'dashicons dashicons-admin-generic static',
+		// 			'text' => 'More Gateways',
+		// 			'url'  => 'https://mycred.me/product-category/cashcred-gateways/',
+		// 		);
+		// 	}
+		// }
 
 		$filter = ( $type === 'cashcred' ) ? 'mycred_cashcred_more_gateways_tab' : 'mycred_buycred_more_gateways_tab';
 

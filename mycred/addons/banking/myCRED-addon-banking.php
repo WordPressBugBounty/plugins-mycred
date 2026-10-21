@@ -72,6 +72,12 @@ if ( ! class_exists( 'myCRED_Banking_Module' ) ) :
 			}
 
 			add_action( 'wp_ajax_run-mycred-bank-service', array( $this, 'ajax_handler' ) );
+			add_action( 'rest_api_init', array( $this, 'register_banking_rest_routes' ) );
+
+			// Ensure ajax search works even if central deposit is not active yet
+			add_action( 'wp_ajax_get_bank_accounts_' . $this->mycred_type, function() {
+				$this->call( 'get_bank_accounts', array( 'myCRED_Banking_Service_Central' ) );
+			} );
 
 		}
 
@@ -138,7 +144,7 @@ if ( ! class_exists( 'myCRED_Banking_Module' ) ) :
 			// Savings
 			$services['central'] = array(
 				'title'        => __( 'General Settings', 'mycred' ),
-				'description'  => __( 'Instead of creating %_plural% out of thin-air, all payouts are made from a nominated "Central Deposit" account. Any %_plural% a user spends or loses are deposited back into this account. If the central deposit runs out of %_plural%, no %_plural% will be paid out.', 'mycred' ),
+				'description'  => $this->core->template_tags_general( __( 'Instead of creating %_plural% out of thin-air, all payouts are made from a nominated "Central Deposit" account. Any %_plural% a user spends or loses are deposited back into this account. If the central deposit runs out of %_plural%, no %_plural% will be paid out.', 'mycred' ) ),
 				'cron'         => false,
 				'icon'         => 'dashicons-bank',
 				'callback'     => array( 'myCRED_Banking_Service_Central' )
@@ -176,31 +182,74 @@ if ( ! class_exists( 'myCRED_Banking_Module' ) ) :
 		 */
 		public function settings_header() {
 
-			$banking_icons = plugins_url( 'assets/images/gateway-icons.png', myCRED_THIS );
-
 			wp_enqueue_style( 'mycred-bootstrap-grid' );
 			wp_enqueue_style( 'mycred-select2-style' );
 			wp_enqueue_style( MYCRED_SLUG . '-buttons' );
-			wp_register_script( 'mycred-central-deposit-admin', plugins_url( 'assets/js/central-deposit-admin.js', myCRED_BANK ), array( 'jquery', 'mycred-select2-script' ), myCRED_VERSION );
-			wp_localize_script(
-				'mycred-central-deposit-admin',
-				'mycred_bank_accounts',
-				array(
-					'nonce' => wp_create_nonce( 'mycred_get_bank_accounts_' . $this->mycred_type )
-				)
-			);
-			wp_enqueue_script( 'mycred-central-deposit-admin' );
+			
+			$bundle_path = myCRED_ROOT_DIR . 'addons/build/banking-settings.bundle.js';
+			$bundle_url  = plugins_url( 'addons/build/banking-settings.bundle.js', myCRED_THIS );
 
-?>
-<style type="text/css">
-.mycred-metabox .form .has-error .form-control { border-color: #dc3232; }
-.alert { padding: 24px; }
-.alert-warning { background-color: #dc3232; color: white; }
-.alert-success { background-color: #46b450; color: white; }
-.mycred-metabox .form-group label.manual-adjust { margin-top: 23px; }
-</style>
-<?php
+			if ( file_exists( $bundle_path ) ) {
+				wp_enqueue_script(
+					'mycred-banking-settings-react',
+					$bundle_url,
+					array( 'wp-element', 'wp-i18n', 'wp-components', 'jquery' ),
+					filemtime( $bundle_path ),
+					true
+				);
 
+				$api_url = rest_url( 'mycred/v1/banking/' . $this->mycred_type );
+				wp_localize_script( 'mycred-banking-settings-react', 'mycredBankingSettings', array(
+					'apiUrl'      => $api_url,
+					'apiNonce'    => wp_create_nonce( 'wp_rest' ),
+					'pointType'   => $this->mycred_type,
+					'optionId'    => $this->option_id,
+					'isProActive' => class_exists( 'MyCRED_Toolkit_Core_Pro' ) || ( function_exists( 'is_plugin_active' ) && is_plugin_active( 'mycred-toolkit-pro/mycred-toolkit-pro.php' ) ),
+				) );
+			}
+
+		}
+
+		public function register_banking_rest_routes() {
+			register_rest_route( 'mycred/v1', '/banking/' . $this->mycred_type, array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_banking_settings_rest' ),
+				'permission_callback' => function() {
+					return current_user_can( $this->core->edit_creds_cap() );
+				},
+			) );
+		}
+
+		public function get_banking_settings_rest() {
+			ob_start();
+			settings_fields( $this->settings_name );
+			$settings_nonce = ob_get_clean();
+
+			$services = array();
+			
+			$installed_services = ( isset( $this->services ) && ! empty( $this->services ) ) ? $this->services : $this->get();
+
+			if ( ! empty( $installed_services ) ) {
+				foreach ( $installed_services as $id => $data ) {
+					ob_start();
+					$this->call( 'preferences', $data['callback'] );
+					$preferences_html = ob_get_clean();
+
+					$services[] = array(
+						'id'               => $id,
+						'title'            => $this->core->template_tags_general( $data['title'] ),
+						'description'      => $this->core->template_tags_general( $data['description'] ),
+						'icon'             => $data['icon'],
+						'is_active'        => $this->is_active( $id ),
+						'preferences_html' => $preferences_html,
+					);
+				}
+			}
+
+			return new WP_REST_Response( array(
+				'services'       => $services,
+				'settings_nonce' => $settings_nonce
+			), 200 );
 		}
 
 		/**
@@ -213,70 +262,10 @@ if ( ! class_exists( 'myCRED_Banking_Module' ) ) :
 			// Security
 			if ( ! $this->core->user_is_point_admin() ) wp_die( 'Access Denied' );
 
-			// Get installed
-			$installed = $this->get();
-
-?>
-<?php mycred_render_admin_header(); ?>
-<div class="wrap mycred-metabox" id="myCRED-wrap">
-
-	<?php $this->update_notice(); ?>
-
-	<h1><?php esc_html_e( 'Central Deposit', 'mycred' ); ?></h1>
-	<form method="post" class="form" action="options.php">
-
-		<?php settings_fields( $this->settings_name ); ?>
-
-		<!-- Loop though Services -->
-		<div class="list-items expandable-li" id="accordion">
-<?php
-
-			// Installed Services
-			if ( ! empty( $installed ) ) {
-				foreach ( $installed as $key => $data ) {
-
-?>
-			<div class="mycred-ui-accordion">
-				<div class="mycred-ui-accordion-header">
-					<h4 class="mycred-ui-accordion-header-title">
-						<span class="dashicons <?php echo esc_attr( $data['icon'] ); ?><?php if ( $this->is_active( $key ) ) echo ' active'; else echo ' static'; ?> mycred-ui-accordion-header-icon"></span>
-						<label><?php echo esc_html( $this->core->template_tags_general( $data['title'] ) ); ?></label>
-					</h4>
-					<div class="mycred-ui-accordion-header-actions hide-if-no-js">
-						<button type="button" aria-expanded="true">
-							<span class="mycred-ui-toggle-indicator" aria-hidden="true"></span>
-						</button>
-					</div>
-				</div>
-				<div class="body mycred-ui-accordion-body" style="display: none;">
-					<p><?php echo nl2br( esc_html( $this->core->template_tags_general( $data['description'] ) ) ); ?></p>
-					<div class="mycred-toggle-wrapper">
-                        <label for="mycred-bank-service-<?php echo esc_attr( $key ); ?>"><strong><?php esc_html_e( 'Enable', 'mycred' ); ?></strong></label>
-                        <label class="mycred-toggle">
-                            <input type="checkbox" name="<?php echo esc_attr( $this->option_id ); ?>[active][]" id="mycred-bank-service-<?php echo esc_attr( $key ); ?>" value="<?php echo esc_attr( $key ); ?>"<?php if ( $this->is_active( $key ) ) echo ' checked="checked"'; ?> />
-                            <span class="slider round"></span>
-                        </label> 
-                    </div>
-                    <br />
-					<?php $this->call( 'preferences', $data['callback'] ); ?>
-
-				</div>
-			</div>
-<?php
-
-				}
-			}
-
-?>
-
-		</div>
-
-		<?php submit_button( esc_html__( 'Update Changes', 'mycred' ), 'mycred-ui-btn-purple mycred-ui-mt20', 'submit', false ); ?>
-
-	</form>
-</div>
-<?php
-
+			mycred_render_admin_header();
+			echo '<div class="wrap" id="myCRED-wrap" style="width: 90% !important; max-width: 1440px !important; margin: 20px auto !important; padding: 0 !important; background: transparent !important; box-shadow: none !important; border: none !important;">';
+			echo '<div id="mycred-banking-settings-root"></div>';
+			echo '</div>';
 		}
 
 		/**

@@ -38,6 +38,7 @@ if (!class_exists('cashCRED_Pending_Payments')):
 
 			add_action('mycred_init', array($this, 'module_init'), $this->menu_pos);
 			add_action('mycred_admin_init', array($this, 'module_admin_init'), $this->menu_pos);
+			add_action('rest_api_init', array($this, 'register_withdrawals_rest_routes'));
 
 		}
 
@@ -67,6 +68,7 @@ if (!class_exists('cashCRED_Pending_Payments')):
 			add_filter('submenu_file', array($this, 'subparent_file'), 10, 2);
 
 			add_action('admin_notices', array($this, 'admin_notices'));
+			add_action('all_admin_notices', array($this, 'render_react_withdrawal_list_root'));
 
 			add_action('admin_head-post.php', array($this, 'edit_pending_payment_style'));
 			add_filter('post_updated_messages', array($this, 'post_updated_messages'));
@@ -80,6 +82,7 @@ if (!class_exists('cashCRED_Pending_Payments')):
 			add_action('parse_query', array($this, 'cashcred_filter_query'));
 
 			add_action('admin_enqueue_scripts', array($this, 'cashcred_admin_assets'));
+			add_action('admin_enqueue_scripts', array($this, 'enqueue_react_withdrawal_assets'));
 
 			// added action for custom posttype add-new button if click will redirect back to post page.
 			add_action("load-post-new.php", array($this, 'cashcred_redirect_addnew_button'));
@@ -325,16 +328,7 @@ if (!class_exists('cashCRED_Pending_Payments')):
 		public function add_to_menu()
 		{
 
-			// In case we are using the Master Template feautre on multisites, and this is not the main
-			// site in the network, bail.
-			//if ( mycred_override_settings() && ! mycred_is_main_site() ) return;
-
-			mycred_add_main_submenu(
-				__('cashCred Withdrawal', 'mycred'),
-				__('cashCred Withdrawal', 'mycred'),
-				$this->core->get_point_editor_capability(),
-				'edit.php?post_type=' . MYCRED_CASHCRED_KEY
-			);
+			// Merged into cashCred Gateways React shell interface
 
 		}
 
@@ -1133,7 +1127,7 @@ if (!class_exists('cashCRED_Pending_Payments')):
 		public function metabox_cashcred_comments($post)
 		{
 
-			$comments = get_comments(array('post_id' => $post->ID));
+			$comments = get_comments(array('post_id' => $post->ID, 'type__in' => array('cashcred')));
 
 			echo '<ul class="history">';
 
@@ -1245,6 +1239,285 @@ if (!class_exists('cashCRED_Pending_Payments')):
 
 			return $log->have_entries();
 
+		}
+
+		public function enqueue_react_withdrawal_assets()
+		{
+			$screen = get_current_screen();
+			$post_type = isset($_GET['post_type']) ? sanitize_key($_GET['post_type']) : ($screen && isset($screen->post_type) ? $screen->post_type : '');
+
+			if (!$screen || $screen->base !== 'edit' || $post_type !== MYCRED_CASHCRED_KEY) {
+				return;
+			}
+
+			$bundle_path = myCRED_ROOT_DIR . 'addons/build/cashcred-withdrawals.bundle.js';
+			$bundle_url  = plugins_url( 'addons/build/cashcred-withdrawals.bundle.js', myCRED_THIS );
+
+			if (!file_exists($bundle_path)) {
+				return;
+			}
+
+			wp_enqueue_script(
+				'mycred-cashcred-withdrawals-react',
+				$bundle_url,
+				array('wp-element'),
+				filemtime($bundle_path),
+				true
+			);
+
+			wp_localize_script('mycred-cashcred-withdrawals-react', 'mycredCashcredWithdrawalsData', array(
+				'restUrl' => rest_url('mycred/v1/cashcred-withdrawals'),
+				'nonce'   => wp_create_nonce('wp_rest'),
+				'proPromoImageUrl' => plugins_url( 'assets/images/test.png', myCRED_THIS )
+			));
+
+			echo '<style type="text/css">
+				body.post-type-cashcred_withdrawal #wpbody-content > .wrap,
+				body.post-type-cashcred_withdrawal #posts-filter { display: none !important; }
+				body.post-type-cashcred_withdrawal #screen-options-link-wrap,
+				body.post-type-cashcred_withdrawal #screen-options-wrap,
+				body.post-type-cashcred_withdrawal .screen-meta-toggle { display: none !important; }
+				#mycred-cashcred-withdrawals-root { width: 100%; margin-top: 15px; display: block !important; }
+			</style>';
+		}
+
+		public function render_react_withdrawal_list_root()
+		{
+			$screen    = get_current_screen();
+			$post_type = isset($_GET['post_type']) ? sanitize_key($_GET['post_type']) : ($screen && isset($screen->post_type) ? $screen->post_type : '');
+
+			if ($screen && $screen->base === 'edit' && $post_type === MYCRED_CASHCRED_KEY) {
+				echo '<div id="mycred-cashcred-withdrawals-root"></div>';
+			}
+		}
+
+		public function register_withdrawals_rest_routes()
+		{
+			register_rest_route('mycred/v1', '/cashcred-withdrawals', array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array($this, 'get_withdrawals_rest'),
+					'permission_callback' => function () {
+						return current_user_can('edit_posts');
+					},
+				)
+			));
+
+			register_rest_route('mycred/v1', '/cashcred-withdrawals/(?P<id>\d+)/pay', array(
+				array(
+					'methods'             => 'POST',
+					'callback'            => array($this, 'pay_withdrawal_rest'),
+					'permission_callback' => function () {
+						return current_user_can('edit_posts');
+					},
+				)
+			));
+
+			register_rest_route('mycred/v1', '/cashcred-withdrawals/(?P<id>\d+)/trash', array(
+				array(
+					'methods'             => 'POST',
+					'callback'            => array($this, 'trash_withdrawal_rest'),
+					'permission_callback' => function () {
+						return current_user_can('delete_posts');
+					},
+				)
+			));
+
+			register_rest_route('mycred/v1', '/cashcred-withdrawals/(?P<id>\d+)/restore', array(
+				array(
+					'methods'             => 'POST',
+					'callback'            => array($this, 'restore_withdrawal_rest'),
+					'permission_callback' => function () {
+						return current_user_can('edit_posts');
+					},
+				)
+			));
+
+			register_rest_route('mycred/v1', '/cashcred-withdrawals/bulk', array(
+				array(
+					'methods'             => 'POST',
+					'callback'            => array($this, 'bulk_withdrawals_rest'),
+					'permission_callback' => function () {
+						return current_user_can('edit_posts');
+					},
+				)
+			));
+		}
+
+		public function get_withdrawals_rest($request)
+		{
+			$status   = $request->get_param('status') ?: 'publish';
+			$search   = $request->get_param('search');
+			$page     = max(1, (int) $request->get_param('page'));
+			$per_page = max(10, (int) $request->get_param('per_page'));
+
+			if ($status === 'trash') {
+				$post_status = 'trash';
+			} else {
+				$post_status = array('publish', 'pending', 'draft', 'future', 'private');
+			}
+
+			$mycred_status = $request->get_param('mycred_status');
+			$gateway_filter = $request->get_param('gateway');
+
+			$args = array(
+				'post_type'      => MYCRED_CASHCRED_KEY,
+				'post_status'    => $post_status,
+				'posts_per_page' => $per_page,
+				'paged'          => $page,
+			);
+
+			if (!empty($search)) {
+				$args['s'] = sanitize_text_field($search);
+			}
+
+			$meta_query = array();
+			if (!empty($mycred_status) && $mycred_status !== 'all') {
+				$meta_query[] = array(
+					'key'   => 'status',
+					'value' => sanitize_text_field($mycred_status),
+					'compare' => '='
+				);
+			}
+			if (!empty($gateway_filter) && $gateway_filter !== 'all') {
+				$meta_query[] = array(
+					'key'   => 'gateway',
+					'value' => sanitize_text_field($gateway_filter),
+					'compare' => '='
+				);
+			}
+
+			if (!empty($meta_query)) {
+				$args['meta_query'] = $meta_query;
+			}
+
+			$query = new WP_Query($args);
+			$items = array();
+
+			if ($query->have_posts()) {
+				while ($query->have_posts()) {
+					$query->the_post();
+					$post_id  = get_the_ID();
+					$user_id  = (int) get_post_meta($post_id, 'from', true);
+					$user_obj = get_userdata($user_id);
+					$points   = get_post_meta($post_id, 'points', true);
+					$cost     = get_post_meta($post_id, 'cost', true);
+					$currency = get_post_meta($post_id, 'currency', true);
+					$gateway  = get_post_meta($post_id, 'gateway', true);
+					$point_type = get_post_meta($post_id, 'point_type', true);
+
+					$items[] = array(
+						'id'               => $post_id,
+						'title'            => get_the_title() ?: '#' . $post_id,
+						'user_id'          => $user_id,
+						'buyer_name'        => $user_obj ? $user_obj->display_name : 'User #' . $user_id,
+						'buyer_avatar'      => $user_id ? get_avatar_url($user_id, array('size' => 48)) : '',
+						'amount'           => $points,
+						'formatted_amount' => number_format_i18n((float)$points) . ' ' . mycred_get_point_type_name($point_type, false),
+						'cost'             => $cost,
+						'currency'         => $currency,
+						'gateway'          => $gateway,
+						'gateway_title'    => ucfirst($gateway),
+						'point_type'       => $point_type,
+						'point_type_label' => mycred_get_point_type_name($point_type, false),
+						'status'           => get_post_meta($post_id, 'status', true) ?: 'Pending',
+						'date'             => get_the_date('M j, Y g:i a'),
+						'edit_url'         => get_edit_post_link($post_id, 'raw'),
+						'comments_count'   => get_comments_number($post_id)
+					);
+				}
+				wp_reset_postdata();
+			}
+
+			// Counts calculation
+			$count_obj = wp_count_posts(MYCRED_CASHCRED_KEY);
+			$count_publish = (int)($count_obj->publish ?? 0) + (int)($count_obj->pending ?? 0) + (int)($count_obj->draft ?? 0) + (int)($count_obj->future ?? 0);
+			$count_trash   = (int)($count_obj->trash ?? 0);
+
+			$counts = array(
+				'all'     => (int) $count_publish,
+				'publish' => (int) $count_publish,
+				'trash'   => (int) $count_trash
+			);
+
+			return new WP_REST_Response(array(
+				'items'  => $items,
+				'total'  => $query->found_posts,
+				'counts' => $counts
+			), 200);
+		}
+
+		public function pay_withdrawal_rest($request)
+		{
+			$id = (int) $request->get_param('id');
+			if (!$id) {
+				return new WP_REST_Response(array('message' => 'Invalid ID'), 400);
+			}
+
+			global $mycred_modules;
+			if (isset($mycred_modules['solo']['cashcred'])) {
+				$response = $mycred_modules['solo']['cashcred']->cashcred_pay_now($id, true);
+				if ( is_array($response) && empty($response['status']) ) {
+					return new WP_Error('payout_failed', $response['message'], array('status' => 400));
+				}
+			}
+
+			update_post_meta($id, 'status', 'Approved');
+
+			return new WP_REST_Response(array('success' => true, 'message' => 'Withdrawal payout processed'), 200);
+		}
+
+		public function trash_withdrawal_rest($request)
+		{
+			$id     = (int) $request->get_param('id');
+			$force  = $request->get_param('force') === 'true';
+
+			if (!$id) {
+				return new WP_REST_Response(array('message' => 'Invalid ID'), 400);
+			}
+
+			if ($force) {
+				wp_delete_post($id, true);
+			} else {
+				wp_trash_post($id);
+			}
+
+			return new WP_REST_Response(array('success' => true), 200);
+		}
+
+		public function restore_withdrawal_rest($request)
+		{
+			$id = (int) $request->get_param('id');
+			if (!$id) {
+				return new WP_REST_Response(array('message' => 'Invalid ID'), 400);
+			}
+
+			wp_untrash_post($id);
+
+			return new WP_REST_Response(array('success' => true), 200);
+		}
+
+		public function bulk_withdrawals_rest($request)
+		{
+			$params = $request->get_json_params();
+			$action = isset($params['action']) ? sanitize_text_field($params['action']) : '';
+			$ids    = isset($params['ids']) && is_array($params['ids']) ? array_map('intval', $params['ids']) : array();
+
+			if (!$action || empty($ids)) {
+				return new WP_REST_Response(array('message' => 'Invalid bulk parameters'), 400);
+			}
+
+			foreach ($ids as $id) {
+				if ($action === 'trash') {
+					wp_trash_post($id);
+				} elseif ($action === 'restore') {
+					wp_untrash_post($id);
+				} elseif ($action === 'delete') {
+					wp_delete_post($id, true);
+				}
+			}
+
+			return new WP_REST_Response(array('success' => true), 200);
 		}
 
 	}

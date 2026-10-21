@@ -1,5 +1,5 @@
 import { useState, useEffect } from '@wordpress/element';
-import { Box, ThemeProvider, createTheme } from '@mui/material';
+import { Box, ThemeProvider, createTheme, GlobalStyles } from '@mui/material';
 import Launcher from './components/Launcher';
 import WidgetWindow from './components/WidgetWindow';
 
@@ -49,6 +49,65 @@ export default function WidgetApp() {
 
     return (
         <ThemeProvider theme={theme}>
+            <GlobalStyles
+                styles={{
+                    '#mycred-loyalty-widget-root': {
+                        boxSizing: 'border-box',
+                        fontFamily: "'Instrument Sans', sans-serif !important",
+                        lineHeight: 1.4,
+                        color: '#1a1a1a',
+                        zIndex: 99999,
+                    },
+                    '#mycred-loyalty-widget-root *, #mycred-loyalty-widget-root *::before, #mycred-loyalty-widget-root *::after': {
+                        boxSizing: 'border-box !important',
+                    },
+                    '#mycred-loyalty-widget-root p': {
+                        margin: '0 !important',
+                        padding: '0 !important',
+                    },
+                    '#mycred-loyalty-widget-root h1, #mycred-loyalty-widget-root h2, #mycred-loyalty-widget-root h3, #mycred-loyalty-widget-root h4, #mycred-loyalty-widget-root h5, #mycred-loyalty-widget-root h6': {
+                        margin: '0 !important',
+                        padding: '0 !important',
+                        fontFamily: "'Instrument Sans', sans-serif !important",
+                    },
+                    '#mycred-loyalty-widget-root button, #mycred-loyalty-widget-root [role="button"], #mycred-loyalty-widget-root .MuiButtonBase-root': {
+                        textTransform: 'none',
+                        outline: 'none !important',
+                        boxShadow: 'none',
+                        border: 'none',
+                        fontFamily: 'inherit !important',
+                    },
+                    '#mycred-loyalty-widget-root button:focus, #mycred-loyalty-widget-root button:active, #mycred-loyalty-widget-root [role="button"]:focus, #mycred-loyalty-widget-root [role="button"]:active': {
+                        outline: 'none !important',
+                    },
+                    '#mycred-loyalty-widget-root .MuiAccordion-root': {
+                        backgroundColor: '#ffffff !important',
+                        backgroundImage: 'none !important',
+                    },
+                    '#mycred-loyalty-widget-root .MuiAccordionSummary-root': {
+                        backgroundColor: '#ffffff !important',
+                        backgroundImage: 'none !important',
+                        color: '#1a1a1a !important',
+                    },
+                    '#mycred-loyalty-widget-root .MuiAccordionSummary-root:focus, #mycred-loyalty-widget-root .MuiAccordionSummary-root:active, #mycred-loyalty-widget-root .MuiAccordionSummary-root.Mui-focusVisible, #mycred-loyalty-widget-root .MuiAccordionSummary-root.Mui-expanded, #mycred-loyalty-widget-root .MuiAccordionSummary-root:hover': {
+                        backgroundColor: '#ffffff !important',
+                        backgroundImage: 'none !important',
+                        color: '#1a1a1a !important',
+                        outline: 'none !important',
+                        boxShadow: 'none !important',
+                    },
+                    '#mycred-loyalty-widget-root img': {
+                        display: 'inline-block',
+                        maxWidth: '100%',
+                        height: 'auto',
+                        borderStyle: 'none',
+                    },
+                    '#mycred-loyalty-widget-root svg': {
+                        display: 'inline-block',
+                        verticalAlign: 'middle',
+                    },
+                }}
+            />
             <Box sx={getPositionStyles()}>
                 {/* Launcher Button */}
                 <Launcher

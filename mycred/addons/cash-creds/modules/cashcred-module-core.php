@@ -63,6 +63,9 @@ if ( ! class_exists( 'myCRED_cashCRED_Module' ) ) :
 			add_action( 'mycred_after_core_prefs',         array( $this, 'after_general_settings' ) );
 			add_filter( 'mycred_save_core_prefs',          array( $this, 'sanitize_extra_settings' ), 90, 3 );
 
+			add_action( 'admin_enqueue_scripts',           array( $this, 'enqueue_react_gateways_assets' ) );
+			add_action( 'rest_api_init',                   array( $this, 'register_cashcred_gateways_rest_routes' ) );
+
 		}
 		
 		 
@@ -172,7 +175,11 @@ if ( ! class_exists( 'myCRED_cashCRED_Module' ) ) :
 				$cashcred_pay_method = sanitize_text_field( wp_unslash(  $_POST['cashcred_pay_method'] ) );	
 			} 
 			else {
-				return	$this->response( false, array( 'message' => 'Invalid Payment Gateway' ), $auto );
+				// Fallback to retrieving gateway from post meta for REST/Automated calls
+				$cashcred_pay_method = mycred_get_post_meta( $post_id, 'gateway', true );
+				if ( empty( $cashcred_pay_method ) ) {
+					return	$this->response( false, array( 'message' => 'Invalid Payment Gateway' ), $auto );
+				}
 			}
 
 			$withdraw_user_id    = (int) mycred_get_post_meta( $post_id, 'from', true );
@@ -832,154 +839,141 @@ if ( ! class_exists( 'myCRED_cashCRED_Module' ) ) :
 			// Security
 			if ( ! $this->core->user_is_point_admin() ) wp_die( 'Access Denied' );
 
+			mycred_render_admin_header();
+?>
+<div class="wrap" id="myCRED-wrap" style="width: 90% !important; max-width: 1440px !important; margin: 20px auto !important; padding: 0 !important; background: transparent !important; box-shadow: none !important; border: none !important;">
+	<div id="mycred-cashcred-gateways-root"></div>
+</div>
+<?php
+		}
+
+		public function enqueue_react_gateways_assets() {
+
+			$is_cashcred_page = isset($_GET['page']) && strpos($_GET['page'], 'cashcred') !== false;
+			$screen = get_current_screen();
+			if ( ! $is_cashcred_page && ( ! $screen || strpos( $screen->id, 'cashcred' ) === false ) ) {
+				return;
+			}
+
+			$bundle_path = myCRED_ROOT_DIR . 'addons/build/cashcred-gateways.bundle.js';
+			$bundle_url  = plugins_url( 'addons/build/cashcred-gateways.bundle.js', myCRED_THIS );
+
+			if ( ! file_exists( $bundle_path ) ) return;
+
+			wp_enqueue_editor();
+
+			wp_enqueue_script(
+				'mycred-cashcred-gateways-react',
+				$bundle_url,
+				array( 'wp-element', 'editor', 'wp-util' ),
+				filemtime( $bundle_path ),
+				true
+			);
+
+			wp_localize_script( 'mycred-cashcred-gateways-react', 'mycredCashcredGateways', array(
+				'restUrl'     => rest_url( 'mycred/v1/cashcred-gateways' ),
+				'nonce'       => wp_create_nonce( 'wp_rest' ),
+				'isProActive' => class_exists( 'MyCRED_Toolkit_Core_Pro' ) || ( function_exists( 'is_plugin_active' ) && is_plugin_active( 'mycred-toolkit-pro/mycred-toolkit-pro.php' ) ),
+				'proPromoImageUrl' => plugins_url( 'assets/images/test.png', myCRED_THIS ),
+			) );
+		}
+
+		public function register_cashcred_gateways_rest_routes() {
+			register_rest_route( 'mycred/v1', '/cashcred-gateways', array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_cashcred_gateways_rest' ),
+					'permission_callback' => function() {
+						return current_user_can( $this->core->edit_creds_cap() );
+					},
+				),
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'save_cashcred_gateways_rest' ),
+					'permission_callback' => function() {
+						return current_user_can( $this->core->edit_creds_cap() );
+					},
+				),
+			) );
+		}
+
+		private function get_formatted_gateways_data() {
 			$installed = $this->get();
-
-?>
-<?php mycred_render_admin_header(); ?>
-<div class="wrap mycred-metabox" id="myCRED-wrap">
-	<h1><?php esc_html_e( 'cashCred Payment Gateways', 'mycred' ); ?></h1>
-<?php
-
-			// Updated settings
-			if ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] == true )
-				echo '<div class="updated settings-error"><p>' . esc_html__( 'Settings Updated', 'mycred' ) . '</p></div>';
-
-?>
-	<form method="post" action="options.php" class="form">
-
-		<?php settings_fields( $this->settings_name ); ?>
-
-		<?php do_action( 'mycred_before_cashcred_page', $this ); ?>
-
-		<div class="list-items expandable-li" id="accordion">
-<?php
+			$gateways  = array();
 
 			if ( ! empty( $installed ) ) {
-				foreach ( $installed as $key => $data ) {
+				foreach ( $installed as $id => $data ) {
+					$is_active    = $this->is_active( $id );
+					$has_sandbox  = isset( $data['sandbox'] ) ? (bool) $data['sandbox'] : false;
+					$sandbox_mode = ( isset( $this->gateway_prefs[ $id ]['sandbox'] ) && $this->gateway_prefs[ $id ]['sandbox'] === 1 ) ? true : false;
+					$doc_url      = isset( $data['documentation'] ) ? esc_url_raw( $data['documentation'] ) : false;
 
-					$has_documentation = ( array_key_exists( 'documentation', $data ) && ! empty( $data['documentation'] ) ) ? esc_url_raw( $data['documentation'] ) : false;
-					$has_test_mode     = ( array_key_exists( 'sandbox', $data ) ) ? (bool) $data['sandbox'] : false;
-					$sandbox_mode      = ( array_key_exists( $key, $this->gateway_prefs ) && array_key_exists( 'sandbox', $this->gateway_prefs[ $key ] ) && $this->gateway_prefs[ $key ]['sandbox'] === 1 ) ? true : false;
+					ob_start();
+					$this->call( 'preferences', $data['callback'] );
+					$preferences_html = ob_get_clean();
 
-					if ( ! array_key_exists( 'icon', $data ) )
-						$data['icon'] = 'dashicons-admin-plugins';
-
-					$column_class = 'col-lg-6 col-md-6 col-sm-12 col-xs-12';
-					if ( ! $has_documentation && ! $has_test_mode )
-						$column_class = 'col-lg-12 col-md-12 col-sm-12 col-xs-12';
-					elseif ( $has_documentation && $has_test_mode )
-						$column_class = 'col-lg-4 col-md-4 col-sm-12 col-xs-12';
-
-?>
-			<div class="mycred-ui-accordion">
-				<div class="mycred-ui-accordion-header">
-					<h4 class="mycred-ui-accordion-header-title">
-						<span class="dashicons <?php echo esc_attr( $data['icon'] ); ?><?php if ( $this->is_active( $key ) ) { if ( $sandbox_mode ) echo ' debug'; else echo ' active'; } else echo ' static'; ?> mycred-ui-accordion-header-icon"></span>
-						<label><?php echo wp_kses_post( $this->core->template_tags_general( $data['title'] ) ); ?></label>
-					</h4>
-					<div class="mycred-ui-accordion-header-actions hide-if-no-js">
-						<button type="button" aria-expanded="true">
-							<span class="mycred-ui-toggle-indicator" aria-hidden="true"></span>
-						</button>
-					</div>
-				</div>
-				<div class="body mycred-ui-accordion-body" style="display: none;">
-					<div class="row">
-						<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-							<div class="form-group">
-								<div>&nbsp;</div>
-								<label for="cashcred-gateway-<?php echo esc_attr( $key ); ?>"><input type="checkbox" name="mycred_pref_cashcreds[active][]" id="cashcred-gateway-<?php echo esc_attr( $key ); ?>" value="<?php echo esc_attr( $key ); ?>"<?php if ( $this->is_active( $key ) ) echo ' checked="checked"'; ?> /> <?php esc_html_e( 'Enable', 'mycred' ); ?></label>
-							</div>
-						</div>
-						<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-							<?php if ( $has_test_mode ) : ?>
-							<div class="form-group">
-								<div>&nbsp;</div>
-								<label for="cashcred-gateway-<?php echo esc_attr( $key ); ?>-sandbox"><input type="checkbox" name="mycred_pref_cashcreds[gateway_prefs][<?php echo esc_attr( $key ); ?>][sandbox]" id="cashcred-gateway-<?php echo esc_attr( $key ); ?>-sandbox" value="<?php echo esc_attr( $key ); ?>"<?php if ( $sandbox_mode ) echo ' checked="checked"'; ?> /> <?php esc_html_e( 'Sandbox Mode', 'mycred' ); ?></label>
-							</div>
-							<?php endif; ?>
-						</div>
-						<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" style="text-align: right;">
-							<?php if ( MYCRED_DEFAULT_LABEL === 'myCRED' && $has_documentation ) : ?>
-							<div class="form-group">
-								<div>&nbsp;</div>
-								<a href="<?php echo esc_url( $has_documentation ); ?>" target="_blank"><?php esc_html_e( 'Documentation', 'mycred' ); ?></a>
-							</div>
-							<?php endif; ?>
-						</div>
-					</div>
-					<hr />
-					<br />
-
-					<?php $this->call( 'preferences', $data['callback'] ); ?>
-
-					<input type="hidden" name="mycred_pref_cashcreds[installed]" value="<?php echo esc_attr( $key ); ?>" />
-				</div>
-			</div>
-<?php
-
+					$gateways[] = array(
+						'id'                => $id,
+						'title'             => isset( $data['title'] ) ? $this->core->template_tags_general( $data['title'] ) : $id,
+						'icon'              => isset( $data['icon'] ) ? $data['icon'] : 'dashicons-admin-plugins',
+						'is_active'         => $is_active,
+						'has_sandbox'       => $has_sandbox,
+						'sandbox_mode'      => $sandbox_mode,
+						'documentation_url' => $doc_url,
+						'preferences_html'  => $preferences_html
+					);
 				}
 			}
 
-			$more_gateways_tab = mycred_build_gateway_upsell_tabs( 'cashcred', $installed );
+			return $gateways;
+		}
 
-			if( MYCRED_SHOW_PREMIUM_ADDONS )
-			{
-				foreach( $more_gateways_tab as $key => $gateway )
-				{
-					if ( isset( $gateway['plugin'] ) && $gateway['plugin'] !== '' ) {
-						if ( ! function_exists( 'is_plugin_active' ) ) {
-							require_once ABSPATH . 'wp-admin/includes/plugin.php';
-						}
-						if ( is_plugin_active( $gateway['plugin'] ) ) {
-							continue;
-						}
+		public function get_cashcred_gateways_rest() {
+			ob_start();
+			settings_fields( $this->settings_name );
+			$settings_nonce = ob_get_clean();
+
+			$installed       = $this->get();
+			$upsell_gateways = mycred_build_gateway_upsell_tabs( 'cashcred', $installed );
+
+			return new WP_REST_Response( array(
+				'gateways'        => $this->get_formatted_gateways_data(),
+				'upsell_gateways' => $upsell_gateways,
+				'settings_nonce'  => $settings_nonce
+			), 200 );
+		}
+
+		public function save_cashcred_gateways_rest( $request ) {
+			$params = $request->get_json_params();
+			if ( isset( $params['gateways'] ) && is_array( $params['gateways'] ) ) {
+				$active = array();
+				$prefs  = $this->gateway_prefs;
+
+				foreach ( $params['gateways'] as $gw ) {
+					$id = sanitize_key( $gw['id'] );
+					if ( ! empty( $gw['is_active'] ) ) {
+						$active[] = $id;
 					}
-
-					$disabled_class = ( isset( $gateway['status'] ) && $gateway['status'] == 'disabled' )  ? 'disabled' : '';
-
-					?>
-
-<div class="mycred-ui-accordion <?php esc_attr_e( $disabled_class );?>">
-	<div class="mycred-ui-accordion-header buycred-cashcred-more-tab-btn" data-url="<?php esc_attr_e( $gateway['url'] );?>">
-		<h4 class="mycred-ui-accordion-header-title">
-			<span class="dashicons <?php esc_html_e( $gateway['icon'] );?> static mycred-ui-accordion-header-icon"></span>
-			<label><?php esc_html_e( $gateway['text'] ); ?></label>
-			<?php if( array_key_exists( 'additional_text', $gateway )  && ! empty( $gateway['additional_text'] ) ): ?>
-			<span class="mycred-ui-badge"><?php esc_html_e( $gateway['additional_text'] );?></span>
-			<?php endif;?>
-		</h4>
-	</div>
-	<div class="body" style="display:none; padding: 0px; border: none;"></div>
-</div>
-
-					<?php
+					if ( isset( $gw['prefs'] ) && is_array( $gw['prefs'] ) ) {
+						$prefs[ $id ] = $gw['prefs'];
+					}
 				}
+
+				$new_settings = array(
+					'installed'     => array_keys( $this->get() ),
+					'active'        => $active,
+					'gateway_prefs' => $prefs
+				);
+
+				mycred_update_option( 'mycred_pref_cashcreds', $new_settings );
+				$this->gateway_prefs = $prefs;
+				$this->active        = $active;
 			}
 
-?>
-		</div>
-
-		<?php do_action( 'mycred_after_cashcred_page', $this ); ?>
-
-		<?php submit_button( __( 'Update Settings', 'mycred' ), 'mycred-ui-mt20 mycred-ui-btn-purple', 'submit', false ); ?>
-
-	</form>
-
-	<?php do_action( 'mycred_bottom_cashcred_page', $this ); ?>
-
-<script type="text/javascript">
-jQuery(function($) {
-	$( 'select.currency' ).change(function(){
-		var target = $(this).attr( 'data-update' );
-		$( '.' + target ).empty();
-		$( '.' + target ).text( $(this).val() );
-	});
-});
-</script>
-</div>
-<?php
-
+			return new WP_REST_Response( array(
+				'success'  => true,
+				'gateways' => $this->get_formatted_gateways_data()
+			), 200 );
 		}
 
 		/**
@@ -994,15 +988,47 @@ jQuery(function($) {
 
 			if ( empty( $installed ) ) return $data;
 
+			$existing         = mycred_get_option( $this->option_id, array() );
+			$existing_active  = ( ! empty( $existing['active'] ) && is_array( $existing['active'] ) ) ? array_map( 'strval', $existing['active'] ) : array();
+			$existing_prefs   = ( ! empty( $existing['gateway_prefs'] ) && is_array( $existing['gateway_prefs'] ) ) ? $existing['gateway_prefs'] : array();
+			$posted_pref_ids  = ( ! empty( $data['gateway_prefs'] ) && is_array( $data['gateway_prefs'] ) ) ? array_map( 'strval', array_keys( $data['gateway_prefs'] ) ) : array();
+			$posted_active    = ( ! empty( $data['active'] ) && is_array( $data['active'] ) ) ? array_map( 'strval', $data['active'] ) : array();
+
+			// Preserve prefs for gateways not included in this (often single-gateway) save.
+			if ( ! isset( $data['gateway_prefs'] ) || ! is_array( $data['gateway_prefs'] ) ) {
+				$data['gateway_prefs'] = array();
+			}
+			foreach ( $existing_prefs as $gateway_id => $prefs ) {
+				$gateway_id = (string) $gateway_id;
+				if ( ! array_key_exists( $gateway_id, $data['gateway_prefs'] ) ) {
+					$data['gateway_prefs'][ $gateway_id ] = $prefs;
+				}
+			}
+
 			foreach ( $installed as $gateway_id => $gateway ) {
 
 				$gateway_id     = (string) $gateway_id;
 				$submitted_data = ( ! empty( $data['gateway_prefs'] ) && array_key_exists( $gateway_id, $data['gateway_prefs'] ) ) ? $data['gateway_prefs'][ $gateway_id ] : false;
 
-				// No need to do anything if we have no data
-				if ( $submitted_data !== false )
+				// Only re-sanitise gateways that were actually posted this request.
+				if ( in_array( $gateway_id, $posted_pref_ids, true ) && $submitted_data !== false )
 					$data['gateway_prefs'][ $gateway_id ] = $this->call( 'sanitise_preferences', $installed[ $gateway_id ]['callback'], $submitted_data );
 
+			}
+
+			// Partial React detail saves only post one gateway's Enable checkbox — merge active list.
+			$is_partial_save = ! empty( $posted_pref_ids ) && count( $posted_pref_ids ) < count( $installed );
+			if ( $is_partial_save ) {
+				$merged_active = $existing_active;
+				foreach ( $posted_pref_ids as $gateway_id ) {
+					$merged_active = array_values( array_diff( $merged_active, array( $gateway_id ) ) );
+					if ( in_array( $gateway_id, $posted_active, true ) ) {
+						$merged_active[] = $gateway_id;
+					}
+				}
+				$data['active'] = array_values( array_unique( $merged_active ) );
+			} elseif ( ! isset( $data['active'] ) || ! is_array( $data['active'] ) ) {
+				$data['active'] = $existing_active;
 			}
 
 			return $data;

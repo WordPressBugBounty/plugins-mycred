@@ -401,7 +401,7 @@ jQuery(function($) {
 	<div class="body mycred-ui-accordion-body" style="display: none;">
 
 		<div class="row">
-			<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+			<div class="col-lg-3 col-md-3 col-sm-3 col-xs-3">
 				<div class="form-group">
 					<label class="mycred-export-prefs-front-end"><?php esc_html_e( 'Front End Exports', 'mycred' ); ?></label>
 					<select name="mycred_pref_core[export][front]" id="mycred-export-prefs-front-end" class="form-control">
@@ -417,7 +417,7 @@ jQuery(function($) {
 					</select>
 				</div>
 			</div>
-			<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+			<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
 				<div class="form-group">
 					<label for="mycred-export-prefs-front-end-format"><?php esc_html_e( 'Export Format', 'mycred' ); ?></label>
 					<select name="mycred_pref_core[export][front_format]" id="mycred-export-prefs-front-end-format" class="form-control">
@@ -433,7 +433,7 @@ jQuery(function($) {
 					</select>
 				</div>
 			</div>
-			<div class="col-lg-5 col-md-5 col-sm-12 col-xs-12">
+			<div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
 				<div class="form-group">
 					<label for="mycred-export-prefs-front-end-name"><?php esc_html_e( 'File Name', 'mycred' ); ?></label>
 					<input type="text" class="form-control" name="mycred_pref_core[export][front_name]" id="mycred-export-prefs-front-end-name" value="<?php echo esc_attr( $this->export['front_name'] ); ?>" />
@@ -449,7 +449,7 @@ jQuery(function($) {
 		</div>
 
 		<div class="row">
-			<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+			<div class="col-lg-3 col-md-3 col-sm-3 col-xs-3">
 				<div class="form-group">
 					<label class="mycred-export-prefs-admin-end"><?php esc_html_e( 'Back End Exports', 'mycred' ); ?></label>
 					<select name="mycred_pref_core[export][admin]" id="mycred-export-prefs-admin-end" class="form-control">
@@ -465,7 +465,7 @@ jQuery(function($) {
 					</select>
 				</div>
 			</div>
-			<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+			<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
 				<div class="form-group">
 					<label for="mycred-export-prefs-admin-end-format"><?php esc_html_e( 'Export Format', 'mycred' ); ?></label>
 					<select name="mycred_pref_core[export][admin_format]" id="mycred-export-prefs-admin-end-format" class="form-control">
@@ -481,7 +481,7 @@ jQuery(function($) {
 					</select>
 				</div>
 			</div>
-			<div class="col-lg-5 col-md-5 col-sm-12 col-xs-12">
+			<div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
 				<div class="form-group">
 					<label for="mycred-export-prefs-admin-end-name"><?php esc_html_e( 'File Name', 'mycred' ); ?></label>
 					<input type="text" class="form-control" name="mycred_pref_core[export][admin_name]" id="mycred-export-prefs-admin-end-name" value="<?php echo esc_attr( $this->export['admin_name'] ); ?>" />

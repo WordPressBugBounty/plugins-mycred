@@ -3,7 +3,7 @@
  * Plugin Name: myCred
  * Plugin URI: https://mycred.me
  * Description: An adaptive points management system for WordPress powered websites.
- * Version: 3.2.6
+ * Version: 4.0.0
  * Tags: point, credit, loyalty program, engagement, reward, woocommerce rewards
  * Author: myCred
  * Author URI: https://mycred.me
@@ -20,7 +20,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 	final class myCRED_Core {
 
 		// Plugin Version
-		public $version             = '3.2.6';
+		public $version             = '4.0.0';
 
 		// Instnace
 		protected static $_instance = NULL;
@@ -197,7 +197,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 				// Include Freemius SDK.
 				$this->file( myCRED_ROOT_DIR . '/freemius/start.php' );
 
-				$redirect_path = 'admin.php?page=mycred-main&mycred_tour_guide=1';
+				$redirect_path = 'admin.php?page=mycred-onboarding';
 
 				if ( mycred_get_option( 'mycred_deactivated_on', false ) != false ) {
 					//$redirect_path = 'admin.php?page=mycred-main';
@@ -237,10 +237,12 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 		public function includes() {
 
 			$this->file( myCRED_INCLUDES_DIR . 'mycred-functions.php' );
-
+			$this->file( myCRED_INCLUDES_DIR . 'mycred-freemius-connect-ui.php' );
 			$this->file( myCRED_ADDONS_DIR . 'mycred-addons-registry.php' );
 
 			$this->file( myCRED_CLASSES_DIR . 'class.query-log.php' );
+			$this->file( myCRED_CLASSES_DIR . 'class.mycred-rest-hooks.php' );
+			$this->file( myCRED_CLASSES_DIR . 'class.mycred-rest-logs.php' );
 			$this->file( myCRED_CLASSES_DIR . 'class.query-export.php' );
 			$this->file( myCRED_CLASSES_DIR . 'class.query-leaderboard.php' );
 
@@ -265,12 +267,20 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 				$this->file( myCRED_INCLUDES_DIR . 'dashboard/mycred-dashboard.php' );
 				// myCred Loyalty Widget
 				$this->file(myCRED_INCLUDES_DIR . 'loyalty-widget/mycred-loyalty-widget.php');
-				
-				if( isset ( $_GET['mycred_tour_guide'] ) ){
 
+				
+				if ( isset( $_GET['mycred_tour_guide'] ) && ! get_option( 'mycred_wizard_eligible', false ) ) {
 					$this->file( myCRED_INCLUDES_DIR . 'mycred-walkthrough.php' );
 					$walkthrough = new myCRED_walkthroug();
-					
+				}
+
+				$load_onboarding = is_admin() && (
+					( isset( $_GET['page'] ) && 'mycred-onboarding' === sanitize_key( wp_unslash( $_GET['page'] ) ) )
+					|| ( function_exists( 'mycred_is_onboarding_pending' ) && mycred_is_onboarding_pending() )
+				);
+
+				if ( $load_onboarding && ! mycred_is_installed() ) {
+					$this->file( myCRED_INCLUDES_DIR . 'ai-assistant/ai-assistant.php' );
 				}
 
 				// If myCRED has been setup and is ready to begin
@@ -278,9 +288,10 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 
 					$this->file( myCRED_MEMBERSHIP_DIR . 'mycred-connect-membership.php' );
 					$this->file( myCRED_INCLUDES_DIR   . 'mycred-main-menu.php' );
+					$this->file( myCRED_INCLUDES_DIR   . 'ai-assistant/ai-assistant.php' );
 					$this->file( myCRED_INCLUDES_DIR   . 'mycred-ai-assistant-menu.php' );
 					$this->file( myCRED_INCLUDES_DIR   . 'mycred-database-upgrade.php' );
-					$this->file( myCRED_INCLUDES_DIR   . 'mycred-admin-notices.php' );
+					// $this->file( myCRED_INCLUDES_DIR   . 'mycred-admin-notices.php' );
 					
 					// Modules
 					$this->file( myCRED_MODULES_DIR . 'mycred-module-addons.php' );
@@ -606,109 +617,6 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 
 		add_filter( 'admin_body_class', 	 array( $this, 'add_mycred_admin_body_class' ) );
 
-		add_action( 'rest_api_init' , array( $this, 'rest_api_mycred_core_addons' ) );
-			
-		}
-
-		public function rest_api_mycred_core_addons() {
-
-			register_rest_route('mycred/v1', '/enable-core-addon', array(
-				'methods'             => 'POST',
-				'callback'            => array( $this, 'mycred_enable_core_addon' ),
-				'permission_callback'   => array( $this, 'verify_nonce_and_permissions' )
-			));
-
-			register_rest_route('mycred/v1', '/get-core-addons', array(
-				'methods' 			  => 'GET',
-				'callback' 			  => array( $this, 'get_core_addons_callback' ),
-				'permission_callback'   => array( $this, 'verify_nonce_and_permissions' )
-			));
-
-		}
-
-		public function verify_nonce_and_permissions( $request ) {
-			$nonce = $request->get_header( 'X-WP-Nonce' );
-
-			if ( ! $nonce ) {
-				return new WP_Error(
-					'rest_missing_nonce',
-					__( 'Missing nonce.', 'mycred' ),
-					array( 'status' => 403 )
-				);
-			}
-
-			if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
-				return new WP_Error(
-					'rest_invalid_nonce',
-					__( 'Invalid nonce.', 'mycred' ),
-					array( 'status' => 403 )
-				);
-			}
-
-			if ( ! current_user_can( 'manage_options' ) ) {
-				return new WP_Error(
-					'rest_forbidden',
-					__( 'You do not have permission to perform this action.', 'mycred' ),
-					array( 'status' => 403 )
-				);
-			}
-
-			return true;
-		}
-
-		public function get_core_addons_callback($request) {
-
-			$enabled_addons = get_option( 'mycred_pref_addons', array() );
-
-			$addons = ! empty( $enabled_addons['active'] ) ? $enabled_addons['active'] : array();
-
-			return rest_ensure_response( $addons );
-
-		}
-
-		public function mycred_enable_core_addon($request) {
-			
-			$nonce = $request->get_header('X-WP-Nonce');
-			if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
-				return new WP_Error( 'rest_forbidden', __('Invalid nonce.', 'mycred'), array( 'status' => 403 ) );
-			}
-
-			$params = $request->get_json_params();
-
-			$addOnSlug = isset( $params['addOnSlug'] ) ? sanitize_text_field( $params['addOnSlug'] ) : '';
-			$addOnTitle = isset( $params['addOnTitle'] ) ? sanitize_text_field( $params['addOnTitle'] ) : '';
-			
-	        // Get current enabled add-ons
-			$addons_prefs  = get_option( 'mycred_pref_addons', array() );
-
-	        // Toggle the enabled state
-			if ( ! empty( $addons_prefs['active'] ) && in_array( $addOnSlug, $addons_prefs['active'] ) ) {
-
-	            // Disable the add-on
-				$addons_prefs['active'] = array_diff( $addons_prefs['active'], array( $addOnSlug ) );
-				$message = sprintf( 'Add-on "%s" has been disabled successfully.', $addOnTitle );
-				$toggle = false;
-				
-			} 
-			else {
-				
-	            // Enable the add-on
-				$addons_prefs['active'][] = $addOnSlug;
-				$message = sprintf( 'Add-on "%s" has been enabled successfully.', $addOnTitle );
-				$toggle = true;
-				
-			}
-
-	        // Update the Addons Prefs
-			update_option( 'mycred_pref_addons', $addons_prefs );
-
-			return rest_ensure_response(array(
-				'status' => 'success',
-				'message' => $message,
-				'enabled_addon' => $addOnSlug,
-				'toggle' => $toggle
-			));
-
 		}
 
 		/**
@@ -739,7 +647,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 
 			// Styles
 			wp_register_style( 'mycred-front',           plugins_url( 'assets/css/mycred-front.css', myCRED_THIS ),        array(), $this->version, 'all' );
-			wp_register_style( 'mycred-admin-ui',        plugins_url( 'assets/css/mycred-admin-ui.css', myCRED_THIS ),     array(), $this->version, 'all' );
+			wp_register_style( 'mycred-admin-ui',        plugins_url( 'assets/css/mycred-admin-ui.css', myCRED_THIS ),     array(), $this->version . '.1', 'all' );
 			wp_register_style( 'mycred-buttons',         plugins_url( 'assets/css/mycred-buttons.css', myCRED_THIS ),      array(), $this->version, 'all' );
 			wp_register_style( 'mycred-bootstrap-grid',  plugins_url( 'assets/css/bootstrap-grid.css', myCRED_THIS ),      array(), $this->version, 'all' );
 			wp_register_style( 'mycred-select2-style',   plugins_url( 'assets/css/select2.css', myCRED_THIS ),             array(), $this->version, 'all' );
@@ -761,7 +669,7 @@ if ( ! class_exists( 'myCRED_Core' ) ) :
 			wp_register_script( 'mycred-edit-balance',   plugins_url( 'assets/js/mycred-edit-balance.js', myCRED_THIS ),  array( 'jquery', 'jquery-ui-core', 'jquery-ui-dialog', 'jquery-effects-core', 'jquery-effects-slide', 'jquery-numerator' ), $this->version );
 			wp_register_script( 'mycred-edit-log',       plugins_url( 'assets/js/mycred-edit-log.js', myCRED_THIS ),      array( 'jquery', 'jquery-ui-core', 'jquery-ui-dialog', 'jquery-effects-core', 'jquery-effects-slide', 'common' ), $this->version );
 			wp_register_script( 'mycred-select2-script', plugins_url( 'assets/js/select2.js', myCRED_THIS ),              array( 'jquery' ), $this->version, true );
-			wp_register_script( 'mycred-specific-content-script', plugins_url( 'assets/js/script.js', myCRED_THIS ), array( 'jquery' ), $this->version, true );
+			wp_register_script( 'mycred-specific-content-script', plugins_url( 'assets/js/script.js', myCRED_THIS ), array( 'jquery', 'mycred-select2-script' ), $this->version, true );
 
 			do_action( 'mycred_register_assets' );
 

@@ -70,7 +70,11 @@ if ( ! class_exists( 'myCRED_Email_Notice_Module' ) ) :
 			add_action( 'mycred_admin_enqueue',          array( $this, 'enqueue_scripts' ), $this->menu_pos );
 			add_action( 'mycred_add_menu',               array( $this, 'add_to_menu' ), $this->menu_pos );
 			
-            add_action( 'mycred_after_payment_request',  array( $this, 'after_payment_request' ), 10, 2);	
+			add_action( 'mycred_after_payment_request',  array( $this, 'after_payment_request' ), 10, 2);	
+
+			add_action( 'rest_api_init',                            array( $this, 'register_email_notices_rest_routes' ) );
+			add_action( 'admin_enqueue_scripts',                    array( $this, 'enqueue_react_email_notices_list_scripts' ) );
+			add_action( 'all_admin_notices',                         array( $this, 'render_react_email_notices_list_root' ) );
 
 		}
 
@@ -663,7 +667,7 @@ if ( ! class_exists( 'myCRED_Email_Notice_Module' ) ) :
 			</div>
 			<?php do_action('mycred_after_email_triggers_field', $post, $trigger); ?>
 			<hr />
-			
+
 			<div class="form-group">
 				<label for="mycred-email-ctype"><?php esc_html_e( 'Point Types', 'mycred' ); ?></label>
 <?php
@@ -1444,6 +1448,197 @@ if ( ! class_exists( 'myCRED_Email_Notice_Module' ) ) :
 
 			return $new_data;
 
+		}
+
+		public function register_email_notices_rest_routes() {
+			register_rest_route( 'mycred/v1', '/email-notices', array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_email_notices_rest' ),
+				'permission_callback' => function () {
+					return current_user_can( $this->core->edit_creds_cap() );
+				}
+			) );
+			register_rest_route( 'mycred/v1', '/email-notices/bulk', array(
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'bulk_email_notices_rest' ),
+					'permission_callback' => function () {
+						return current_user_can( $this->core->edit_creds_cap() );
+					}
+				),
+			) );
+
+			register_rest_route( 'mycred/v1', '/email-notices/(?P<id>\d+)', array(
+				array(
+					'methods'             => 'DELETE',
+					'callback'            => array( $this, 'delete_email_notice_rest' ),
+					'permission_callback' => function () {
+						return current_user_can( $this->core->edit_creds_cap() );
+					}
+				),
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'restore_email_notice_rest' ),
+					'permission_callback' => function () {
+						return current_user_can( $this->core->edit_creds_cap() );
+					}
+				)
+			) );
+		}
+
+		public function delete_email_notice_rest( $request ) {
+			$id = $request->get_param( 'id' );
+			$force = $request->get_param( 'force' );
+			$result = $force ? wp_delete_post( $id, true ) : wp_trash_post( $id );
+			return $result ? rest_ensure_response( array( 'success' => true ) ) : new WP_Error( 'failed', 'Failed to delete' );
+		}
+
+		public function restore_email_notice_rest( $request ) {
+			$id = $request->get_param( 'id' );
+			$result = wp_untrash_post( $id );
+			return $result ? rest_ensure_response( array( 'success' => true ) ) : new WP_Error( 'failed', 'Failed to restore' );
+		}
+
+		public function bulk_email_notices_rest( $request ) {
+			$action = sanitize_text_field( $request->get_param( 'action' ) );
+			$ids    = $request->get_param( 'ids' );
+
+			if ( ! is_array( $ids ) || empty( $ids ) ) {
+				return new WP_Error( 'invalid_ids', 'No IDs provided.', array( 'status' => 400 ) );
+			}
+
+			foreach ( $ids as $id ) {
+				$id = absint( $id );
+				if ( $action === 'trash' ) {
+					wp_trash_post( $id );
+				} elseif ( $action === 'restore' ) {
+					wp_untrash_post( $id );
+				} elseif ( $action === 'delete' ) {
+					wp_delete_post( $id, true );
+				}
+			}
+
+			return rest_ensure_response( array( 'success' => true ) );
+		}
+
+		public function get_email_notices_rest( $request ) {
+			$page     = $request->get_param( 'page' ) ? absint( $request->get_param( 'page' ) ) : 1;
+			$per_page = $request->get_param( 'per_page' ) ? absint( $request->get_param( 'per_page' ) ) : 10;
+			$status   = $request->get_param( 'status' ) ? sanitize_text_field( $request->get_param( 'status' ) ) : 'all';
+			$search   = $request->get_param( 'search' ) ? sanitize_text_field( $request->get_param( 'search' ) ) : '';
+
+			// "All" = non-trash statuses only (draft/publish/etc). Never include trash.
+			if ( $status === 'all' || $status === 'any' ) {
+				$post_status = array( 'publish', 'draft', 'pending', 'private', 'future' );
+			} elseif ( $status === 'trash' ) {
+				$post_status = 'trash';
+			} else {
+				$post_status = $status;
+			}
+
+			$args = array(
+				'post_type'      => MYCRED_EMAIL_KEY,
+				'posts_per_page' => $per_page,
+				'paged'          => $page,
+				'post_status'    => $post_status,
+			);
+
+			if ( ! empty( $search ) ) {
+				$args['s'] = $search;
+			}
+
+			$query = new WP_Query( $args );
+
+			$items = array();
+			foreach ( $query->posts as $post ) {
+				$email = mycred_get_email_notice( $post->ID );
+				$trigger = $email ? $email->get_trigger() : '';
+				
+				$status_label = 'Not Active';
+				if ( $post->post_status == 'publish' || $post->post_status == 'future' ) {
+					if ( $post->post_status == 'future' ) {
+						$status_label = 'Scheduled';
+					} else {
+						$status_label = empty( $email->last_run ) ? 'Active' : 'Active - Last run: ' . date_i18n( get_option( 'date_format' ) . ' @ ' . get_option( 'time_format' ), $email->last_run );
+					}
+				}
+				if ( $post->post_status == 'trash' ) {
+					$status_label = 'Trash';
+				}
+
+				$items[] = array(
+					'id'            => $post->ID,
+					'title'         => $post->post_title,
+					'status'        => $post->post_status,
+					'status_label'  => $status_label,
+					'trigger'       => $trigger,
+					'point_types'   => $email ? $email->point_types : array(),
+					'edit_url'      => get_edit_post_link( $post->ID, 'raw' ),
+				);
+			}
+
+			// Get Counts
+			$counts = array(
+				'all'     => wp_count_posts( MYCRED_EMAIL_KEY )->publish + wp_count_posts( MYCRED_EMAIL_KEY )->future + wp_count_posts( MYCRED_EMAIL_KEY )->draft + wp_count_posts( MYCRED_EMAIL_KEY )->pending,
+				'publish' => wp_count_posts( MYCRED_EMAIL_KEY )->publish,
+				'trash'   => wp_count_posts( MYCRED_EMAIL_KEY )->trash,
+			);
+
+			return rest_ensure_response( array(
+				'items'          => $items,
+				'total'          => $query->found_posts,
+				'counts'         => $counts,
+				'point_types'    => mycred_get_types(),
+				'instances_map'  => mycred_get_email_instances( false ),
+				'references_map' => mycred_get_all_references(),
+			) );
+		}
+
+		public function enqueue_react_email_notices_list_scripts() {
+			$screen    = get_current_screen();
+			$post_type = isset( $_GET['post_type'] ) ? sanitize_key( $_GET['post_type'] ) : ( $screen && isset( $screen->post_type ) ? $screen->post_type : '' );
+
+			if ( $screen && $screen->base === 'edit' && $post_type === MYCRED_EMAIL_KEY ) {
+				wp_enqueue_script(
+					'mycred-react-email-notices',
+					plugins_url( 'addons/build/email-notices.bundle.js', myCRED_THIS ),
+					array( 'wp-element', 'wp-api-fetch' ),
+					myCRED_VERSION,
+					true
+				);
+
+				// Prepare initial data using our REST API logic so it loads instantly
+				$request = new WP_REST_Request( 'GET', '/mycred/v1/email-notices' );
+				$request->set_param( 'per_page', 10 );
+				$request->set_param( 'page', 1 );
+				$request->set_param( 'status', 'all' );
+				$response = $this->get_email_notices_rest( $request );
+
+				wp_localize_script(
+					'mycred-react-email-notices',
+					'mycredEmailNoticesData',
+					array(
+						'initialData' => $response->get_data(),
+						'apiNonce'    => wp_create_nonce( 'wp_rest' ),
+						'apiUrl'      => rest_url( 'mycred/v1/email-notices' )
+					)
+				);
+
+				// Output CSS to hide standard WP elements
+				wp_add_inline_style( 'wp-admin', '
+					body.post-type-mycred_email_notice #wpbody-content > .wrap { display: none !important; }
+					body.post-type-mycred_email_notice #posts-filter { display: none !important; }
+				' );
+			}
+		}
+
+		public function render_react_email_notices_list_root() {
+			$screen    = get_current_screen();
+			$post_type = isset( $_GET['post_type'] ) ? sanitize_key( $_GET['post_type'] ) : ( $screen && isset( $screen->post_type ) ? $screen->post_type : '' );
+
+			if ( $screen && $screen->base === 'edit' && $post_type === MYCRED_EMAIL_KEY ) {
+				echo '<div id="mycred-email-notices-list-root"></div>';
+			}
 		}
 
 	}

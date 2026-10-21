@@ -129,6 +129,16 @@ if ( ! class_exists( 'myCRED_Dashboard' ) ) :
             }
 
             wp_register_script('mycred-dashboard-script', plugins_url('includes/dashboard/build/index.bundle.js', myCRED_THIS), array('wp-element'), '1.0.0',true );
+            
+            $is_toolkit_pro_active = false;
+            $active_plugins = (array) get_option( 'active_plugins', array() );
+            if ( in_array( 'mycred-toolkit-pro/mycred-toolkit-pro.php', $active_plugins, true ) || class_exists( 'MyCRED_Toolkit_Core_Pro' ) ) {
+                if( file_exists( WP_PLUGIN_DIR . '/mycred-toolkit-pro/includes/mycred-toolkit-plan-check.php' ) || class_exists( 'MyCRED_Toolkit_Core_Pro' ) ) {
+                    $is_toolkit_pro_active = true;    
+                }
+            }
+
+            $ai_assistant_available = function_exists( 'mycred_ai_assistant_can_open' ) && mycred_ai_assistant_can_open();
 
             wp_localize_script('mycred-dashboard-script', 'mycredDashboardData', [
                 'dashboard_settings' => $settings,
@@ -139,8 +149,19 @@ if ( ! class_exists( 'myCRED_Dashboard' ) ) :
                 'ranks'              => $ranks,
                 'isBadgesActive'     => $is_badges_active,
                 'isRanksActive'      => $is_ranks_active,
+                'isProActive'        => $is_toolkit_pro_active,
                 'current_user_name'  => wp_get_current_user()->display_name,
                 'current_user_avatar' => get_avatar_url( get_current_user_id(), array( 'size' => 96 ) ),
+                'ai_assistant'       => array(
+                    'available'  => $ai_assistant_available,
+                    'url'        => admin_url( 'admin.php?page=mycred-ai-assistant' ),
+                    'addons_url' => admin_url( 'admin.php?page=mycred-addons' ),
+                    'prompts'    => array(
+                        __( 'What is my total point circulation?', 'mycred' ),
+                        __( 'Suggest hooks for my WooCommerce store', 'mycred' ),
+                        __( 'How can I improve member retention?', 'mycred' ),
+                    ),
+                ),
             ]);
             
         }
@@ -166,6 +187,7 @@ if ( ! class_exists( 'myCRED_Dashboard' ) ) :
         public function mycred_dashboard_callback() {
             wp_enqueue_script('wp-element');
             wp_enqueue_script( 'mycred-dashboard-script' );
+            mycred_render_admin_header();
             echo '<div id="mycred-dashboard" style="margin-left:-20px"></div>';
         }
         

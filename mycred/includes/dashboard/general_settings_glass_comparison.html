@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings React Shell - Standard vs Glassmorphism Comparison</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Material Icons (similar to what MUI uses) -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Figtree', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      color: #2D1572;
+    }
+
+    /* Top Mode Switcher Bar */
+    .top-switcher-bar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(26, 17, 53, 0.95);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(124, 58, 237, 0.3);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    .switcher-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 16px;
+    }
+
+    .switcher-brand span {
+      color: #A78BFA;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(124, 58, 237, 0.25);
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(124, 58, 237, 0.4);
+    }
+
+    .view-toggles {
+      display: flex;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 4px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .toggle-btn {
+      background: transparent;
+      border: none;
+      color: #A59EC2;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .toggle-btn.active {
+      background: #7C3AED;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
+    }
+
+    .main-viewport {
+      min-height: calc(100vh - 65px);
+    }
+
+    /* ========================================================= */
+    /* SHARED SHELL LAYOUT STYLES                                */
+    /* ========================================================= */
+    .app-shell {
+      display: flex;
+      width: 100%;
+      max-width: 1300px;
+      margin: 0 auto;
+      min-height: calc(100vh - 160px);
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 280px;
+      padding: 24px 12px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-menu {
+      flex: 1;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      margin-bottom: 4px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    
+    .sidebar-item .material-icons-outlined {
+      font-size: 20px;
+    }
+
+    .sidebar-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 0 15px;
+      margin-top: 24px;
+      margin-bottom: 12px;
+    }
+
+    .main-content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .content-header {
+      padding: 24px 32px;
+      min-height: 80px;
+    }
+
+    .content-header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .content-header p {
+      font-size: 14px;
+    }
+
+    .content-body {
+      padding: 32px;
+      max-width: 800px;
+    }
+
+    .nav-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-card-left {
+      display: flex;
+      align-items: center;
+    }
+
+    .nav-card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 24px;
+    }
+    
+    .nav-card-icon .material-icons-outlined {
+      font-size: 22px;
+    }
+
+    .nav-card-text h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .nav-card-text p {
+      font-size: 13.5px;
+    }
+    
+    .nav-card-arrow {
+      display: flex;
+      align-items: center;
+    }
+
+    /* ========================================================= */
+    /* 1. CURRENT REACT SETTINGS VIEW (FLAT WHITE)               */
+    /* ========================================================= */
+    .current-view-container {
+      background-color: #f0f0f1;
+      padding: 40px;
+      min-height: calc(100vh - 65px);
+    }
+    
+    .current-shell {
+      background-color: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border: 1px solid #e2e8f0;
+    }
+
+    .current-shell .sidebar {
+      background-color: #ffffff;
+      border-right: 1px solid #e2e8f0;
+    }
+
+    .current-shell .sidebar-item {
+      color: #334155;
+      border-left: 2px solid transparent;
+    }
+    
+    .current-shell .sidebar-item:hover {
+      background-color: #f8fafc;
+    }
+    
+    .current-shell .sidebar-item.active {
+      color: #5E2CED;
+      background-color: #F3EDFF;
+      border-left: 2px solid #5E2CED;
+    }
+
+    .current-shell .sidebar-title {
+      color: #64748b;
+    }
+    
+    /* Promo Card Current */
+    .current-promo {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px 8px;
+    }
+    .current-promo-icon {
+      width: 32px;
+      height: 32px;
+      background: #5E2CED;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      margin-bottom: 12px;
+    }
+    .current-promo-btn {
+      width: 100%;
+      background: #5E2CED;
+      color: white;
+      border: none;
+      padding: 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      margin-top: 12px;
+      cursor: pointer;
+    }
+
+    .current-shell .main-content {
+      background-color: #ffffff;
+    }
+
+    .current-shell .content-header {
+      background-color: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .current-shell .content-header h1 {
+      color: #2D1572;
+    }
+
+    .current-shell .content-header p {
+      color: #64748b;
+    }
+
+    .current-shell .nav-card {
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+    }
+    
+    .current-shell .nav-card:hover {
+      background-color: #f8fafc;
+    }
+
+    .current-shell .nav-card-icon {
+      background-color: #F3EDFF;
+      color: #5E2CED;
+    }
+
+    .current-shell .nav-card-text h3 {
+      color: #1e293b;
+    }
+
+    .current-shell .nav-card-text p {
+      color: #64748b;
+    }
+    
+    .current-shell .nav-card-arrow {
+      color: #5E2CED;
+    }
+
+    /* ========================================================= */
+    /* 2. NEW GLASSMORPHISM VIEW                                 */
+    /* ========================================================= */
+    .glass-view-container {
+      background: radial-gradient(circle at 10% 20%, rgba(205, 185, 255, 0.45) 0%, transparent 60%),
+                  radial-gradient(circle at 90% 80%, rgba(185, 160, 255, 0.4) 0%, transparent 60%),
+                  radial-gradient(circle at 50% 50%, rgba(255, 235, 245, 0.3) 0%, transparent 70%),
+                  #f4efff;
+      padding: 40px;
+      min-height: calc(100vh - 65px);
+    }
+    
+    .glass-shell {
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(24px) saturate(190%);
+      -webkit-backdrop-filter: blur(24px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(45, 21, 114, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.95);
+    }
+
+    .glass-shell .sidebar {
+      background: rgba(255, 255, 255, 0.3);
+      border-right: 1px solid rgba(226, 221, 238, 0.6);
+    }
+
+    .glass-shell .sidebar-item {
+      color: #4C4682;
+      border-left: 2px solid transparent;
+    }
+    
+    .glass-shell .sidebar-item:hover {
+      background-color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .glass-shell .sidebar-item.active {
+      color: #5E2CED;
+      background-color: #ffffff;
+      border-left: 2px solid #5E2CED;
+      box-shadow: 0 2px 8px rgba(45, 21, 114, 0.04);
+    }
+
+    .glass-shell .sidebar-title {
+      color: #7F7CA2;
+    }
+    
+    /* Promo Card Glass */
+    .glass-promo {
+      background: #ffffff;
+      border: 1px solid rgba(226, 221, 238, 0.85);
+      border-radius: 16px;
+      padding: 20px;
+      margin: 16px 8px;
+      box-shadow: 0 8px 24px rgba(45, 21, 114, 0.04);
+    }
+    .glass-promo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #7C3AED 0%, #C084FC 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+    }
+    .glass-promo-btn {
+      width: 100%;
+      background: #5E2CED;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: 700;
+      margin-top: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(94, 44, 237, 0.25);
+      transition: all 0.2s;
+    }
+    .glass-promo-btn:hover {
+      background: #4C1D95;
+      transform: translateY(-1px);
+    }
+
+    .glass-shell .main-content {
+      background: transparent;
+    }
+
+    .glass-shell .content-header {
+      background: rgba(255, 255, 255, 0.5);
+      border-bottom: 1px solid rgba(226, 221, 238, 0.6);
+    }
+
+    .glass-shell .content-header h1 {
+      color: #2D1572;
+      font-weight: 800;
+    }
+
+    .glass-shell .content-header p {
+      color: #6B57A1;
+    }
+
+    .glass-shell .nav-card {
+      background: #ffffff;
+      border: 1px solid rgba(226, 221, 238, 0.85);
+      box-shadow: 0 4px 16px rgba(45, 21, 114, 0.03);
+    }
+    
+    .glass-shell .nav-card:hover {
+      box-shadow: 0 8px 24px rgba(45, 21, 114, 0.06);
+      transform: translateY(-2px);
+    }
+
+    .glass-shell .nav-card-icon {
+      background: #FAF8FF;
+      color: #5E2CED;
+      border: 1px solid rgba(226, 221, 238, 0.8);
+    }
+
+    .glass-shell .nav-card-text h3 {
+      color: #2D1572;
+      font-weight: 700;
+    }
+
+    .glass-shell .nav-card-text p {
+      color: #7F7CA2;
+    }
+    
+    .glass-shell .nav-card-arrow {
+      color: #5E2CED;
+      background: #F3EDFF;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    
+    .glass-shell .nav-card:hover .nav-card-arrow {
+      background: #5E2CED;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP VIEW SWITCHER BAR -->
+  <div class="top-switcher-bar">
+    <div class="switcher-brand">
+      myCred Settings React App <span>SHELL DESIGN COMPARISON</span>
+    </div>
+    <div class="view-toggles">
+      <button class="toggle-btn" onclick="setView('current')">📄 Current React App (Flat)</button>
+      <button class="toggle-btn active" onclick="setView('glass')">✨ New Glassmorphism App</button>
+    </div>
+  </div>
+
+  <div class="main-viewport">
+
+    <!-- ========================================================= -->
+    <!-- 1. NEW GLASSMORPHISM APP VIEW (ACTIVE BY DEFAULT)         -->
+    <!-- ========================================================= -->
+    <div id="view-glass" class="glass-view-container">
+      <div class="app-shell glass-shell">
+        
+        <!-- Sidebar -->
+        <div class="sidebar">
+          <div class="sidebar-menu">
+            <div class="sidebar-item active">
+              <span class="material-icons-outlined">settings</span>
+              <span>General Settings</span>
+            </div>
+            
+            <div class="sidebar-title">Extensions & Add-ons</div>
+            
+            <div class="sidebar-item">
+              <span class="material-icons-outlined">storefront</span>
+              <span>Commerce & Economy</span>
+            </div>
+          </div>
+          
+          <!-- Promo Card -->
+          <div class="glass-promo">
+            <div class="glass-promo-icon">
+              <span class="material-icons-outlined" style="font-size:20px;">diamond</span>
+            </div>
+            <div style="font-size:14px; font-weight:700; color:#5E2CED; margin-bottom:6px;">Supercharge with myCred Pro</div>
+            <div style="font-size:12px; color:#6B57A1; line-height:1.4;">Explore myCred in action with your own private demo site—preloaded with members, protected content, and premium Add Ons.</div>
+            <button class="glass-promo-btn">Try myCred Pro Today</button>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+          <div class="content-header">
+            <h1>General Settings</h1>
+            <p>Core setup and foundations for myCred</p>
+          </div>
+          
+          <div class="content-body">
+            
+            <div class="nav-card">
+              <div class="nav-card-left">
+                <div class="nav-card-icon">
+                  <span class="material-icons-outlined">star</span>
+                </div>
+                <div class="nav-card-text">
+                  <h3>Point Types</h3>
+                  <p>Create and manage custom point types</p>
+                </div>
+              </div>
+              <div class="nav-card-arrow">
+                <span class="material-icons-outlined" style="font-size:20px;">chevron_right</span>
+              </div>
+            </div>
+
+            <div class="nav-card">
+              <div class="nav-card-left">
+                <div class="nav-card-icon">
+                  <span class="material-icons-outlined">delete</span>
+                </div>
+                <div class="nav-card-text">
+                  <h3>Uninstall</h3>
+                  <p>Configure what happens when you delete myCred</p>
+                </div>
+              </div>
+              <div class="nav-card-arrow">
+                <span class="material-icons-outlined" style="font-size:20px;">chevron_right</span>
+              </div>
+            </div>
+
+            <div class="nav-card">
+              <div class="nav-card-left">
+                <div class="nav-card-icon">
+                  <span class="material-icons-outlined">cloud</span>
+                </div>
+                <div class="nav-card-text">
+                  <h3>Remote Access</h3>
+                  <p>Connect your myCred to external applications</p>
+                </div>
+              </div>
+              <div class="nav-card-arrow">
+                <span class="material-icons-outlined" style="font-size:20px;">chevron_right</span>
+              </div>
+            </div>
+
+            <div class="nav-card">
+              <div class="nav-card-left">
+                <div class="nav-card-icon">
+                  <span class="material-icons-outlined">bar_chart</span>
+                </div>
+                <div class="nav-card-text">
+                  <h3>Dashboard</h3>
+                  <p>Configure dashboard widgets and stats</p>
+                </div>
+              </div>
+              <div class="nav-card-arrow">
+                <span class="material-icons-outlined" style="font-size:20px;">chevron_right</span>
+              </div>
+            </div>
+
+            <div class="nav-card">
+              <div class="nav-card-left">
+                <div class="nav-card-icon">
+                  <span class="material-icons-outlined">upload_file</span>
+                </div>
+                <div class="nav-card-text">
+                  <h3>Exports</h3>
+                  <p>Export point balances and logs</p>
+                </div>
+              </div>
+              <div class="nav-card-arrow">
+                <span class="material-icons-outlined" style="font-size:20px;">chevron_right</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- 2. CURRENT REACT APP VIEW (FLAT WHITE)                    -->
+    <!-- ========================================================= -->
+    <div id="view-current" class="current-view-container" style="display:none;">
+      <div class="app-shell current-shell">
+        
+        <!-- Sidebar -->
+        <div class="sidebar">
+          <div class="sidebar-menu">
+            <div class="sidebar-item active">
+              <span class="material-icons-outlined">settings</span>
+              <span>General Settings</span>
+            </div>
+            
+            <div class="sidebar-title">EXTENSIONS & ADD-ONS</div>
+            
+            <div class="sidebar-item">
+              <span class="material-icons-outlined">storefront</span>
+              <span>Commerce & Economy</span>
+            </div>
+          </div>
+          
+          <!-- Promo Card -->
+          <div class="current-promo">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+              <div class="current-promo-icon">
+                <span class="material-icons-outlined" style="font-size:20px;">diamond</span>
+              </div>
+              <div style="font-size:14px; font-weight:600; color:#5E2CED; line-height:1.2;">Supercharge with<br>myCred Pro</div>
+            </div>
+            <div style="font-size:12px; color:#64748b; line-height:1.4;">Explore myCred in action with your own private demo site—preloaded with members, protected content, and premium Add Ons.</div>
+            <button class="current-promo-btn">Try myCred Pro Today</button>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+          <div class="content-header">
+            <h1>General Settings</h1>
+            <p>Core setup and foundations for myCred</p>
+          </div>
+          
+          <div class="content-body">
+            
+            <div class="nav-card">
+              <div class="nav-card-left">
+                <div class="nav-card-icon">
+                  <span class="material-icons-outlined">star</span>
+                </div>
+                <div class="nav-card-text">
+                  <h3>Point Types</h3>
+                  <p>Create and manage custom point types</p>
+                </div>
+              </div>
+              <div class="nav-card-arrow">
+                <span class="material-icons-outlined" style="font-size:20px;">chevron_right</span>
+              </div>
+            </div>
+
+            <div class="nav-card">
+              <div class="nav-card-left">
+                <div class="nav-card-icon">
+                  <span class="material-icons-outlined">delete</span>
+                </div>
+                <div class="nav-card-text">
+                  <h3>Uninstall</h3>
+                  <p>Configure what happens when you delete myCred</p>
+                </div>
+              </div>
+              <div class="nav-card-arrow">
+                <span class="material-icons-outlined" style="font-size:20px;">chevron_right</span>
+              </div>
+            </div>
+
+            <div class="nav-card">
+              <div class="nav-card-left">
+                <div class="nav-card-icon">
+                  <span class="material-icons-outlined">cloud</span>
+                </div>
+                <div class="nav-card-text">
+                  <h3>Remote Access</h3>
+                  <p>Connect your myCred to external applications</p>
+                </div>
+              </div>
+              <div class="nav-card-arrow">
+                <span class="material-icons-outlined" style="font-size:20px;">chevron_right</span>
+              </div>
+            </div>
+
+            <div class="nav-card">
+              <div class="nav-card-left">
+                <div class="nav-card-icon">
+                  <span class="material-icons-outlined">bar_chart</span>
+                </div>
+                <div class="nav-card-text">
+                  <h3>Dashboard</h3>
+                  <p>Configure dashboard widgets and stats</p>
+                </div>
+              </div>
+              <div class="nav-card-arrow">
+                <span class="material-icons-outlined" style="font-size:20px;">chevron_right</span>
+              </div>
+            </div>
+
+            <div class="nav-card">
+              <div class="nav-card-left">
+                <div class="nav-card-icon">
+                  <span class="material-icons-outlined">upload_file</span>
+                </div>
+                <div class="nav-card-text">
+                  <h3>Exports</h3>
+                  <p>Export point balances and logs</p>
+                </div>
+              </div>
+              <div class="nav-card-arrow">
+                <span class="material-icons-outlined" style="font-size:20px;">chevron_right</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function setView(mode) {
+      const viewGlass = document.getElementById('view-glass');
+      const viewCurrent = document.getElementById('view-current');
+      const btns = document.querySelectorAll('.toggle-btn');
+
+      btns.forEach(b => b.classList.remove('active'));
+
+      if (mode === 'glass') {
+        viewGlass.style.display = 'block';
+        viewCurrent.style.display = 'none';
+        btns[1].classList.add('active');
+      } else if (mode === 'current') {
+        viewGlass.style.display = 'none';
+        viewCurrent.style.display = 'block';
+        btns[0].classList.add('active');
+      }
+    }
+  </script>
+
+</body>
+</html>

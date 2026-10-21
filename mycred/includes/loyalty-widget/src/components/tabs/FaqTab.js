@@ -17,7 +17,6 @@ import { hexToRgba } from '../preview/utils';
 export default function FaqTab({ settings, onBack, onClose }) {
     const design = settings?.design || {};
     const faq = settings?.faq || {};
-    const isRtl = document?.documentElement?.dir === 'rtl';
     const bgColor = design.backgroundColor || '#1A1A1A';
     const textColor = design.textColor || '#FFFFFF';
     const btnColor = design.buttonColor || '#8B6F47';
@@ -50,7 +49,7 @@ export default function FaqTab({ settings, onBack, onClose }) {
                             '&:hover': { bgcolor: 'rgba(255,255,255,0.24)' },
                         }}
                     >
-                        <ArrowBackIcon fontSize="small" sx={{ transform: isRtl ? 'scaleX(-1)' : 'none' }} />
+                        <ArrowBackIcon fontSize="small" />
                     </IconButton>
                     <Typography sx={{ fontSize: 18, fontWeight: 700, fontFamily: "'Instrument Sans', sans-serif", letterSpacing: '-0.02em' }}>
                         {screenTitle}
@@ -85,7 +84,7 @@ export default function FaqTab({ settings, onBack, onClose }) {
                         >
                             <HelpOutlineIcon sx={{ fontSize: 32 }} />
                         </Box>
-                        <Typography sx={{ fontSize: 16, fontWeight: 700, color: btnColor, mb: 1, fontFamily: "'Instrument Sans', sans-serif" }}>
+                        <Typography sx={{ fontSize: 16, fontWeight: 700, color: '#1a1a1a', mb: 1, fontFamily: "'Instrument Sans', sans-serif" }}>
                             {__('No FAQs yet', 'mycred')}
                         </Typography>
                         <Typography sx={{ fontSize: 13, color: '#888', lineHeight: 1.5, fontFamily: "'Instrument Sans', sans-serif" }}>
@@ -103,34 +102,50 @@ export default function FaqTab({ settings, onBack, onClose }) {
                             sx={{
                                 mb: 1.25,
                                 borderRadius: '14px !important',
-                                bgcolor: '#fff',
-                                border: '1px solid rgba(0,0,0,0.05)',
-                                boxShadow: '0 4px 14px rgba(0,0,0,0.05)',
-                                overflow: 'hidden',
-                                '&:before': { display: 'none' },
+                                bgcolor: '#ffffff !important',
+                                backgroundColor: '#ffffff !important',
+                                border: '1px solid rgba(0,0,0,0.06) !important',
+                                boxShadow: '0 4px 14px rgba(0,0,0,0.05) !important',
+                                overflow: 'hidden !important',
+                                '&:before': { display: 'none !important' },
                             }}
                         >
                             <AccordionSummary
-                                expandIcon={<ExpandMoreIcon sx={{ color: btnColor }} />}
+                                expandIcon={<ExpandMoreIcon sx={{ color: `${btnColor} !important` }} />}
                                 sx={{
-                                    px: 2,
-                                    py: 0.5,
-                                    minHeight: 56,
-                                    '& .MuiAccordionSummary-content': { my: 1.25 },
+                                    px: '16px !important',
+                                    py: '4px !important',
+                                    minHeight: '52px !important',
+                                    bgcolor: '#ffffff !important',
+                                    backgroundColor: '#ffffff !important',
+                                    color: '#1a1a1a !important',
+                                    border: 'none !important',
+                                    outline: 'none !important',
+                                    boxShadow: 'none !important',
+                                    '&:focus, &:focus-visible, &:hover, &.Mui-expanded, &.Mui-focusVisible': {
+                                        bgcolor: '#ffffff !important',
+                                        backgroundColor: '#ffffff !important',
+                                        color: '#1a1a1a !important',
+                                        outline: 'none !important',
+                                        boxShadow: 'none !important',
+                                    },
+                                    '& .MuiAccordionSummary-content': { my: '10px !important', margin: '10px 0 !important' },
+                                    '& .MuiAccordionSummary-content.Mui-expanded': { my: '10px !important', margin: '10px 0 !important' },
                                 }}
                             >
-                                <Typography sx={{ fontSize: 14, fontWeight: 600, color: btnColor, pr: 1, fontFamily: "'Instrument Sans', sans-serif", lineHeight: 1.35 }}>
+                                <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a !important', pr: 1, fontFamily: "'Instrument Sans', sans-serif !important", lineHeight: 1.35, m: '0 !important' }}>
                                     {item.title || __('Untitled question', 'mycred')}
                                 </Typography>
                             </AccordionSummary>
-                            <AccordionDetails sx={{ px: 2, pb: 2, pt: 0 }}>
+                            <AccordionDetails sx={{ px: '16px !important', pb: '16px !important', pt: '0 !important', bgcolor: '#ffffff !important', backgroundColor: '#ffffff !important' }}>
                                 <Typography
                                     sx={{
                                         fontSize: 13,
-                                        color: '#666',
-                                        lineHeight: 1.55,
+                                        color: '#666666 !important',
+                                        lineHeight: '1.55 !important',
                                         whiteSpace: 'pre-wrap',
-                                        fontFamily: "'Instrument Sans', sans-serif",
+                                        fontFamily: "'Instrument Sans', sans-serif !important",
+                                        m: '0 !important',
                                     }}
                                 >
                                     {item.answer || __('—', 'mycred')}

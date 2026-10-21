@@ -13,31 +13,90 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Page' ) ) :
         
         public function __construct() {
             add_action( 'admin_init', array( $this, 'upload_default_media' ) );
-            add_action( 'init', array( $this, 'migrate_program_title_defaults' ) );
             add_action( 'admin_menu', array( $this, 'add_menu_page' ) );
             add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+            add_action( 'admin_head', array( $this, 'loyalty_widget_header' ) );
+            add_filter( 'admin_body_class', array( $this, 'admin_body_class' ) );
             
             // Include API class
             require_once plugin_dir_path( __FILE__ ) . 'api/class-mycred-loyalty-widget-api.php';
             require_once plugin_dir_path( __FILE__ ) . 'class-mycred-loyalty-widget-frontend.php';
         }
 
-        public function migrate_program_title_defaults() {
-            $flag = 'mycred_loyalty_widget_program_title_v2_migrated';
-            if ( get_option( $flag ) ) {
+        private function is_loyalty_widget_screen( $screen = null ) {
+            if ( ! $screen && function_exists( 'get_current_screen' ) ) {
+                $screen = get_current_screen();
+            }
+
+            $current_page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+
+            if ( $current_page === 'mycred-loyalty-widget' ) {
+                return true;
+            }
+
+            if ( $screen && $screen->id === 'mycred_page_mycred-loyalty-widget' ) {
+                return true;
+            }
+
+            return false;
+        }
+
+        public function admin_body_class( $classes ) {
+            if ( $this->is_loyalty_widget_screen() ) {
+                $classes .= ' mycred-loyalty-widget-page';
+            }
+            return $classes;
+        }
+
+        public function loyalty_widget_header() {
+            if ( ! $this->is_loyalty_widget_screen() ) {
                 return;
             }
 
-            $settings = get_option( 'mycred_loyalty_widget_settings', array() );
-            if ( is_array( $settings ) && isset( $settings['design'] ) && is_array( $settings['design'] ) ) {
-                // Only update the exact legacy default string, so custom branding is not overwritten.
-                if ( isset( $settings['design']['programTitle'] ) && is_string( $settings['design']['programTitle'] ) && 'myCred Rewards' === $settings['design']['programTitle'] ) {
-                    $settings['design']['programTitle'] = 'Rewards Hub';
-                    update_option( 'mycred_loyalty_widget_settings', $settings );
+            echo '<style>
+                #screen-meta-links,
+                .wrap h1,
+                .wp-heading-inline,
+                .mycred-ui-info-btn,
+                .notice-info,
+                .update-nag,
+                #wpfooter,
+                .page-title-action { display: none !important; }
+                body.mycred-loyalty-widget-page,
+                body.mycred-loyalty-widget-page #wpcontent,
+                body.mycred-loyalty-widget-page #wpbody,
+                body.mycred-loyalty-widget-page #wpbody-content,
+                body.mycred-loyalty-widget-page #wpfooter {
+                    background: #F8F6FF !important;
                 }
-            }
-
-            update_option( $flag, time() );
+                body.mycred-loyalty-widget-page #wpbody-content { padding-bottom: 0; }
+                body.mycred-loyalty-widget-page #myCRED-wrap,
+                body.mycred-loyalty-widget-page.mycred-admin-page #myCRED-wrap,
+                body.mycred-loyalty-widget-page .wrap {
+                    background: transparent !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    box-shadow: none !important;
+                    border-radius: 0 !important;
+                    width: 100% !important;
+                    max-width: none !important;
+                    border: none !important;
+                }
+                body.mycred-loyalty-widget-page .mycred-page-header {
+                    background: #ffffff !important;
+                    position: relative;
+                    z-index: 10;
+                }
+                body.mycred-loyalty-widget-page #mycred-loyalty-widget {
+                    width: 100%;
+                    max-width: 100%;
+                    box-sizing: border-box;
+                    margin-left: -20px;
+                    margin-right: 20px;
+                    background: #F8F6FF;
+                    font-family: "Figtree", "Inter", sans-serif !important;
+                }
+            </style>';
         }
 
         public function upload_default_media() {
@@ -146,8 +205,8 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Page' ) ) :
             
             $is_toolkit_pro_active = false;
             $active_plugins = (array) get_option( 'active_plugins', array() );
-            if ( in_array( 'mycred-toolkit-pro/mycred-toolkit-pro.php', $active_plugins, true ) ) {
-                if( file_exists( WP_PLUGIN_DIR . '/mycred-toolkit-pro/includes/mycred-toolkit-plan-check.php' ) ) {
+            if ( in_array( 'mycred-toolkit-pro/mycred-toolkit-pro.php', $active_plugins, true ) || class_exists( 'MyCRED_Toolkit_Core_Pro' ) ) {
+                if( file_exists( WP_PLUGIN_DIR . '/mycred-toolkit-pro/includes/mycred-toolkit-plan-check.php' ) || class_exists( 'MyCRED_Toolkit_Core_Pro' ) ) {
                     $is_toolkit_pro_active = true;    
                 }
             }
@@ -190,7 +249,16 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Page' ) ) :
                                         'type_label'       => $label,
                                         'category'         => $this->get_hook_category( $hook_id ),
                                         'title'            => $mycred->template_tags_general( $raw_title ),
-                                        'description'      => $mycred->template_tags_general( $raw_desc ),
+                                        'description'      => wp_kses(
+                                            $mycred->template_tags_general( $raw_desc ),
+                                            array(
+                                                'a' => array(
+                                                    'href'   => true,
+                                                    'target' => true,
+                                                    'rel'    => true,
+                                                ),
+                                            )
+                                        ),
                                         'raw_title'        => $raw_title,
                                         'amount'           => $amount,
                                         'formatted_amount' => $mycred->format_creds( $amount ),
@@ -241,6 +309,9 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Page' ) ) :
                     'rest_url' => esc_url_raw( rest_url() ),
                     'nonce'    => wp_create_nonce( 'wp_rest' ),
                     'is_toolkit_pro_active' => $is_toolkit_pro_active,
+                    'isProActive'           => $is_toolkit_pro_active,
+                    'proDemoUrl'            => 'https://mycred.me/pricing/?utm_source=plugin&utm_medium=loyalty_widget_sidebar',
+                    'proPromoImageUrl'      => plugins_url( 'assets/images/test.png', myCRED_THIS ),
                     'settings' => $settings,
                     'available_pages' => $available_pages,
                     'active_hooks' => $active_hooks,
@@ -294,7 +365,12 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Page' ) ) :
         }
 
         public function render_page() {
-            echo '<div id="mycred-loyalty-widget" style="margin-left:-20px"></div>';
+            if ( function_exists( 'mycred_render_admin_header' ) ) {
+                mycred_render_admin_header();
+            }
+            echo '<div class="wrap" id="myCRED-wrap" style="width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; border: none !important;">';
+            echo '<div id="mycred-loyalty-widget"></div>';
+            echo '</div>';
         }
         
     }

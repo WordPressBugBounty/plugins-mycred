@@ -140,7 +140,7 @@ if ( ! class_exists( 'myCRED_cashcred_Bank_Transfer' ) ) :
 	</div>
 </div>
  
-<div class="row" id="additional_notes_show">
+<div class="row<?php echo empty( $prefs['enable_additional_notes'] ) ? ' is-hidden' : ''; ?>" id="additional_notes_show"<?php echo empty( $prefs['enable_additional_notes'] ) ? ' hidden style="display:none;"' : ''; ?>>
 	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 		<div class="form-group">
 			<label for="cashcredbanktransferaccount"><?php esc_html_e( 'Additional notes', 'mycred' ); ?></label>
@@ -149,37 +149,17 @@ if ( ! class_exists( 'myCRED_cashcred_Bank_Transfer' ) ) :
 	</div>
 </div>
 <script>
-	// on change additional-notes div hide
+	// Fallback for non-React admin contexts. React gateways UI binds this in GatewayDetailView.
 	jQuery(function() {
-
-		jQuery('#mycred-gateway-prefs-bank-enable-additional-notes').change(function() {
-			
+		jQuery('#mycred-gateway-prefs-bank-enable-additional-notes').off('change.cashcredNotes').on('change.cashcredNotes', function() {
+			var $panel = jQuery('#additional_notes_show');
 			if (jQuery(this).is(':checked')) {
-			  
-				jQuery('#additional_notes_show').slideDown('fast');
-			 
+				$panel.removeClass('is-hidden').removeAttr('hidden').css('display', 'flex');
+			} else {
+				$panel.addClass('is-hidden').attr('hidden', 'hidden').hide();
 			}
-			else {
-				  
-				jQuery('#additional_notes_show').slideUp(400);
-			
-			}
-
 		});
-    
-    });
-
-	// onload additional-notes div hide
-	if (jQuery('#mycred-gateway-prefs-bank-enable-additional-notes').is(':checked')) {
-	  
-		jQuery('#additional_notes_show').slideDown('fast');
-	 
-	}
-	else {
-		  
-		jQuery('#additional_notes_show').slideUp(400);
-	
-	} 
+	});
 </script>
 <?php
 		}
