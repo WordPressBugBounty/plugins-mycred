@@ -49,22 +49,29 @@ if ( ! class_exists( 'myCRED_Skrill' ) ) :
 		 */
 		public function IPN_is_valid_call() {
 
-			$result = true;
+			$secret  = isset( $this->prefs['word'] ) ? trim( (string) $this->prefs['word'] ) : '';
+			$account = isset( $this->prefs['account'] ) ? trim( (string) $this->prefs['account'] ) : '';
+			if ( $secret === '' || $account === '' )
+				return false;
 
-			$merchant_id 	= isset( $_POST['merchant_id'] ) ? sanitize_text_field( wp_unslash( $_POST['merchant_id'] ) ) : '';
+			$merchant_id    = isset( $_POST['merchant_id'] ) ? sanitize_text_field( wp_unslash( $_POST['merchant_id'] ) ) : '';
 			$transaction_id = isset( $_POST['transaction_id'] ) ? sanitize_text_field( wp_unslash( $_POST['transaction_id'] ) ) : '';
-			$mb_amount 		= isset( $_POST['mb_amount'] ) ? sanitize_text_field( wp_unslash( $_POST['mb_amount'] ) ) : '';
-			$mb_currency	= isset( $_POST['mb_currency'] ) ? sanitize_text_field( wp_unslash( $_POST['mb_currency'] ) ) : '';
-			$status 		= isset( $_POST['status'] ) ? sanitize_text_field( wp_unslash( $_POST['status'] ) ) : '';
-			
-			$check = $merchant_id . $transaction_id . strtoupper( md5( $this->prefs['word'] ) ) . $mb_amount . $mb_currency . $status;
-			if ( isset( $_POST['md5sig'] ) && strtoupper( md5( $check ) ) !== $_POST['md5sig'] )
-				$result = false;
+			$mb_amount      = isset( $_POST['mb_amount'] ) ? sanitize_text_field( wp_unslash( $_POST['mb_amount'] ) ) : '';
+			$mb_currency    = isset( $_POST['mb_currency'] ) ? sanitize_text_field( wp_unslash( $_POST['mb_currency'] ) ) : '';
+			$status         = isset( $_POST['status'] ) ? sanitize_text_field( wp_unslash( $_POST['status'] ) ) : '';
+			$md5sig         = isset( $_POST['md5sig'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_POST['md5sig'] ) ) ) : '';
+			$pay_to_email   = isset( $_POST['pay_to_email'] ) ? sanitize_email( wp_unslash( $_POST['pay_to_email'] ) ) : '';
 
-			if ( isset( $_POST['pay_to_email'] ) && $_POST['pay_to_email'] != trim( $this->prefs['account'] ) )
-				$result = false;
+			if ( $merchant_id === '' || $transaction_id === '' || $mb_amount === '' || $mb_currency === '' || $status !== '2' || $md5sig === '' || $pay_to_email === '' )
+				return false;
 
-			return $result;
+			if ( strtolower( $pay_to_email ) !== strtolower( $account ) )
+				return false;
+
+			$check    = $merchant_id . $transaction_id . strtoupper( md5( $secret ) ) . $mb_amount . $mb_currency . $status;
+			$expected = strtoupper( md5( $check ) );
+
+			return hash_equals( $expected, $md5sig );
 
 		}
 
@@ -89,21 +96,25 @@ if ( ! class_exists( 'myCRED_Skrill' ) ) :
 						$errors   = false;
 						$new_call = array();
 
-						// Check amount paid
-						if ( isset( $_POST['amount'] ) && $_POST['amount'] != $pending_payment->cost ) {
-							$new_call[] = sprintf( __( 'Price mismatch. Expected: %s Received: %s', 'mycred' ), $pending_payment->cost,sanitize_text_field( wp_unslash( $_POST['amount'] ) ) );
+						$received_amount   = isset( $_POST['mb_amount'] ) ? sanitize_text_field( wp_unslash( $_POST['mb_amount'] ) ) : '';
+						$received_currency = isset( $_POST['currency'] ) ? sanitize_text_field( wp_unslash( $_POST['currency'] ) ) : '';
+						$received_status   = isset( $_POST['status'] ) ? sanitize_text_field( wp_unslash( $_POST['status'] ) ) : '';
+
+						// Signed amount must match the pending purchase. A missing amount is not a match.
+						if ( $received_amount === '' || (float) $received_amount != (float) $pending_payment->cost ) {
+							$new_call[] = sprintf( __( 'Price mismatch. Expected: %s Received: %s', 'mycred' ), $pending_payment->cost, $received_amount );
 							$errors     = true;
 						}
 
-						// Check currency
-						if ( isset( $_POST['currency'] ) && $_POST['currency'] != $pending_payment->currency ) {
-							$new_call[] = sprintf( __( 'Currency mismatch. Expected: %s Received: %s', 'mycred' ), $pending_payment->currency, sanitize_text_field( wp_unslash( $_POST['currency'] ) ) );
+						// A missing currency is not a match.
+						if ( $received_currency === '' || $received_currency != $pending_payment->currency ) {
+							$new_call[] = sprintf( __( 'Currency mismatch. Expected: %s Received: %s', 'mycred' ), $pending_payment->currency, $received_currency );
 							$errors     = true;
 						}
 
-						// Check status
-						if ( isset( $_POST['status'] ) && $_POST['status'] != '2' ) {
-							$new_call[] = sprintf( __( 'Payment not completed. Received: %s', 'mycred' ), sanitize_text_field( wp_unslash( $_POST['status'] ) ) );
+						// Skrill status 2 is the only processed payment. A missing status is not complete.
+						if ( $received_status !== '2' ) {
+							$new_call[] = sprintf( __( 'Payment not completed. Received: %s', 'mycred' ), $received_status );
 							$errors     = true;
 						}
 

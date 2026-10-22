@@ -1293,13 +1293,19 @@ if (!class_exists('cashCRED_Pending_Payments')):
 
 		public function register_withdrawals_rest_routes()
 		{
+			$permission_callback = function () {
+				$mycred = mycred();
+				$cap    = method_exists( $mycred, 'get_point_editor_capability' )
+					? $mycred->get_point_editor_capability()
+					: 'export';
+				return current_user_can( $cap ) || current_user_can( 'manage_options' );
+			};
+
 			register_rest_route('mycred/v1', '/cashcred-withdrawals', array(
 				array(
 					'methods'             => 'GET',
 					'callback'            => array($this, 'get_withdrawals_rest'),
-					'permission_callback' => function () {
-						return current_user_can('edit_posts');
-					},
+					'permission_callback' => $permission_callback,
 				)
 			));
 
@@ -1307,9 +1313,7 @@ if (!class_exists('cashCRED_Pending_Payments')):
 				array(
 					'methods'             => 'POST',
 					'callback'            => array($this, 'pay_withdrawal_rest'),
-					'permission_callback' => function () {
-						return current_user_can('edit_posts');
-					},
+					'permission_callback' => $permission_callback,
 				)
 			));
 
@@ -1317,9 +1321,7 @@ if (!class_exists('cashCRED_Pending_Payments')):
 				array(
 					'methods'             => 'POST',
 					'callback'            => array($this, 'trash_withdrawal_rest'),
-					'permission_callback' => function () {
-						return current_user_can('delete_posts');
-					},
+					'permission_callback' => $permission_callback,
 				)
 			));
 
@@ -1327,9 +1329,7 @@ if (!class_exists('cashCRED_Pending_Payments')):
 				array(
 					'methods'             => 'POST',
 					'callback'            => array($this, 'restore_withdrawal_rest'),
-					'permission_callback' => function () {
-						return current_user_can('edit_posts');
-					},
+					'permission_callback' => $permission_callback,
 				)
 			));
 
@@ -1337,9 +1337,7 @@ if (!class_exists('cashCRED_Pending_Payments')):
 				array(
 					'methods'             => 'POST',
 					'callback'            => array($this, 'bulk_withdrawals_rest'),
-					'permission_callback' => function () {
-						return current_user_can('edit_posts');
-					},
+					'permission_callback' => $permission_callback,
 				)
 			));
 		}
@@ -1454,12 +1452,29 @@ if (!class_exists('cashCRED_Pending_Payments')):
 				return new WP_REST_Response(array('message' => 'Invalid ID'), 400);
 			}
 
+			$post = get_post($id);
+			if (!$post || $post->post_type !== MYCRED_CASHCRED_KEY) {
+				return new WP_Error('not_found', 'Withdrawal not found.', array('status' => 404));
+			}
+
+			if (!current_user_can('edit_post', $id)) {
+				return new WP_Error('forbidden', 'You are not allowed to pay this withdrawal.', array('status' => 403));
+			}
+
+			$status = (string) get_post_meta($id, 'status', true);
+			if ($status !== '' && $status !== 'Pending') {
+				return new WP_Error('invalid_status', 'Only pending withdrawals can be paid.', array('status' => 400));
+			}
+
 			global $mycred_modules;
-			if (isset($mycred_modules['solo']['cashcred'])) {
-				$response = $mycred_modules['solo']['cashcred']->cashcred_pay_now($id, true);
-				if ( is_array($response) && empty($response['status']) ) {
-					return new WP_Error('payout_failed', $response['message'], array('status' => 400));
-				}
+			if (!isset($mycred_modules['solo']['cashcred'])) {
+				return new WP_Error('payout_failed', 'cashCRED is not available.', array('status' => 400));
+			}
+
+			$response = $mycred_modules['solo']['cashcred']->cashcred_pay_now($id, true);
+			if (!is_array($response) || empty($response['status'])) {
+				$message = (is_array($response) && !empty($response['message'])) ? $response['message'] : 'Payout failed.';
+				return new WP_Error('payout_failed', $message, array('status' => 400));
 			}
 
 			update_post_meta($id, 'status', 'Approved');
@@ -1474,6 +1489,15 @@ if (!class_exists('cashCRED_Pending_Payments')):
 
 			if (!$id) {
 				return new WP_REST_Response(array('message' => 'Invalid ID'), 400);
+			}
+
+			$post = get_post($id);
+			if (!$post || $post->post_type !== MYCRED_CASHCRED_KEY) {
+				return new WP_Error('not_found', 'Withdrawal not found.', array('status' => 404));
+			}
+
+			if (!current_user_can('delete_post', $id)) {
+				return new WP_Error('forbidden', 'You are not allowed to modify this withdrawal.', array('status' => 403));
 			}
 
 			if ($force) {
@@ -1492,6 +1516,15 @@ if (!class_exists('cashCRED_Pending_Payments')):
 				return new WP_REST_Response(array('message' => 'Invalid ID'), 400);
 			}
 
+			$post = get_post($id);
+			if (!$post || $post->post_type !== MYCRED_CASHCRED_KEY) {
+				return new WP_Error('not_found', 'Withdrawal not found.', array('status' => 404));
+			}
+
+			if (!current_user_can('delete_post', $id)) {
+				return new WP_Error('forbidden', 'You are not allowed to modify this withdrawal.', array('status' => 403));
+			}
+
 			wp_untrash_post($id);
 
 			return new WP_REST_Response(array('success' => true), 200);
@@ -1507,12 +1540,27 @@ if (!class_exists('cashCRED_Pending_Payments')):
 				return new WP_REST_Response(array('message' => 'Invalid bulk parameters'), 400);
 			}
 
+			if (!in_array($action, array('trash', 'restore', 'delete'), true)) {
+				return new WP_REST_Response(array('message' => 'Invalid bulk action'), 400);
+			}
+
+			foreach ($ids as $id) {
+				$post = get_post($id);
+				if (!$post || $post->post_type !== MYCRED_CASHCRED_KEY) {
+					return new WP_Error('not_found', 'Withdrawal not found.', array('status' => 404));
+				}
+
+				if (!current_user_can('delete_post', $id)) {
+					return new WP_Error('forbidden', 'You are not allowed to modify this withdrawal.', array('status' => 403));
+				}
+			}
+
 			foreach ($ids as $id) {
 				if ($action === 'trash') {
 					wp_trash_post($id);
 				} elseif ($action === 'restore') {
 					wp_untrash_post($id);
-				} elseif ($action === 'delete') {
+				} else {
 					wp_delete_post($id, true);
 				}
 			}

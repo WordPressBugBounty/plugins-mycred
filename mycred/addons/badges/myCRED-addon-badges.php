@@ -2260,7 +2260,11 @@ if ( ! class_exists( 'myCRED_Badge_Module' ) ) :
         }
 
         public function rest_permissions_check() {
-            return current_user_can( 'edit_posts' );
+            $mycred = mycred();
+            $cap    = method_exists( $mycred, 'get_point_editor_capability' )
+                ? $mycred->get_point_editor_capability()
+                : 'export';
+            return current_user_can( $cap ) || current_user_can( 'manage_options' );
         }
 
         public function prepare_badge_for_rest( $badge_id ) {
@@ -2380,6 +2384,19 @@ if ( ! class_exists( 'myCRED_Badge_Module' ) ) :
             $id        = absint( $request['id'] );
             $permanent = $request->get_param( 'permanent' );
 
+            if ( ! $id ) {
+                return new WP_Error( 'invalid_id', 'Invalid badge ID.', array( 'status' => 400 ) );
+            }
+
+            $post = get_post( $id );
+            if ( ! $post || $post->post_type !== MYCRED_BADGE_KEY ) {
+                return new WP_Error( 'not_found', 'Badge not found.', array( 'status' => 404 ) );
+            }
+
+            if ( ! current_user_can( 'delete_post', $id ) ) {
+                return new WP_Error( 'forbidden', 'You are not allowed to modify this badge.', array( 'status' => 403 ) );
+            }
+
             if ( $permanent ) {
                 $result = wp_delete_post( $id, true );
             } else {
@@ -2394,7 +2411,20 @@ if ( ! class_exists( 'myCRED_Badge_Module' ) ) :
         }
 
         public function restore_badge_rest( $request ) {
-            $id     = absint( $request['id'] );
+            $id = absint( $request['id'] );
+            if ( ! $id ) {
+                return new WP_Error( 'invalid_id', 'Invalid badge ID.', array( 'status' => 400 ) );
+            }
+
+            $post = get_post( $id );
+            if ( ! $post || $post->post_type !== MYCRED_BADGE_KEY ) {
+                return new WP_Error( 'not_found', 'Badge not found.', array( 'status' => 404 ) );
+            }
+
+            if ( ! current_user_can( 'delete_post', $id ) ) {
+                return new WP_Error( 'forbidden', 'You are not allowed to modify this badge.', array( 'status' => 403 ) );
+            }
+
             $result = wp_untrash_post( $id );
 
             if ( $result ) {
@@ -2412,13 +2442,30 @@ if ( ! class_exists( 'myCRED_Badge_Module' ) ) :
                 return new WP_Error( 'invalid_ids', 'No badge IDs provided.', array( 'status' => 400 ) );
             }
 
+            if ( ! in_array( $action, array( 'trash', 'restore', 'delete' ), true ) ) {
+                return new WP_Error( 'invalid_action', 'Invalid bulk action.', array( 'status' => 400 ) );
+            }
+
+            $valid_ids = array();
             foreach ( $ids as $id ) {
-                $id = absint( $id );
+                $id   = absint( $id );
+                $post = get_post( $id );
+                if ( ! $post || $post->post_type !== MYCRED_BADGE_KEY ) {
+                    return new WP_Error( 'not_found', 'Badge not found.', array( 'status' => 404 ) );
+                }
+
+                if ( ! current_user_can( 'delete_post', $id ) ) {
+                    return new WP_Error( 'forbidden', 'You are not allowed to modify this badge.', array( 'status' => 403 ) );
+                }
+                $valid_ids[] = $id;
+            }
+
+            foreach ( $valid_ids as $id ) {
                 if ( $action === 'trash' ) {
                     wp_trash_post( $id );
                 } elseif ( $action === 'restore' ) {
                     wp_untrash_post( $id );
-                } elseif ( $action === 'delete' ) {
+                } else {
                     wp_delete_post( $id, true );
                 }
             }

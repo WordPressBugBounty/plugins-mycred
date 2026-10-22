@@ -96,7 +96,7 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			register_rest_route( 'mycred/v1', '/install-toolkit', array(
 				'methods'  => 'POST',
 				'callback' => array( $this, 'rest_install_toolkit' ),
-				'permission_callback' => array( $this, 'rest_verify_permissions' )
+				'permission_callback' => array( $this, 'rest_install_toolkit_permissions' )
 			) );
 		}
 
@@ -114,6 +114,28 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 			if ( ! current_user_can( 'manage_options' ) ) {
 				return new WP_Error( 'rest_forbidden', __( 'You do not have permission to perform this action.', 'mycred' ), array( 'status' => 403 ) );
 			}
+			return true;
+		}
+
+		/**
+		 * Install writes a plugin into the shared plugins directory and activates it.
+		 * manage_options is not enough: on Multisite a site Administrator has that
+		 * capability without install_plugins, activate_plugins, or network admin rights.
+		 */
+		public function rest_install_toolkit_permissions( $request ) {
+			$verified = $this->rest_verify_permissions( $request );
+			if ( is_wp_error( $verified ) ) {
+				return $verified;
+			}
+
+			if ( is_multisite() && ! is_super_admin() ) {
+				return new WP_Error( 'rest_forbidden', __( 'Only a network administrator can install plugins.', 'mycred' ), array( 'status' => 403 ) );
+			}
+
+			if ( ! current_user_can( 'install_plugins' ) || ! current_user_can( 'activate_plugins' ) ) {
+				return new WP_Error( 'rest_forbidden', __( 'You do not have permission to install or activate plugins.', 'mycred' ), array( 'status' => 403 ) );
+			}
+
 			return true;
 		}
 
@@ -262,7 +284,12 @@ if ( ! class_exists( 'myCRED_Addons_Module' ) ) :
 		 * Install & activate mycred-toolkit plugin
 		 */
 		public function rest_install_toolkit( $request ) {
-			
+
+			$permissions = $this->rest_install_toolkit_permissions( $request );
+			if ( is_wp_error( $permissions ) ) {
+				return $permissions;
+			}
+
 			$params = $request->get_json_params();
 			$addon_slug = isset( $params['addon_slug'] ) ? sanitize_text_field( $params['addon_slug'] ) : '';
 

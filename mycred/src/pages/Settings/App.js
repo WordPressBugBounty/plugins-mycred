@@ -168,10 +168,11 @@ const AddonViewer = ({ colors, module }) => {
             return;
         }
 
+        const isRemoteAccess = (module?.title || '').trim().toLowerCase() === 'remote access';
         const remoteKeyInput = form.querySelector('#myCRED-remote-key');
-        if (remoteKeyInput) {
+        if (isRemoteAccess && remoteKeyInput) {
             const keyLength = remoteKeyInput.value.trim().length;
-            if (keyLength > 0 && keyLength < 12) {
+            if (keyLength < 12) {
                 toast.error('Remote Access API key must be at least 12 characters.');
                 remoteKeyInput.focus();
                 return;

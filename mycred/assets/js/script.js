@@ -105,18 +105,18 @@ jQuery(document).ready(() => {
     function mycredFrmFillPostsDropdown($dropdown, items, placeholder, selectFirst) {
         mycredSafeDestroySelect2($dropdown);
         $dropdown.empty();
-        $dropdown.append('<option value="" disabled>' + placeholder + '</option>');
+        $dropdown.append(jQuery('<option>', { value: '', disabled: true }).text(placeholder));
 
         if (items && items.length) {
             jQuery.each(items, function(index, item) {
-                $dropdown.append('<option value="' + item.ID + '">' + item.title + '</option>');
+                $dropdown.append(jQuery('<option>').val(item.ID).text(item.title));
             });
             if (selectFirst) {
                 $dropdown.find('option[value=""]').prop('selected', false);
                 $dropdown.find('option:not([disabled])').first().prop('selected', true);
             }
         } else {
-            $dropdown.append('<option value="" disabled>No items available</option>');
+            $dropdown.append(jQuery('<option>', { value: '', disabled: true }).text('No items available'));
         }
 
         mycredFrmDisableEmptyOptions($dropdown);

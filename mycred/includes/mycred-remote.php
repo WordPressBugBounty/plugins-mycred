@@ -202,8 +202,8 @@ if ( ! class_exists( 'myCRED_Remote' ) ) :
 			// Let others play first
 			do_action_ref_array( 'mycred_remote_validate', array( &$this ) );
 
-			// Key has not been setup
-			if ( $this->key === NULL )
+			// A missing or short key makes the request token predictable.
+			if ( ! is_string( $this->key ) || strlen( $this->key ) < 12 )
 				return 'ERROR: 99';
 
 			// Empty Request
@@ -532,6 +532,7 @@ if ( ! function_exists( 'mycred_remote_init' ) ) :
 
 		$prefs = mycred_get_remote();
 		if ( ! $prefs['enabled'] ) return;
+		if ( ! is_string( $prefs['key'] ) || strlen( $prefs['key'] ) < 12 ) return;
 
 		$uri   = explode( '/', isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '' );
 		if ( isset( $uri[1] ) && $uri[1] == $prefs['uri'] ) {
@@ -573,17 +574,6 @@ if ( ! function_exists( 'mycred_remote_settings_page' ) ) :
 		$settings   = mycred_get_remote();
 		$key_length = strlen( $settings['key'] );
 
-		$block            = '';
-		$disabled_message = '';
-
-		if ( ! get_option( 'permalink_structure' ) ) {
-			$block            = ' disabled="disabled"';
-			$disabled_message = __( 'This feature requires WordPress Permalinks to be setup and enabled!', 'mycred' );
-		}
-
-		elseif ( ! $settings['enabled'] )
-			$disabled_message = __( 'Click Update Settings to load the Remote API settings.', 'mycred' );
-
 ?>
 
 <div class="mycred-ui-accordion">
@@ -604,7 +594,7 @@ if ( ! function_exists( 'mycred_remote_settings_page' ) ) :
 				<div class="mycred-toggle-wrapper">
                     <label for="myCRED-General-remote"><strong><?php esc_html_e( 'Enable', 'mycred' ); ?></strong></label>
                     <label class="mycred-toggle">
-                        <input type="checkbox" name="mycred_pref_core[allow_remote]" id="myCRED-General-remote" value="1" <?php if ( $settings['enabled'] ) echo ' checked="checked"'; echo wp_kses_post( $block ); ?> />
+                        <input type="checkbox" name="mycred_pref_core[allow_remote]" id="myCRED-General-remote" value="1" <?php if ( $settings['enabled'] ) echo ' checked="checked"'; ?> />
                         <span class="slider round"></span>
                     </label> 
                 </div>
@@ -663,29 +653,31 @@ if ( ! function_exists( 'mycred_remote_save_settings' ) ) :
 		$current    = mycred_get_remote();
 		$new_remote = array();
 
-		if ( isset( $post['allow_remote'] ) )
-			$new_remote['enabled'] = 1;
-		else
-			$new_remote['enabled'] = 0;
+		$wants_enabled = isset( $post['allow_remote'] );
 
 		if ( isset( $post['remote']['key'] ) ) {
 			$key = sanitize_text_field( $post['remote']['key'] );
+		} else {
+			$key = $current['key'];
+		}
 
-			// Empty clears the key; non-empty keys must be at least 12 characters.
-			if ( $key !== '' && strlen( $key ) < 12 ) {
-				$new_remote['key'] = $current['key'];
+		$previous_key = is_string( $current['key'] ) ? $current['key'] : '';
+
+		// Empty and short keys are not stored. An empty key would make request tokens predictable.
+		if ( ! is_string( $key ) || strlen( $key ) < 12 ) {
+			if ( $key !== '' || $wants_enabled ) {
 				add_settings_error(
 					'mycred_pref_remote',
 					'mycred_remote_key_length',
 					__( 'Remote Access API key must be at least 12 characters. The previous key was kept.', 'mycred' ),
 					'error'
 				);
-			} else {
-				$new_remote['key'] = $key;
 			}
-		} else {
-			$new_remote['key'] = $current['key'];
+			$key = ( strlen( $previous_key ) >= 12 ) ? $previous_key : '';
 		}
+
+		$new_remote['enabled'] = ( $wants_enabled && strlen( $key ) >= 12 ) ? 1 : 0;
+		$new_remote['key']     = $key;
 
 		if ( isset( $post['remote']['uri'] ) )
 			$new_remote['uri'] = sanitize_text_field( $post['remote']['uri'] );

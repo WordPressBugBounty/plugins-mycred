@@ -3,7 +3,7 @@ Contributors: mycred,wpexpertsio
 Tags: badges, loyalty program, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 7.1
-Stable tag: 4.0.0
+Stable tag: 4.0.1
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -460,6 +460,9 @@ Both features use the myCred AI service. Site administrators send plain-language
 
 == Upgrade Notice ==
 
+= 4.0.1 =
+Security improvements.
+
 = 4.0.0 =
 Redesigned the myCred admin backend. Added a first-run Onboarding wizard and expanded the AI Assistant with ranks, badges, settings, and add-ons. Existing points, hooks, badges, ranks, and settings are preserved.
 
@@ -702,6 +705,9 @@ New features and Bug fixes.
 The banking module have been replaced by Central deposite module, and interest related functionality has been removed. If you are using simple interest or compound interest related functionality, you will fine the respective functionalities missing after the update.
 
 == Changelog ==
+
+= 4.0.1 =
+- **FIX** - Security improvements.
 
 = 4.0.0 =
 - **NEW** - Redesigned the myCred admin backend with a unified interface for Settings, Hooks, Logs, Tools, Badges, Ranks, Loyalty Widget, and built-in add-ons (WooCommerce, Coupons, Banking, and Email Notices).
