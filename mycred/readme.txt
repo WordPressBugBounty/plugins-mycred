@@ -3,7 +3,7 @@ Contributors: mycred,wpexpertsio
 Tags: badges, loyalty program, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 7.1
-Stable tag: 4.0.1
+Stable tag: 4.0.2
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -20,7 +20,7 @@ A first-run **Onboarding** wizard helps you build that program before you use th
 
 [Addons](https://mycred.me/store/?utm_source=wp_org&utm_medium=read_me) | [Documentation](https://codex.mycred.me/?utm_source=wp_org&utm_medium=read_me) | [Demo](https://demo.mycred.me/?utm_source=wp_org&utm_medium=read_me) | [Treasures](https://mycred.me/treasure/?utm_source=wp_org&utm_medium=read_me) | [Pricing](https://mycred.me/pricing/?utm_source=wp_org&utm_medium=read_me) | [AI Assistant](https://mycred.me/blog/ai-assistant-for-wordpress-gamification-and-loyalty/?utm_source=wp_org&utm_medium=read_me&utm_campaign=ai-assistant)
 
-[youtube https://www.youtube.com/watch?v=-M19tzYo1jo]
+[youtube https://www.youtube.com/watch?v=0RDXp2Jry5U]
 
 myCred is a complete membership loyalty points system plugin designed to help websites build loyalty points engines with points, badges, ranks, and WooCommerce points rewards. With the myCred AI Assistant, you can also manage common loyalty and gamification tasks using natural language, making it easier to configure and work with your points system.
 
@@ -460,6 +460,9 @@ Both features use the myCred AI service. Site administrators send plain-language
 
 == Upgrade Notice ==
 
+= 4.0.2 =
+Fixes blank pages after all redirects introduced in 4.0.1. Recommended for all 4.0.1 sites.
+
 = 4.0.1 =
 Security improvements.
 
@@ -705,6 +708,9 @@ New features and Bug fixes.
 The banking module have been replaced by Central deposite module, and interest related functionality has been removed. If you are using simple interest or compound interest related functionality, you will fine the respective functionalities missing after the update.
 
 == Changelog ==
+
+= 4.0.2 =
+- **FIX** - Blank pages after redirects caused by a UTF-8 BOM in the AI Assistant file.
 
 = 4.0.1 =
 - **FIX** - Security improvements.

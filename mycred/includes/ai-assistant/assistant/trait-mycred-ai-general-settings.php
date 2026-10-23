@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * General Settings AI ability helpers (get, update).
  *
