@@ -420,9 +420,17 @@ const LogsTable = ({
         letterSpacing: '0.05em',
         px: 2,
         whiteSpace: 'nowrap',
+        position: 'sticky',
+        top: 0,
+        zIndex: 4,
+        backgroundColor: colors.paper,
     };
 
-    const tableBodyMinHeight = pagination.number * 68;
+    const visibleRowLimit = 10;
+    const rowHeight = 68;
+    const headHeight = 44;
+    const limitTableHeight = logs.length > visibleRowLimit;
+    const tableMaxHeight = headHeight + visibleRowLimit * rowHeight + 2;
 
     const scrollArrowBtnSx = {
         width: 28,
@@ -482,15 +490,17 @@ const LogsTable = ({
     const stickyCheckboxSx = (isHead = false) => ({
         position: 'sticky',
         left: 0,
-        zIndex: isHead ? 4 : 3,
+        zIndex: isHead ? 5 : 3,
         backgroundColor: colors.paper,
+        ...(isHead ? { top: 0 } : {}),
     });
 
     const stickyActionsSx = (isHead = false) => ({
         position: 'sticky',
         right: 0,
-        zIndex: isHead ? 4 : 3,
+        zIndex: isHead ? 5 : 3,
         backgroundColor: colors.paper,
+        ...(isHead ? { top: 0 } : {}),
         minWidth: ACTIONS_COL_WIDTH,
         width: ACTIONS_COL_WIDTH,
         // Always reserve the border so toggling overflow chrome never shifts columns.
@@ -534,12 +544,14 @@ const LogsTable = ({
                 <TableContainer
                     ref={tableScrollRef}
                     sx={{
-                        minHeight: 44 + tableBodyMinHeight,
+                        ...(limitTableHeight ? { maxHeight: tableMaxHeight } : {}),
                         overflowX: 'auto',
+                        overflowY: limitTableHeight ? 'auto' : 'hidden',
                         scrollbarWidth: 'thin',
                         scrollbarColor: `${colors.textMuted} transparent`,
                         '&::-webkit-scrollbar': {
                             height: 6,
+                            width: 6,
                         },
                         '&::-webkit-scrollbar-track': {
                             background: 'transparent',

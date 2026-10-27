@@ -44,39 +44,59 @@ if ( ! class_exists( 'myCRED_NETbilling' ) ) :
 		}
 
 		/**
-		 * IPN - Is Valid Call
-		 * Replaces the default check
+		 * Scalar callback field. Arrays are rejected so they cannot be hashed.
+		 *
 		 * @since 1.4
-		 * @version 1.0
+		 * @param string $key Request field name.
+		 * @return string
+		 */
+		protected function netbilling_request_value( $key ) {
+
+			if ( ! isset( $_REQUEST[ $key ] ) || is_array( $_REQUEST[ $key ] ) )
+				return '';
+
+			return (string) wp_unslash( $_REQUEST[ $key ] );
+
+		}
+
+		/**
+		 * IPN - Is Valid Call
+		 * Authenticate NETbilling's return proof. The outbound hash is already in the buyer's form and is not proof of payment.
+		 * @since 1.4
+		 * @version 1.1
 		 */
 		public function IPN_is_valid_call() {
 
-			$result  = true;
+			$secret = isset( $this->prefs['cryptokey'] ) ? (string) $this->prefs['cryptokey'] : '';
+			if ( $secret === '' )
+				return false;
 
-			$account_data = isset( $_REQUEST['Ecom_Ezic_AccountAndSitetag'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['Ecom_Ezic_AccountAndSitetag'] ) ) : '';
+			$account_data = sanitize_text_field( $this->netbilling_request_value( 'Ecom_Ezic_AccountAndSitetag' ) );
+			$account      = explode( ':', $account_data, 2 );
+			if ( count( $account ) !== 2 || $account[0] != $this->prefs['account'] || $account[1] != $this->prefs['site_tag'] )
+				return false;
 
-			// Accounts Match
-			$account = explode( ':', $account_data );
-			if ( $account[0] != $this->prefs['account'] || $account[1] != $this->prefs['site_tag'] )
-				$result = false;
+			$transaction_id = $this->netbilling_request_value( 'Ecom_Ezic_Response_TransactionID' );
+			$status         = $this->netbilling_request_value( 'Ecom_Ezic_Response_StatusCode' );
+			$cost_total     = $this->netbilling_request_value( 'Ecom_Cost_Total' );
+			$description    = $this->netbilling_request_value( 'Ecom_Receipt_Description' );
+			$salesdata      = $this->netbilling_request_value( 'Ecom_UserData_salesdata' );
+			$proof          = $this->netbilling_request_value( 'Ecom_Ezic_ProofOfPurchase_MD5' );
 
-			$cost_total = isset( $_REQUEST['Ecom_Cost_Total'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['Ecom_Cost_Total'] ) ) : '';
-			$cost_description = isset( $_REQUEST['Ecom_Receipt_Description'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['Ecom_Receipt_Description'] ) ) : '';
+			if ( $transaction_id === '' || $status !== '1' || $cost_total === '' || $salesdata === '' || $proof === '' )
+				return false;
 
-			// Crypto Check
-			$crypto_check = md5( $this->prefs['cryptokey'] . $cost_total . $cost_description );
+			// key + transaction id + status + HashFields values, in HashFields order.
+			$expected = strtoupper( md5( $secret . $transaction_id . $status . $cost_total . $description . $salesdata ) );
 
-			if ( ! isset( $_REQUEST['Ecom_Ezic_Security_HashValue_MD5'] ) || $crypto_check != $_REQUEST['Ecom_Ezic_Security_HashValue_MD5'] )
-				$result = false;
-
-			return $result;
+			return hash_equals( $expected, strtoupper( $proof ) );
 
 		}
 
 		/**
 		 * Process
 		 * @since 0.1
-		 * @version 1.2
+		 * @version 1.3
 		 */
 		public function process() {
 
@@ -84,25 +104,33 @@ if ( ! class_exists( 'myCRED_NETbilling' ) ) :
 			if ( isset( $_REQUEST['Ecom_UserData_salesdata'] ) && isset( $_REQUEST['Ecom_Ezic_Response_TransactionID'] ) && isset( $_REQUEST['Ecom_Cost_Total'] ) ) {
 
 				// Get Pending Payment
-				$pending_post_id = sanitize_key( $_REQUEST['Ecom_UserData_salesdata'] );
+				$pending_post_id = sanitize_key( wp_unslash( $_REQUEST['Ecom_UserData_salesdata'] ) );
 				$pending_payment = $this->get_pending_payment( $pending_post_id );
 				if ( $pending_payment !== false ) {
 
-					// Verify Call with PayPal
+					// Verify NETbilling's return proof. The outbound hash is not accepted.
 					if ( $this->IPN_is_valid_call() ) {
 
 						$errors   = false;
 						$new_call = array();
 
-						// Check amount paid
-						if ( $_REQUEST['Ecom_Cost_Total'] != $pending_payment->cost ) {
-							$new_call[] = sprintf( __( 'Price mismatch. Expected: %s Received: %s', 'mycred' ), $pending_payment->cost, sanitize_text_field( wp_unslash( $_REQUEST['Ecom_Cost_Total'] ) ) );
+						$received_amount = $this->netbilling_request_value( 'Ecom_Cost_Total' );
+						if ( $received_amount === '' || (float) $received_amount != (float) $pending_payment->cost ) {
+							$new_call[] = sprintf( __( 'Price mismatch. Expected: %s Received: %s', 'mycred' ), $pending_payment->cost, sanitize_text_field( $received_amount ) );
 							$errors     = true;
 						}
 
-						// Check status
-						if ( ! empty( $_REQUEST['Ecom_Ezic_Response_StatusCode'] ) && $_REQUEST['Ecom_Ezic_Response_StatusCode'] != 1 ) {
-							$new_call[] = sprintf( __( 'Payment not completed. Received: %s', 'mycred' ), absint( $_REQUEST['Ecom_Ezic_Response_StatusCode'] ) );
+						$status = $this->netbilling_request_value( 'Ecom_Ezic_Response_StatusCode' );
+						if ( $status !== '1' ) {
+							$new_call[] = sprintf( __( 'Payment not completed. Received: %s', 'mycred' ), sanitize_text_field( $status ) );
+							$errors     = true;
+						}
+
+						$transaction_id = $this->netbilling_request_value( 'Ecom_Ezic_Response_TransactionID' );
+						$stored_id      = sanitize_text_field( $transaction_id );
+						$this->mycred_type = $pending_payment->point_type;
+						if ( $stored_id === '' || $stored_id !== $transaction_id || ! $this->transaction_id_is_unique( $stored_id ) ) {
+							$new_call[] = sprintf( __( 'Duplicate transaction ID: %s', 'mycred' ), $stored_id );
 							$errors     = true;
 						}
 
@@ -110,7 +138,7 @@ if ( ! class_exists( 'myCRED_NETbilling' ) ) :
 						if ( $errors === false ) {
 
 							// If account is credited, delete the post and it's comments.
-							if ( $this->complete_payment( $pending_payment, sanitize_title( wp_unslash( $_REQUEST['Ecom_Ezic_Response_TransactionID'] ) ) ) )
+							if ( $this->complete_payment( $pending_payment, $stored_id ) )
 								$this->trash_pending_payment( $pending_post_id );
 							else
 								$new_call[] = __( 'Failed to credit users account.', 'mycred' );
@@ -168,8 +196,8 @@ if ( ! class_exists( 'myCRED_NETbilling' ) ) :
 				'Ecom_UserData_salesdata'             => $this->transaction_id,
 				'Ecom_Ezic_Fulfillment_ReturnURL'     => $this->get_thankyou(),
 				'Ecom_Ezic_Fulfillment_GiveUpURL'     => $this->get_cancelled( $this->transaction_id ),
-				'Ecom_Ezic_Security_HashValue_MD5'    => md5( $this->prefs['cryptokey'] . $this->cost . $item_name ),
-				'Ecom_Ezic_Security_HashFields'       => 'Ecom_Cost_Total Ecom_Receipt_Description'
+				'Ecom_Ezic_Security_HashValue_MD5'    => md5( $this->prefs['cryptokey'] . $this->cost . $item_name . $this->transaction_id ),
+				'Ecom_Ezic_Security_HashFields'       => 'Ecom_Cost_Total Ecom_Receipt_Description Ecom_UserData_salesdata'
 			);
 
 		}

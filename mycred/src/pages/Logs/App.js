@@ -4,7 +4,8 @@ import {
     Box,
     Typography,
     CircularProgress,
-    Button
+    Button,
+    Chip
 } from '@mui/material';
 import { Toaster, toast } from 'react-hot-toast';
 import LogsTable from './LogsTable';
@@ -36,6 +37,8 @@ const App = () => {
         exportEnabled: false,
         exportFormat: 'both',
         extraColumns: [],
+        initialUser: '',
+        initialUserName: '',
         labels: { singular: 'Point', plural: 'Points' }
     };
 
@@ -61,13 +64,14 @@ const App = () => {
 
     const [filters, setFilters] = useState({
         search: '',
-        user: '',
+        user: initialData.initialUser ? String(initialData.initialUser) : '',
         ref: 'all',
         time: 'all',
         from: null,
         to: null,
         ctype: initialData.pointType
     });
+    const [userLabel, setUserLabel] = useState(initialData.initialUserName || '');
 
     const [pagination, setPagination] = useState({
         paged: 1,
@@ -167,8 +171,14 @@ const App = () => {
     };
 
     const handleFilterByUser = (userId, displayName) => {
+        setUserLabel(displayName || '');
         handleFilterChange({ user: String(userId), search: '' });
         toast.success(`Filtering by user: ${displayName}`);
+    };
+
+    const handleClearUserFilter = () => {
+        setUserLabel('');
+        handleFilterChange({ user: '' });
     };
 
     const handleFilterByDate = (dateString) => {
@@ -327,18 +337,38 @@ const App = () => {
                             gap: 2,
                         }}
                     >
-                        <Typography
-                            variant="h4"
-                            sx={{
-                                m: 0,
-                                color: colors.textPrimary,
-                                fontWeight: 600,
-                                fontSize: '20px',
-                                fontFamily: "'Vollkorn', serif"
-                            }}
-                        >
-                            Logs
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                            <Typography
+                                variant="h4"
+                                sx={{
+                                    m: 0,
+                                    color: colors.textPrimary,
+                                    fontWeight: 600,
+                                    fontSize: '20px',
+                                    fontFamily: "'Vollkorn', serif"
+                                }}
+                            >
+                                Logs
+                            </Typography>
+                            {filters.user ? (
+                                <Chip
+                                    label={userLabel || `User #${filters.user}`}
+                                    size="small"
+                                    onDelete={handleClearUserFilter}
+                                    sx={{
+                                        bgcolor: colors.paperMuted,
+                                        color: colors.textPrimary,
+                                        fontWeight: 500,
+                                        fontSize: '13px',
+                                        fontFamily: "'Poppins', sans-serif",
+                                        height: 28,
+                                        '& .MuiChip-deleteIcon': {
+                                            color: colors.textSecondary,
+                                        },
+                                    }}
+                                />
+                            ) : null}
+                        </Box>
 
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
                             <LogsToolbar

@@ -3,7 +3,7 @@ Contributors: mycred,wpexpertsio
 Tags: badges, loyalty program, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 7.1
-Stable tag: 4.0.2
+Stable tag: 4.0.3
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -49,9 +49,9 @@ You can use prompts such as:
 - Create badges for course completions and daily logins.
 - Turn on the Badges add-on and update the general settings for my point type.
 
-= Built on the WordPress AI Ecosystem =
+= myCred's Own AI System =
 
-The myCred AI Assistant is built using the WP AI Client, Connectors API, and Abilities API. It connects to a configured AI provider and turns natural-language instructions into structured actions within myCred.
+The myCred AI Assistant uses myCred's own AI system. It turns natural-language instructions into structured actions within myCred.
 
 = AI Assistant for Faster myCred Management =
 
@@ -63,7 +63,6 @@ The myCred AI Assistant is built using the WP AI Client, Connectors API, and Abi
 - **Suggest and Create Badges:** Get badge ideas with manual or automatic earning rules, then create the ones you approve.
 - **Update Settings with AI:** Read and update general settings, list add-ons, and enable or disable an add-on from the chat.
 - **Install myCred Addons:** Ask the assistant to install and activate the free myCred Addons plugin when an add-on needs it. It asks you to confirm first.
-- **AI Provider Support:** Connect myCred with a supported AI provider through WordPress Connectors.
 
 = Getting Started With myCred AI Assistant =
 
@@ -72,14 +71,8 @@ Setting up the AI Assistant requires a few steps.
 1. **Use WordPress 7.0 or Later**
 The AI Assistant relies on the WordPress AI capabilities available in this version.
 
-2. **Install the WordPress AI Plugin**
-Go to Settings > Connectors in your WordPress dashboard and install the WordPress AI Plugin from the Connectors screen.
-
-3. **Connect Your AI Provider**
-WordPress Connectors supports AI connectors such as Anthropic, Google, and OpenAI. Select your preferred connector.
-
-4. **Open myCred > AI Assistant**
-The AI Assistant is included in myCred. After your provider is connected, open myCred > AI Assistant to manage points, hooks, ranks, badges, settings, and add-ons in chat.
+2. **Open myCred > AI Assistant**
+The AI Assistant is included in myCred and uses myCred's own AI system. Open myCred > AI Assistant to manage points, hooks, ranks, badges, settings, and add-ons in chat.
 
 == myCred Onboarding ==
 
@@ -460,6 +453,9 @@ Both features use the myCred AI service. Site administrators send plain-language
 
 == Upgrade Notice ==
 
+= 4.0.3 =
+Security fixes and code improvements.
+
 = 4.0.2 =
 Fixes blank pages after all redirects introduced in 4.0.1. Recommended for all 4.0.1 sites.
 
@@ -708,6 +704,9 @@ New features and Bug fixes.
 The banking module have been replaced by Central deposite module, and interest related functionality has been removed. If you are using simple interest or compound interest related functionality, you will fine the respective functionalities missing after the update.
 
 == Changelog ==
+
+= 4.0.3 =
+- **FIX** - Security fixes and code improvements.
 
 = 4.0.2 =
 - **FIX** - Blank pages after redirects caused by a UTF-8 BOM in the AI Assistant file.

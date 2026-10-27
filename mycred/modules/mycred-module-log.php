@@ -653,6 +653,25 @@ if ( ! class_exists( 'myCRED_Log_Module' ) ) :
 					$export_format = sanitize_key( $core_prefs['export']['admin_format'] );
 				}
 
+				$initial_user      = '';
+				$initial_user_name = '';
+				if ( isset( $_GET['user'] ) && ! is_array( $_GET['user'] ) ) {
+					$requested_user = sanitize_text_field( wp_unslash( $_GET['user'] ) );
+					if ( $requested_user !== '' ) {
+						$resolved_user = mycred_get_user_id( $requested_user );
+						if ( ! empty( $resolved_user ) && ! is_array( $resolved_user ) ) {
+							$resolved_user = absint( $resolved_user );
+							if ( $resolved_user > 0 ) {
+								$initial_user = (string) $resolved_user;
+								$user_data    = get_userdata( $resolved_user );
+								if ( $user_data ) {
+									$initial_user_name = sanitize_text_field( $user_data->display_name );
+								}
+							}
+						}
+					}
+				}
+
 				// Localize script with data
 				$mycred_logs_data = apply_filters(
 					'mycred_logs_localized_data',
@@ -669,6 +688,8 @@ if ( ! class_exists( 'myCRED_Log_Module' ) ) :
 						'exportEnabled'   => $export_enabled,
 						'exportFormat'    => $export_format,
 						'extraColumns'    => array(),
+						'initialUser'     => $initial_user,
+						'initialUserName' => $initial_user_name,
 						'labels'          => array(
 							'singular' => $this->core->singular(),
 							'plural'   => $this->core->plural(),

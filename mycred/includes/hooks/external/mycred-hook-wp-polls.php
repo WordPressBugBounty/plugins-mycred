@@ -90,9 +90,15 @@ function mycred_load_wp_polls_hook() {
 								$poll_aid       = ( isset( $_POST["poll_$poll_id"] ) ? intval( $_POST["poll_$poll_id"] ) : 0 );
 								$poll_aid_array = array_unique( array_map( 'intval', explode( ',', $poll_aid ) ) );
 
-								if ( $poll_id > 0 && ! empty( $poll_aid_array ) && check_allowtovote() ) {
+								$allow_to_vote = function_exists( 'check_allowtovote' )
+									? check_allowtovote()
+									: ( class_exists( 'WP_Polls_Vote' ) ? WP_Polls_Vote::check_allowtovote() : false );
 
-									$check_voted = check_voted( $poll_id );
+								if ( $poll_id > 0 && ! empty( $poll_aid_array ) && $allow_to_vote ) {
+
+									$check_voted = function_exists( 'check_voted' )
+										? check_voted( $poll_id )
+										: ( class_exists( 'WP_Polls_Vote' ) ? WP_Polls_Vote::check_voted( $poll_id ) : 0 );
 
 									if ( $check_voted == 0 ) {
 
