@@ -60,6 +60,7 @@ if ( ! class_exists( 'myCRED_Sell_Content_Module' ) ) :
 
 			// Setup Content Override
 			add_action( 'template_redirect',               array( $this, 'template_redirect' ), 99990 );
+			$this->register_rest_paywall();
 
 			// Register shortcodes
 			add_shortcode( MYCRED_SLUG . '_sell_this',             'mycred_render_sell_this' );
@@ -429,7 +430,119 @@ if ( ! class_exists( 'myCRED_Sell_Content_Module' ) ) :
 
 		}
 
+		/**
+		 * REST paywall. template_redirect never runs for REST requests, so the_content is not attached there.
+		 * @since 1.7
+		 * @version 1.0
+		 */
+		public function register_rest_paywall() {
 
+			if ( empty( $this->sell_content['post_types'] ) )
+				return;
+
+			$post_types = array_filter( array_map( 'sanitize_key', explode( ',', (string) $this->sell_content['post_types'] ) ) );
+			foreach ( $post_types as $type )
+				add_filter( "rest_prepare_{$type}", array( $this, 'rest_prepare_sell_content' ), 10, 3 );
+
+		}
+
+		/**
+		 * Hide unpaid sale content in REST content.rendered and auto excerpts.
+		 * @since 1.7
+		 * @version 1.0
+		 */
+		public function rest_prepare_sell_content( $response, $post, $request ) {
+
+			if ( ! mycred_sc_is_points_enable() || ! ( $post instanceof WP_Post ) || ! mycred_post_is_for_sale( $post ) )
+				return $response;
+
+			if ( ! is_object( $response ) || ! method_exists( $response, 'get_data' ) )
+				return $response;
+
+			$user_id = get_current_user_id();
+			if ( $user_id > 0 && ( mycred_is_admin( $user_id ) || (int) $post->post_author === $user_id ) )
+				return $response;
+
+			if ( $user_id > 0 && mycred_user_paid_for_content( $user_id, $post->ID ) )
+				return $response;
+
+			$data = $response->get_data();
+			if ( ! is_array( $data ) )
+				return $response;
+
+			$partial = has_shortcode( $post->post_content, MYCRED_SLUG . '_sell_this' );
+			if ( $partial )
+				$rendered = $this->rest_render_partial_content( $post );
+			else
+				$rendered = $this->rest_paywall_markup( $post, $user_id );
+
+			if ( isset( $data['content'] ) && is_array( $data['content'] ) )
+				$data['content']['rendered'] = $rendered;
+
+			if ( $post->post_excerpt === '' && isset( $data['excerpt'] ) && is_array( $data['excerpt'] ) )
+				$data['excerpt']['rendered'] = $this->rest_paywall_markup( $post, $user_id );
+
+			$response->set_data( $data );
+
+			return $response;
+
+		}
+
+		/**
+		 * Same visitor, member, or cannot-afford template the front end uses for a full sale.
+		 * @since 1.7
+		 * @version 1.0
+		 */
+		protected function rest_paywall_markup( $post, $user_id ) {
+
+			if ( $user_id > 0 ) {
+
+				$payment_options = mycred_sell_content_payment_buttons( $user_id, $post->ID );
+				if ( $payment_options !== false ) {
+
+					$content = $this->sell_content['templates']['members'];
+					$content = str_replace( '%buy_button%', $payment_options, $content );
+					return mycred_sell_content_template( $content, $post, 'mycred-sell-entire-content', 'mycred-sell-unpaid' );
+
+				}
+
+				$content = $this->sell_content['templates']['cantafford'];
+				return mycred_sell_content_template( $content, $post, 'mycred-sell-entire-content', 'mycred-sell-insufficient' );
+
+			}
+
+			$content = $this->sell_content['templates']['visitors'];
+			return mycred_sell_content_template( $content, $post, 'mycred-sell-entire-content', 'mycred-sell-visitor' );
+
+		}
+
+		/**
+		 * Render a partial sale through the existing shortcode so the public teaser stays.
+		 * @since 1.7
+		 * @version 1.0
+		 */
+		protected function rest_render_partial_content( $sale_post ) {
+
+			global $post, $mycred_partial_content_sale;
+
+			$previous_post    = isset( $post ) ? $post : null;
+			$previous_partial = isset( $mycred_partial_content_sale ) ? $mycred_partial_content_sale : false;
+
+			$post                        = $sale_post;
+			$mycred_partial_content_sale = false;
+			setup_postdata( $sale_post );
+
+			$rendered = apply_filters( 'the_content', $sale_post->post_content );
+
+			$post                        = $previous_post;
+			$mycred_partial_content_sale = $previous_partial;
+
+			if ( $previous_post instanceof WP_Post )
+				setup_postdata( $previous_post );
+
+			return $rendered;
+
+		}
 
 		public function bbp_content() {
 

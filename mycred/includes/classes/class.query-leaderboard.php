@@ -152,7 +152,7 @@ if ( ! class_exists( 'myCRED_Query_Leaderboard' ) ) :
 				foreach ( $point_types as $potential_key ) {
 
 					$type_key = sanitize_key( $potential_key );
-					if ( mycred_point_type_exists( $type_key ) || ! in_array( $type_key, $list_of_types ) )
+					if ( $type_key !== '' && mycred_point_type_exists( $type_key ) && ! in_array( $type_key, $list_of_types, true ) )
 						$list_of_types[] = $type_key;
 
 				}
@@ -1026,6 +1026,9 @@ if ( ! class_exists( 'myCRED_Query_Leaderboard' ) ) :
 					$row_template = $template;
 					if ( ! empty( $content ) )
 						$row_template = $content;
+
+					// Expand shortcodes in the saved template before any user field is inserted.
+					$row_template = do_shortcode( $row_template );
 
 					// Template Tags
 					$layout  = str_replace( array( '%ranking%', '%position%' ), $position, $row_template );

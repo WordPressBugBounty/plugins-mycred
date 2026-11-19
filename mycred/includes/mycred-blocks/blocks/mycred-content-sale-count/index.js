@@ -38,10 +38,14 @@
             function fetchSalesCount(postID) {
                 if (!postID) return;
 
-                jQuery.post(ajaxurl, {
+                var ajaxData = {
                     action: 'mycred_update_sales_count',
                     post_id: postID
-                }).done(function (data) {
+                };
+                if (typeof mycredContentSaleCountData !== 'undefined' && mycredContentSaleCountData.nonce) {
+                    ajaxData.token = mycredContentSaleCountData.nonce;
+                }
+                jQuery.post(ajaxurl, ajaxData).done(function (data) {
                     props.setAttributes({ salesCount: parseInt(data) });
                 });
             }

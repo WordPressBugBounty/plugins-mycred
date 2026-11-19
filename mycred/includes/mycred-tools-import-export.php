@@ -1482,22 +1482,39 @@ class myCRED_Tools_Import_Export extends myCRED_Setup_Import_Export
     public function insert_attachment_from_url( $url, $parent_post_id = null )
     {
 
-        if( !class_exists( 'WP_Http' ) )
-            include_once( ABSPATH . WPINC . '/class-http.php' );
-    
-        $http = new WP_Http();
-
-        $response = $http->request( $url );
-
-        //If Image not Found/ Just return empty string
-        if( property_exists( $response, 'errors' ) )
-            return '';
-
-        if( $response['response']['code'] != 200 ) {
+        $url = mycred_validate_remote_import_url( $url );
+        if ( ! $url ) {
             return false;
         }
 
-        $upload = wp_upload_bits( basename($url), null, $response['body'] );
+        $response = wp_safe_remote_get(
+            $url,
+            array(
+                'timeout'     => 30,
+                'redirection' => 3,
+            )
+        );
+
+        if ( is_wp_error( $response ) ) {
+            return '';
+        }
+
+        $code = wp_remote_retrieve_response_code( $response );
+        if ( 200 !== (int) $code ) {
+            return false;
+        }
+
+        $body = wp_remote_retrieve_body( $response );
+        if ( $body === '' ) {
+            return false;
+        }
+
+        $filename = sanitize_file_name( wp_basename( wp_parse_url( $url, PHP_URL_PATH ) ) );
+        if ( $filename === '' ) {
+            return false;
+        }
+
+        $upload = wp_upload_bits( $filename, null, $body );
         if( !empty( $upload['error'] ) ) {
             return false;
         }

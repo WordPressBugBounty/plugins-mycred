@@ -12,7 +12,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { __ } from '@wordpress/i18n';
-import { hexToRgba } from '../preview/utils';
+import { hexToRgba, widgetTabRootSx, widgetTabScrollBodySx } from '../preview/utils';
 
 export default function FaqTab({ settings, onBack, onClose }) {
     const design = settings?.design || {};
@@ -25,7 +25,7 @@ export default function FaqTab({ settings, onBack, onClose }) {
     const [expanded, setExpanded] = useState(false);
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: '#F8F8F8' }}>
+        <Box sx={widgetTabRootSx({ bgcolor: '#F8F8F8' })}>
             <Box
                 sx={{
                     p: '18px 20px',
@@ -60,7 +60,7 @@ export default function FaqTab({ settings, onBack, onClose }) {
                 </IconButton>
             </Box>
 
-            <Box sx={{ flex: 1, overflowY: 'auto', p: '16px' }}>
+            <Box sx={widgetTabScrollBodySx({ p: '16px' })}>
                 {items.length === 0 ? (
                     <Box
                         sx={{

@@ -3,15 +3,16 @@ import { Box, Typography, Paper, IconButton, Skeleton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
 import { __ } from '@wordpress/i18n';
-import { getRankStyle } from '../preview/utils';
+import { getRankStyle, widgetTabRootSx, widgetTabScrollBodySx } from '../preview/utils';
+import { getVisibleBalances } from '../../pointTypeVisibility';
 
 /* ─── Guest screen ───────────────────────────────────────────────── */
 function GuestProfile({ btnColor, bgColor, currentContent, onBack, onClose }) {
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: bgColor }}>
+        <Box sx={widgetTabRootSx({ bgcolor: bgColor })}>
             <Header title={currentContent.profileMessage || __('Profile', 'mycred')}
                     btnColor={btnColor} onBack={onBack} onClose={onClose} />
-            <Box sx={{ flex: 1, bgcolor: '#F8F6FF', borderRadius: '28px 28px 0 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, p: '24px' }}>
+            <Box sx={widgetTabScrollBodySx({ bgcolor: '#F8F6FF', borderRadius: '28px 28px 0 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, p: '24px' })}>
                 <Box sx={{ width: 80, height: 80, borderRadius: '50%', bgcolor: `${btnColor}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
                     <Typography sx={{ fontSize: '40px' }}>👤</Typography>
                 </Box>
@@ -98,7 +99,7 @@ export default function ProfileTab({ user, settings, currentContent, onBack, onC
     const rankMin      = user.rank_min || 0;
     const rankMax      = user.rank_max || 0;
     const balance      = user.balance  || 0;
-    const allBalances  = user.all_balances || [];
+    const allBalances  = getVisibleBalances(user.all_balances || [], settings);
     const badges       = user.badges   || [];
 
     // Addon feature flags
@@ -113,7 +114,7 @@ export default function ProfileTab({ user, settings, currentContent, onBack, onC
     const showProgress = rankMax > 0;
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: bgColor }}>
+        <Box sx={widgetTabRootSx({ bgcolor: bgColor })}>
             <Header
                 title={currentContent.profileMessage || __('Profile', 'mycred')}
                 subtitle={user.display_name || ''}
@@ -123,18 +124,14 @@ export default function ProfileTab({ user, settings, currentContent, onBack, onC
             />
 
             {/* Scrollable content */}
-            <Box sx={{
-                flex: 1,
+            <Box sx={widgetTabScrollBodySx({
                 bgcolor: '#F8F6FF',
                 borderRadius: '28px 28px 0 0',
-                overflowY: 'auto',
-                scrollbarWidth: 'none',
-                '&::-webkit-scrollbar': { display: 'none' },
                 p: '20px 16px 24px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '14px',
-            }}>
+            })}>
 
                 {/* ── Avatar + Name card ─────────────────────────── */}
                 <Paper elevation={0} sx={{

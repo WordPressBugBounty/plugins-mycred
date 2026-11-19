@@ -98,6 +98,97 @@ if ( ! function_exists( 'mycred_render_buy_points' ) ) :
 endif;
 
 /**
+ * Promo rates saved on the current post.
+ * The form only receives an id. The rate stays in the shortcode.
+ *
+ * @param int $post_id Post that contains the buy forms.
+ * @return array<int,array{id:string,rate:float}>
+ */
+if ( ! function_exists( 'mycred_buy_form_instances' ) ) :
+	function mycred_buy_form_instances( $post_id ) {
+
+		$post_id = absint( $post_id );
+		$post    = get_post( $post_id );
+		if ( ! $post instanceof WP_Post ) return array();
+
+		$pattern = get_shortcode_regex( array( MYCRED_SLUG . '_buy_form' ) );
+		if ( ! preg_match_all( '/' . $pattern . '/s', $post->post_content, $found, PREG_SET_ORDER ) ) return array();
+
+		$instances = array();
+		foreach ( $found as $index => $shortcode ) {
+			$atts = shortcode_parse_atts( isset( $shortcode[3] ) ? $shortcode[3] : '' );
+			if ( ! is_array( $atts ) )
+				$atts = array();
+
+			$atts = shortcode_atts( array(
+				'e_rate' => '',
+			), $atts, MYCRED_SLUG . '_buy_form' );
+
+			$rate = is_numeric( $atts['e_rate'] ) ? (float) $atts['e_rate'] : 0;
+			if ( $rate <= 0 ) continue;
+
+			$instances[] = array(
+				'id'   => substr( wp_hash( $post_id . '|' . $index ), 0, 16 ),
+				'rate' => $rate,
+			);
+		}
+
+		return $instances;
+
+	}
+endif;
+
+/**
+ * Id for the promo form currently being rendered.
+ *
+ * @param int   $post_id Post ID.
+ * @param float $rate    Rate from this shortcode.
+ * @return string
+ */
+if ( ! function_exists( 'mycred_buy_form_claim_id' ) ) :
+	function mycred_buy_form_claim_id( $post_id, $rate ) {
+
+		$rate = (float) $rate;
+		if ( $rate <= 0 ) return '';
+
+		foreach ( mycred_buy_form_instances( $post_id ) as $instance ) {
+			if ( (float) $instance['rate'] === $rate )
+				return $instance['id'];
+		}
+
+		return '';
+
+	}
+endif;
+
+/**
+ * Promo rate for a submitted form id. Unknown ids return 0.
+ *
+ * @return float
+ */
+if ( ! function_exists( 'mycred_buy_form_rate_from_request' ) ) :
+	function mycred_buy_form_rate_from_request() {
+
+		if ( ! isset( $_REQUEST['er_form'] ) ) return 0;
+
+		$posted = sanitize_text_field( wp_unslash( $_REQUEST['er_form'] ) );
+		if ( $posted === '' ) return 0;
+
+		$post_id = get_queried_object_id();
+		if ( $post_id < 1 ) return 0;
+
+		foreach ( mycred_buy_form_instances( $post_id ) as $instance ) {
+			if ( strlen( $posted ) !== strlen( $instance['id'] ) ) continue;
+			if ( hash_equals( $instance['id'], $posted ) )
+				return (float) $instance['rate'];
+		}
+
+		return 0;
+
+	}
+endif;
+
+/**
  * Shortcode: mycred_buy_form
  * @see http://codex.mycred.me/shortcodes/mycred_buy_form/
  * @since 1.0
@@ -230,13 +321,16 @@ if ( ! function_exists( 'mycred_render_buy_form_points' ) ) :
 								</select><?php 
 							}else{ ?>
 								<input type="hidden" name="ctype" value="<?php echo esc_attr( $point_types[0][0] ); ?>" /><?php 
-							} 
+							}
 
-							if( ! empty( $e_rate ) ) { 
-								$e_rate = mycred_encode_values( $e_rate );
+							$promo_rate = is_numeric( $e_rate ) ? (float) $e_rate : 0;
+							$form_id    = $promo_rate > 0 ? mycred_buy_form_claim_id( get_queried_object_id(), $promo_rate ) : '';
+							if ( $form_id !== '' ) {
 								?>
-								<input type="hidden" name="er_random" value="<?php echo esc_attr( $e_rate ); ?>" />
-							<?php } ?>			
+								<input type="hidden" name="er_form" value="<?php echo esc_attr( $form_id ); ?>" />
+								<?php
+							}
+							?>
 							<div class="form-group">
 								<label class="mycred-point-type"><?php echo esc_html( $point_types[0][1] ); ?></label>
 								<?php

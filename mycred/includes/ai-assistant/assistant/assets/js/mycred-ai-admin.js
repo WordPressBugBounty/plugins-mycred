@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let conversationHistory = [];
     const quotaText = document.getElementById('mycred-ai-quota-text');
+    const tokenRequestBtn = document.getElementById('mycred-ai-token-request-btn');
 
     function quotaString(key, fallback) {
         return (window.mycredAi && mycredAi.strings && mycredAi.strings[key]) ? mycredAi.strings[key] : fallback;
@@ -44,6 +45,50 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function isQuotaExhausted(quota) {
+        if (!quota || typeof quota !== 'object') {
+            return false;
+        }
+        const used = parseInt(quota.used, 10) || 0;
+        const total = parseInt(quota.total, 10) || 0;
+        return total > 0 && used >= total;
+    }
+
+    function syncQuotaExhaustedUi(quota, forceExhausted) {
+        const exhausted = Boolean(forceExhausted) || isQuotaExhausted(quota);
+
+        if (tokenRequestBtn) {
+            if (exhausted) {
+                tokenRequestBtn.removeAttribute('hidden');
+                if (mycredAi && mycredAi.token_request_url) {
+                    tokenRequestBtn.href = mycredAi.token_request_url;
+                }
+                const label = quotaString('tokenRequest', 'Request more AI tokens');
+                if (label) {
+                    tokenRequestBtn.textContent = label;
+                }
+            } else {
+                tokenRequestBtn.setAttribute('hidden', '');
+            }
+        }
+
+        if (shell) {
+            if (exhausted) {
+                shell.setAttribute('data-quota-exhausted', '1');
+            } else {
+                shell.removeAttribute('data-quota-exhausted');
+            }
+        }
+
+        if (exhausted) {
+            chatInput.disabled = true;
+            sendBtn.disabled = true;
+        } else if (!chatInput.hasAttribute('data-sending')) {
+            chatInput.disabled = false;
+            updateSendButtonState();
+        }
+    }
+
     function paintQuota(quota) {
         if (!quotaText || !quota || typeof quota !== 'object') {
             return;
@@ -54,10 +99,13 @@ document.addEventListener('DOMContentLoaded', function () {
             ? quotaString('creditsLine', 'AI Credits: %1$s / %2$s')
             : quotaString('tokensLine', 'AI Tokens: %1$s / %2$s');
         quotaText.textContent = template.replace('%1$s', used).replace('%2$s', total);
+        syncQuotaExhaustedUi(quota, false);
     }
 
     if (window.mycredAi && mycredAi.quota) {
         paintQuota(mycredAi.quota);
+    } else if (shell && shell.getAttribute('data-quota-exhausted') === '1') {
+        syncQuotaExhaustedUi(null, true);
     }
 
     function setMode(mode) {
@@ -97,11 +145,17 @@ document.addEventListener('DOMContentLoaded', function () {
         chatMessages.innerHTML = '';
         chatInput.value = '';
         chatInput.style.height = 'auto';
-        chatInput.disabled = false;
+        chatInput.removeAttribute('data-sending');
+        if (shell && shell.getAttribute('data-quota-exhausted') === '1') {
+            chatInput.disabled = true;
+            sendBtn.disabled = true;
+        } else {
+            chatInput.disabled = false;
+            updateSendButtonState();
+            chatInput.focus();
+        }
         setCanOpen(false);
         setMode('empty');
-        updateSendButtonState();
-        chatInput.focus();
     }
 
     function scrollToBottom() {
@@ -279,6 +333,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!messageText || messageText.trim() === '') {
             return;
         }
+        if (shell && shell.getAttribute('data-quota-exhausted') === '1') {
+            return;
+        }
 
         enterThread();
 
@@ -297,6 +354,7 @@ document.addEventListener('DOMContentLoaded', function () {
         updateSendButtonState();
 
         chatInput.disabled = true;
+        chatInput.setAttribute('data-sending', '1');
         sendBtn.disabled = true;
 
         const typingIndicator = showTypingIndicator();
@@ -316,9 +374,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     typingIndicator.remove();
                 }
 
-                chatInput.disabled = false;
-                updateSendButtonState();
-                chatInput.focus();
+                chatInput.removeAttribute('data-sending');
 
                 if (response.success) {
                     appendMessage('assistant', response.data.reply);
@@ -328,6 +384,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     if (response.data && response.data.quota) {
                         paintQuota(response.data.quota);
+                    } else {
+                        syncQuotaExhaustedUi(null, false);
                     }
                 } else {
                     const errMsg = response.data && response.data.message ? response.data.message : mycredAi.strings.error;
@@ -336,6 +394,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (response.data && response.data.quota) {
                         paintQuota(response.data.quota);
                     }
+                    if (response.data && response.data.quota_exhausted) {
+                        syncQuotaExhaustedUi(response.data.quota || null, true);
+                    } else if (!response.data || !response.data.quota) {
+                        syncQuotaExhaustedUi(null, false);
+                    }
+                }
+
+                if (shell && shell.getAttribute('data-quota-exhausted') !== '1') {
+                    chatInput.disabled = false;
+                    updateSendButtonState();
+                    chatInput.focus();
                 }
             },
             error: function () {
@@ -343,8 +412,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     typingIndicator.remove();
                 }
 
-                chatInput.disabled = false;
-                updateSendButtonState();
+                chatInput.removeAttribute('data-sending');
+                if (shell && shell.getAttribute('data-quota-exhausted') !== '1') {
+                    chatInput.disabled = false;
+                    updateSendButtonState();
+                }
 
                 appendMessage('assistant', mycredAi.strings.error);
             }

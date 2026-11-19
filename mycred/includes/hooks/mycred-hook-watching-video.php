@@ -72,22 +72,24 @@ if ( ! class_exists( 'myCRED_Hook_Video_Views' ) ) :
 			$user_id  = get_current_user_id();
 			if ( $this->core->exclude_user( $user_id ) ) wp_send_json_error();
 
-			list ( $source, $video_id, $amount, $logic, $interval, $point_type ) = $setup;
+			list ( $source, $video_id ) = $setup;
 
 			// Required
 			if ( empty( $source ) || empty( $video_id ) )  wp_send_json_error();
 
-			// Prep
-			$amount   = $this->core->number( $amount );
-			$interval = abs( floatval( $interval ) / 1000 );
+			// Award values come from the hook settings. The token only names the video.
+			$amount   = $this->core->number( $this->prefs['creds'] );
+			$logic    = isset( $this->prefs['logic'] ) ? sanitize_key( $this->prefs['logic'] ) : '';
+			$interval = abs( floatval( $this->prefs['interval'] ) );
 
-			// Get playback details
-			$actions  				= isset( $_POST['video_a'] ) ? sanitize_text_field( wp_unslash( $_POST['video_a'] ) ) : '';
-			$seconds  				= isset( $_POST['video_b'] ) ? absint( $_POST['video_b'] ) : 0;
-			$duration 				= isset( $_POST['video_c'] ) ? absint( $_POST['video_c'] ) : 0;
-			$state    				= isset( $_POST['video_d'] ) ? absint( $_POST['video_d'] ) : 0;
-			$streaming 				= isset( $_POST['video_e'] ) ? mycred_decode_values( sanitize_text_field( wp_unslash( $_POST['video_e'] ) ) ) : '';
-			$stream_live_duration 	= isset( $_POST['video_f'] ) ? mycred_decode_values( absint( $_POST['video_f'] ) ) : 0;
+			// Playback progress still comes from the player. The award ceiling does not.
+			$actions  = isset( $_POST['video_a'] ) ? sanitize_text_field( wp_unslash( $_POST['video_a'] ) ) : '';
+			$seconds  = isset( $_POST['video_b'] ) ? absint( $_POST['video_b'] ) : 0;
+			$state    = isset( $_POST['video_d'] ) ? absint( $_POST['video_d'] ) : 0;
+			$limits   = mycred_video_limits_from_post( $video_id );
+			$duration = $limits['duration'];
+			$streaming = $limits['streaming'];
+			$stream_live_duration = $limits['duration'];
 			
 			// Apply Leniency
 			$leniency = $duration * ( $this->prefs['leniency'] / 100 );
@@ -463,6 +465,61 @@ if ( ! function_exists( 'mycred_video_register_scripts' ) ) :
 			myCRED_VERSION . '.1',
 			true
 		);
+
+	}
+endif;
+
+/**
+ * Duration and streaming flag saved on the video shortcode.
+ * A video that is not in this post uses the shortcode defaults.
+ *
+ * @param string $video_id Video id from the verified token.
+ * @return array{duration:int,streaming:string}
+ */
+if ( ! function_exists( 'mycred_video_limits_from_post' ) ) :
+	function mycred_video_limits_from_post( $video_id ) {
+
+		$limits = array(
+			'duration'  => 300,
+			'streaming' => 'off',
+		);
+
+		$post = get_post( get_queried_object_id() );
+		if ( ! $post instanceof WP_Post ) return $limits;
+
+		$pattern = get_shortcode_regex( array( MYCRED_SLUG . '_video' ) );
+		if ( ! preg_match_all( '/' . $pattern . '/s', $post->post_content, $found, PREG_SET_ORDER ) ) return $limits;
+
+		foreach ( $found as $shortcode ) {
+			$atts = shortcode_parse_atts( isset( $shortcode[3] ) ? $shortcode[3] : '' );
+			if ( ! is_array( $atts ) )
+				$atts = array();
+
+			$atts = shortcode_atts( array(
+				'id'        => '',
+				'streaming' => '',
+				'duration'  => '',
+			), $atts, MYCRED_SLUG . '_video' );
+
+			$stored_id = str_replace( '-', '__', (string) $atts['id'] );
+			if ( $stored_id === '' || ( $stored_id !== (string) $video_id && (string) $atts['id'] !== (string) $video_id ) )
+				continue;
+
+			$duration = is_numeric( $atts['duration'] ) ? absint( $atts['duration'] ) : 0;
+			if ( $duration < 1 )
+				$duration = 300;
+
+			$streaming = sanitize_key( $atts['streaming'] );
+			if ( $streaming !== 'on' )
+				$streaming = 'off';
+
+			return array(
+				'duration'  => $duration,
+				'streaming' => $streaming,
+			);
+		}
+
+		return $limits;
 
 	}
 endif;

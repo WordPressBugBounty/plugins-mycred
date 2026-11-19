@@ -5,6 +5,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { getBadges } from '../services/frontend-api';
 import { __ } from '@wordpress/i18n';
+import { widgetTabRootSx, widgetTabScrollBodySx } from './preview/utils';
 
 export default function Badges({ settings, currentContent, onBack, onClose, previewMode = false, previewData }) {
     currentContent = currentContent || {};
@@ -29,7 +30,7 @@ export default function Badges({ settings, currentContent, onBack, onClose, prev
     }, [previewMode, previewData]);
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: bgColor }}>
+        <Box sx={widgetTabRootSx({ bgcolor: bgColor })}>
 
             {/* ── Header ────────────────────────────────────────── */}
             <Box sx={{ p: '20px 24px', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -49,15 +50,11 @@ export default function Badges({ settings, currentContent, onBack, onClose, prev
             </Box>
 
             {/* ── Body ──────────────────────────────────────────── */}
-            <Box sx={{
-                flex: 1,
+            <Box sx={widgetTabScrollBodySx({
                 bgcolor: '#F4F5F8',
                 borderRadius: '24px 24px 0 0',
-                overflowY: 'auto',
                 p: '20px 16px',
-                scrollbarWidth: 'none',
-                '&::-webkit-scrollbar': { display: 'none' },
-            }}>
+            })}>
 
                 {/* Loading */}
                 {loading && (

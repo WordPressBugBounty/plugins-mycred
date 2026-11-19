@@ -1,21 +1,22 @@
-import { useState, useEffect } from '@wordpress/element';
+import { useState, useEffect, useMemo } from '@wordpress/element';
 import { Box, Typography, IconButton, Skeleton, Chip } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
-import LoginIcon from '@mui/icons-material/Login';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import CommentIcon from '@mui/icons-material/Comment';
-import ShareIcon from '@mui/icons-material/Share';
-import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import { __ } from '@wordpress/i18n';
 import { getLogs } from '../../services/frontend-api';
+import { widgetTabRootSx, widgetTabScrollBodySx } from '../preview/utils';
+import { getVisibleBalances, getDefaultVisiblePointType } from '../../pointTypeVisibility';
 
 export default function LogsTab({ settings, currentContent, user, onBack, onClose, previewMode = false, previewData }) {
     currentContent = currentContent || {};
     const [logs, setLogs] = useState([]);
     const [pointLabel, setPointLabel] = useState(__('Points', 'mycred'));
     const [loading, setLoading] = useState(true);
-    const [selectedType, setSelectedType] = useState('mycred_default');
+    const pointTypeBalances = useMemo(
+        () => getVisibleBalances(user?.all_balances || [], settings),
+        [user?.all_balances, settings]
+    );
+    const [selectedType, setSelectedType] = useState(() => getDefaultVisiblePointType(settings, pointTypeBalances));
 
     const design = settings.design || {};
     const btnColor = design.buttonColor || '#5E2CED';
@@ -45,18 +46,18 @@ export default function LogsTab({ settings, currentContent, user, onBack, onClos
         fetchLogs();
     }, [selectedType, previewMode, previewData]);
 
-    const getIcon = (type, reason) => {
-        const lowerReason = (reason || '').toLowerCase();
-        if (lowerReason.includes('register') || lowerReason.includes('signup')) return <PersonAddIcon sx={{ color: '#fff', fontSize: 20 }} />;
-        if (lowerReason.includes('comment')) return <CommentIcon sx={{ color: '#fff', fontSize: 20 }} />;
-        if (lowerReason.includes('share')) return <ShareIcon sx={{ color: '#fff', fontSize: 20 }} />;
-        if (lowerReason.includes('like')) return <ThumbUpIcon sx={{ color: '#fff', fontSize: 20 }} />;
-        return <LoginIcon sx={{ color: '#fff', fontSize: 20 }} />;
-    };
+    useEffect(() => {
+        const keys = pointTypeBalances.map((b) => b.type);
+        if (keys.length && !keys.includes(selectedType)) {
+            setSelectedType(keys[0]);
+        }
+    }, [pointTypeBalances, selectedType]);
+
+    const showPointTypeFilter = pointTypeBalances.length > 1;
 
     if (!user?.is_logged_in) {
         return (
-            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: '#fff' }}>
+            <Box sx={widgetTabRootSx({ bgcolor: '#fff' })}>
                 <Box sx={{
                     p: '20px 24px',
                     bgcolor: btnColor,
@@ -82,7 +83,7 @@ export default function LogsTab({ settings, currentContent, user, onBack, onClos
                         <CloseIcon />
                     </IconButton>
                 </Box>
-                <Box sx={{ flex: 1, bgcolor: '#F8F9FB', p: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Box sx={widgetTabScrollBodySx({ bgcolor: '#F8F9FB', p: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' })}>
                     <Typography sx={{ textAlign: 'center', color: '#666', fontFamily: "'Instrument Sans', sans-serif" }}>
                         {__('Please log in to view your activity.', 'mycred')}
                     </Typography>
@@ -92,7 +93,7 @@ export default function LogsTab({ settings, currentContent, user, onBack, onClos
     }
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: '#fff' }}>
+        <Box sx={widgetTabRootSx({ bgcolor: '#fff' })}>
             {/* Header */}
             <Box sx={{
                 p: '20px 24px',
@@ -118,51 +119,49 @@ export default function LogsTab({ settings, currentContent, user, onBack, onClos
                 </IconButton>
             </Box>
 
-            <Box sx={{ 
-                p: '16px 24px 0', 
-                bgcolor: '#F8F9FB',
-                display: 'flex',
-                gap: '8px',
-                overflowX: 'auto',
-                scrollbarWidth: 'none',
-                '&::-webkit-scrollbar': { display: 'none' },
-                flexShrink: 0
-            }}>
-                {user.all_balances?.map((b) => (
-                    <Chip
-                        key={b.type}
-                        label={b.label}
-                        onClick={() => setSelectedType(b.type)}
-                        sx={{
-                            bgcolor: selectedType === b.type ? btnColor : 'rgba(94, 44, 237, 0.05)',
-                            color: selectedType === b.type ? '#fff' : '#2D1572',
-                            fontWeight: 600,
-                            fontFamily: "'Instrument Sans', sans-serif",
-                            '&:hover': {
-                                bgcolor: selectedType === b.type ? btnColor : 'rgba(94, 44, 237, 0.1)',
-                            }
-                        }}
-                    />
-                ))}
-            </Box>
+            {showPointTypeFilter && (
+                <Box sx={{
+                    p: '16px 24px 0',
+                    bgcolor: '#F8F9FB',
+                    display: 'flex',
+                    gap: '8px',
+                    overflowX: 'auto',
+                    scrollbarWidth: 'none',
+                    '&::-webkit-scrollbar': { display: 'none' },
+                    flexShrink: 0,
+                }}>
+                    {pointTypeBalances.map((b) => (
+                        <Chip
+                            key={b.type}
+                            label={b.label}
+                            onClick={() => setSelectedType(b.type)}
+                            sx={{
+                                bgcolor: selectedType === b.type ? btnColor : 'rgba(94, 44, 237, 0.05)',
+                                color: selectedType === b.type ? '#fff' : '#2D1572',
+                                fontWeight: 600,
+                                fontFamily: "'Instrument Sans', sans-serif",
+                                '&:hover': {
+                                    bgcolor: selectedType === b.type ? btnColor : 'rgba(94, 44, 237, 0.1)',
+                                },
+                            }}
+                        />
+                    ))}
+                </Box>
+            )}
 
             {/* Content */}
-            <Box sx={{
-                flex: 1,
-                bgcolor: '#F8F9FB', // Light background for content area
-                p: '16px 24px 24px',
-                overflowY: 'auto',
-                scrollbarWidth: 'none',
-                '&::-webkit-scrollbar': { display: 'none' },
+            <Box sx={widgetTabScrollBodySx({
+                bgcolor: '#F8F9FB',
+                p: showPointTypeFilter ? '16px 24px 24px' : '20px 24px 24px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '12px'
-            }}>
+                gap: '12px',
+            })}>
 
                 {loading ? (
                     [1, 2, 3, 4, 5].map((i) => (
                         <Box key={i} sx={{ mb: 2 }}>
-                            <Skeleton variant="rectangular" height={82} sx={{ borderRadius: '12px' }} />
+                            <Skeleton variant="rectangular" height={64} sx={{ borderRadius: '12px' }} />
                         </Box>
                     ))
                 ) : (
@@ -171,7 +170,7 @@ export default function LogsTab({ settings, currentContent, user, onBack, onClos
                             <Box
                                 key={log.id}
                                 sx={{
-                                    minHeight: '82px',
+                                    minHeight: '64px',
                                     borderRadius: '12px',
                                     border: '1px solid #ECE7FF',
                                     bgcolor: '#fff',
@@ -184,22 +183,7 @@ export default function LogsTab({ settings, currentContent, user, onBack, onClos
                                     flexShrink: 0
                                 }}
                             >
-                                {/* Icon & Text Content */}
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
-                                    <Box sx={{
-                                        width: 40,
-                                        height: 40,
-                                        borderRadius: '6px',
-                                        bgcolor: `${btnColor}22`,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        flexShrink: 0
-                                    }}>
-                                        {getIcon(log.type, log.reason)}
-                                    </Box>
-
-                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                <Box sx={{ flex: 1, minWidth: 0 }}>
                                         <Typography sx={{
                                             fontSize: '15px',
                                             fontWeight: 600,
@@ -219,7 +203,6 @@ export default function LogsTab({ settings, currentContent, user, onBack, onClos
                                         }}>
                                             {log.date}
                                         </Typography>
-                                    </Box>
                                 </Box>
 
                                 <Box sx={{

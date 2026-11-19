@@ -895,14 +895,14 @@ if ( ! class_exists( 'myCRED_Payment_Gateway' ) ) :
 			// Calculate cost here so we can use any exchange rate
 			if ( array_key_exists( $point_type, $this->prefs['exchange'] ) ) {
 
-				$override = mycred_get_user_meta( $this->current_user_id, 'mycred_buycred_rates_' . $point_type, '', true );
+				$override   = mycred_get_user_meta( $this->current_user_id, 'mycred_buycred_rates_' . $point_type, '', true );
+				$promo_rate = function_exists( 'mycred_buy_form_rate_from_request' ) ? mycred_buy_form_rate_from_request() : 0;
 
-				if ( $custom_rate == 0 && isset( $_REQUEST['er_random'] ) )
-					$custom_rate = mycred_decode_values( sanitize_text_field( wp_unslash( $_REQUEST['er_random'] ) ) );
-
-				if( $custom_rate != 0 )
+				if ( $promo_rate > 0 )
+					$rate = $promo_rate;
+				else if ( $custom_rate != 0 )
 					$rate = $custom_rate;
-				else if( isset( $override[ $this->id ] ) && $override[ $this->id ] != '' )
+				else if ( isset( $override[ $this->id ] ) && $override[ $this->id ] != '' )
 					$rate = $override[ $this->id ];
 				else
 					$rate = $this->prefs['exchange'][ $point_type ];

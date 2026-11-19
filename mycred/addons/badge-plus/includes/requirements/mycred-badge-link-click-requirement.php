@@ -34,21 +34,41 @@ if ( ! class_exists( 'myCred_Badge_Link_Click_Requirement' ) ) :
 
 			$between = $this->time_filter( $requirement['limit'], $requirement['limit_by'] );
 
-			$specific = '';
-
-			if ( $requirement['link_click_based_on'] != 'any' ) {
-				$specific = " AND data LIKE '%" . $requirement['link'] . "%'";
+			$link_click = array(
+				'based_on' => 'any',
+				'link'     => '',
+			);
+			if ( function_exists( 'mycred_sanitize_badge_plus_link_click_value' ) ) {
+				$link_click = mycred_sanitize_badge_plus_link_click_value(
+					isset( $requirement['link_click_based_on'] ) ? $requirement['link_click_based_on'] : 'any',
+					isset( $requirement['link'] ) ? $requirement['link'] : ''
+				);
 			}
 
-			$amount = $wpdb->get_var( 
-				$wpdb->prepare( 
-					"SELECT $having FROM %i WHERE ctype = %s AND ref = %s {$specific} AND user_id = %d {$between};", 
-					$mycred_log_table,
-					$requirement['point_type'], 
-					$requirement['reference'], 
-					$user_id 
-				) 
-			);
+			if ( $link_click['based_on'] !== 'any' && $link_click['link'] !== '' ) {
+				$like   = '%' . $wpdb->esc_like( $link_click['link'] ) . '%';
+				$amount = $wpdb->get_var(
+					$wpdb->prepare(
+						"SELECT $having FROM %i WHERE ctype = %s AND ref = %s AND data LIKE %s AND user_id = %d {$between}",
+						$mycred_log_table,
+						$requirement['point_type'],
+						$requirement['reference'],
+						$like,
+						$user_id
+					)
+				);
+			}
+			else {
+				$amount = $wpdb->get_var(
+					$wpdb->prepare(
+						"SELECT $having FROM %i WHERE ctype = %s AND ref = %s AND user_id = %d {$between}",
+						$mycred_log_table,
+						$requirement['point_type'],
+						$requirement['reference'],
+						$user_id
+					)
+				);
+			}
 
 			if ( $amount === NULL ) $amount = 0;
 

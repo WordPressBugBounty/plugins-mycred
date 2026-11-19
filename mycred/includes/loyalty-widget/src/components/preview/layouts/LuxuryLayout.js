@@ -5,7 +5,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import LeaderboardIcon from '@mui/icons-material/Leaderboard';
 import { __ } from '@wordpress/i18n';
-import { hexToRgba, HeroIllustration, themedSvgIconSx } from '../utils';
+import { hexToRgba, HeroIllustration, themedSvgIconSx, WIDGET_PANEL_CONTENT_MIN_HEIGHT } from '../utils';
 
 const formatBalanceValue = (balance) => {
     return balance.formatted ?? String(balance.balance ?? '0');
@@ -193,7 +193,7 @@ export default function LuxuryLayout({
     user = {},
     isGuest,
     assetsUrl = '',
-    isPro = false,
+    hasWoo = false,
     ranksEnabled = true,
     badgesEnabled = true,
     onNavigate,
@@ -208,17 +208,18 @@ export default function LuxuryLayout({
     const btnTextColor = design.buttonTextColor || '#FFFFFF';
     const overlay = design.headerOverlayOpacity ?? 0.55;
     const headerImage = design.headerImageUrl || '';
-    const programTitle = design.programTitle || __('Rewards Hub', 'mycred');
+    const programTitle = design.programTitle ?? __('Rewards hub', 'mycred');
+    const showHeaderTitle = design.showHeaderTitle === true;
     const tabControls = tabs.tabControls || {};
 
     const navItems = [
         { key: 'earn', show: tabControls.earn !== false, svg: 'earn-icon.svg', label: content.earnLabel || __('Earn', 'mycred'), subtitle: content.earnMessage },
-        { key: 'redeem', show: tabControls.redeem !== false && isPro, svg: 'redeem-icon.svg', label: content.redeemLabel || __('Redeem', 'mycred'), subtitle: content.redeemMessage },
+        { key: 'redeem', show: tabControls.redeem !== false && hasWoo, svg: 'redeem-icon.svg', label: content.redeemLabel || __('Redeem', 'mycred'), subtitle: content.redeemMessage },
         { key: 'board', show: tabControls.board !== false, svg: 'board-icon.svg', label: content.boardLabel || __('Board', 'mycred'), subtitle: content.boardMessage },
         { key: 'logs', show: tabControls.logs !== false && !isGuest, svg: 'logs-icon.svg', label: content.logsLabel || __('History', 'mycred'), subtitle: content.logsMessage },
-        { key: 'profile', show: tabControls.profile !== false && !isGuest, svg: 'profile-icon.svg', label: content.profileLabel || __('Profile', 'mycred'), subtitle: content.profileMessage },
         { key: 'ranks', show: ranksEnabled && tabControls.ranks !== false, icon: LeaderboardIcon, label: content.ranksLabel || __('Ranks', 'mycred'), subtitle: content.ranksMessage },
         { key: 'badges', show: badgesEnabled && tabControls.badges !== false, icon: EmojiEventsIcon, label: content.badgesLabel || __('Badges', 'mycred'), subtitle: content.badgesMessage },
+        { key: 'profile', show: tabControls.profile !== false && !isGuest, svg: 'profile-icon.svg', label: content.profileLabel || __('Profile', 'mycred'), subtitle: content.profileMessage },
     ].filter((item) => item.show);
 
     const showExplore = navItems.length > 0;
@@ -257,7 +258,20 @@ export default function LuxuryLayout({
     const headerPaddingY = 24 - 12 * collapse;
 
     return (
-        <Box sx={{ position: 'relative', height: '100%', overflow: 'hidden', bgcolor: '#F8F6FF' }}>
+        <Box sx={{
+            position: 'relative',
+            flex: 1,
+            height: 'auto',
+            minHeight: WIDGET_PANEL_CONTENT_MIN_HEIGHT,
+            maxHeight: 'min(602px, calc(100vh - 150px))',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            bgcolor: '#F8F6FF',
+            boxSizing: 'border-box',
+        }}>
+            {showHeaderTitle && (
+            <>
             <Box sx={{
                 position: 'absolute',
                 top: 0,
@@ -332,7 +346,7 @@ export default function LuxuryLayout({
                         fontFamily: "'Instrument Sans', sans-serif",
                         lineHeight: 1.3,
                     }}>
-                        {design.headerSubtitle || __('Welcome to', 'mycred')}
+                        {showHeaderTitle ? (design.headerSubtitle ?? __('Welcome to', 'mycred')) : ''}
                     </Typography>
                     <Typography color="inherit" sx={{
                         fontSize: `${24 - 8 * collapse}px`,
@@ -341,7 +355,7 @@ export default function LuxuryLayout({
                         mt: 0.5,
                         lineHeight: 1.2,
                     }}>
-                        {programTitle}
+                        {showHeaderTitle ? programTitle : ''}
                     </Typography>
                 </Box>
 
@@ -362,7 +376,7 @@ export default function LuxuryLayout({
                     whiteSpace: 'nowrap',
                     pointerEvents: 'none',
                 }}>
-                    {programTitle}
+                    {showHeaderTitle ? programTitle : ''}
                 </Typography>
 
                 <IconButton
@@ -380,6 +394,28 @@ export default function LuxuryLayout({
                     <CloseIcon fontSize="small" />
                 </IconButton>
             </Box>
+            </>
+            )}
+
+            {!showHeaderTitle && (
+                <IconButton
+                    size="small"
+                    onClick={onClose}
+                    aria-label={__('Close', 'mycred')}
+                    sx={{
+                        position: 'absolute',
+                        top: 10,
+                        right: 10,
+                        zIndex: 12,
+                        color: '#1a1a1a',
+                        bgcolor: '#fff',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                        '&:hover': { bgcolor: '#fff' },
+                    }}
+                >
+                    <CloseIcon fontSize="small" />
+                </IconButton>
+            )}
 
             <Box
                 ref={scrollRef}
@@ -387,14 +423,16 @@ export default function LuxuryLayout({
                 sx={{
                     position: 'relative',
                     zIndex: 1,
-                    height: '100%',
+                    flex: '1 1 auto',
+                    minHeight: 0,
+                    height: 'auto',
                     overflowY: 'auto',
                     overflowX: 'hidden',
                     overscrollBehavior: 'contain',
                     WebkitOverflowScrolling: 'touch',
                     scrollbarWidth: 'none',
                     '&::-webkit-scrollbar': { display: 'none' },
-                    pt: `${HEADER_EXPANDED - 24}px`,
+                    pt: showHeaderTitle ? `${HEADER_EXPANDED - 24}px` : '52px',
                     boxSizing: 'border-box',
                     px: '24px',
                     pb: '24px',
@@ -411,25 +449,29 @@ export default function LuxuryLayout({
                     <Paper elevation={0} sx={{
                         p: '24px', borderRadius: `${borderRadius}px`, bgcolor: '#fff',
                         boxShadow: '0px 2px 8px rgba(0,0,0,0.04)', mb: 2, textAlign: 'center',
-                        display: 'flex', flexDirection: 'column', alignItems: 'stretch',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center',
+                        gap: '14px',
+                        '& .MuiTypography-root': { margin: 0 },
                     }}>
-                        <Typography sx={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a', mb: 1, fontFamily: "'Instrument Sans', sans-serif" }}>
+                        <Typography sx={{ fontSize: '16px', fontWeight: 700, color: '#1a1a1a', fontFamily: "'Instrument Sans', sans-serif" }}>
                             {content.joinCardTitle || __('Join the Circle', 'mycred')}
                         </Typography>
-                        <Typography sx={{ fontSize: '13px', color: '#666', mb: 2.5, lineHeight: 1.5, fontFamily: "'Instrument Sans', sans-serif" }}>
-                            {content.joinCardDescription || content.welcomeMessage || __('First access to rare rewards, exclusive events, and privileges reserved for members.', 'mycred')}
+                        <Typography sx={{ fontSize: '13px', color: '#666', lineHeight: 1.5, fontFamily: "'Instrument Sans', sans-serif" }}>
+                            {content.joinCardDescription || __('Rare rewards for members.', 'mycred')}
                         </Typography>
 
-                        <Box sx={{ width: '100%', mb: 3, mt: 0.5 }}>
-                            <HeroIllustration heroImageUrl={design.heroImageUrl} assetsUrl={assetsUrl} variant="inline" size={100} />
-                        </Box>
+                        {design.heroImageUrl ? (
+                            <Box sx={{ width: '100%' }}>
+                                <HeroIllustration heroImageUrl={design.heroImageUrl} assetsUrl={assetsUrl} variant="inline" size={100} />
+                            </Box>
+                        ) : null}
 
-                        <Button fullWidth variant="contained" onClick={onPrimaryAction} sx={{
-                            bgcolor: btnColor, color: btnTextColor, textTransform: 'none', boxShadow: 'none',
-                            borderRadius: `${Math.max(8, borderRadius - 4)}px`, py: 1.5, fontWeight: 600,
-                            fontFamily: "'Instrument Sans', sans-serif", mb: 1.5,
-                            fontSize: '15px !important', lineHeight: '1.4 !important',
-                            whiteSpace: 'normal', wordBreak: 'break-word', minHeight: '48px',
+                        <Button variant="contained" onClick={onPrimaryAction} sx={{
+                            alignSelf: 'center', bgcolor: btnColor, color: btnTextColor, textTransform: 'none', boxShadow: 'none',
+                            borderRadius: '999px', px: 3, py: 0.75, fontWeight: 600,
+                            fontFamily: "'Instrument Sans', sans-serif",
+                            fontSize: '14px !important', lineHeight: '1.3 !important',
+                            minWidth: 0, minHeight: 0, m: 0,
                             '&:hover': { bgcolor: btnColor, boxShadow: 'none' },
                         }}>
                             {content.joinButtonText || __('Join now', 'mycred')}
@@ -445,25 +487,7 @@ export default function LuxuryLayout({
                 )}
 
                 {showExplore && (
-                    <Box>
-                        {isGuest && (
-                            <Fragment>
-                                <Typography sx={{
-                                    fontSize: '16px',
-                                    fontWeight: 700,
-                                    color: '#1a1a1a',
-                                    textAlign: 'center',
-                                    mb: 0.5,
-                                    fontFamily: "'Instrument Sans', sans-serif",
-                                }}>
-                                    {__('Explore', 'mycred')}
-                                </Typography>
-                                <Typography sx={{ fontSize: '12px', color: '#666', textAlign: 'center', mb: 1.5, fontFamily: "'Instrument Sans', sans-serif" }}>
-                                    {__('Discover ways to earn, redeem, and track your rewards.', 'mycred')}
-                                </Typography>
-                            </Fragment>
-                        )}
-                        <Box sx={{ 
+                    <Box sx={{
                             display: 'flex', flexDirection: 'column', gap: 1.5, mt: isGuest ? 0 : 2,
                             '& > *': {
                                 animation: 'slideKeyframe 0.5s cubic-bezier(0.16, 1, 0.3, 1) both',
@@ -485,7 +509,6 @@ export default function LuxuryLayout({
                                     onClick={() => onNavigate?.(item.key)}
                                 />
                             ))}
-                        </Box>
                     </Box>
                 )}
             </Box>

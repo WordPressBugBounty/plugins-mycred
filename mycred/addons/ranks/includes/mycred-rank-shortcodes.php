@@ -162,6 +162,7 @@ if ( ! function_exists( 'mycred_render_users_of_rank' ) ) :
 
 		// Let others play
 		$row_template = apply_filters( 'mycred_users_of_rank', $row_template, $atts, $mycred );
+		$row_template = do_shortcode( $row_template );
 
 		// Get users of this rank if there are any
 		$users        = mycred_get_users_of_rank( $rank_id, $number, $order, $ctype );
@@ -198,7 +199,7 @@ if ( ! function_exists( 'mycred_render_users_of_rank' ) ) :
 
 		}
 
-		return do_shortcode( $output );
+		return $output;
 
 	}
 endif;

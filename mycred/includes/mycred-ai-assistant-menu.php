@@ -25,6 +25,20 @@ if ( ! defined( 'MYCRED_AI_ASSISTANT_BLOG_URL' ) ) {
 	define( 'MYCRED_AI_ASSISTANT_BLOG_URL', 'https://codex.mycred.me/docs/toolkit/mycred-ai-assistant' );
 }
 
+if ( ! function_exists( 'mycred_ai_token_request_url' ) ) :
+	/**
+	 * URL for requesting additional AI tokens (filterable).
+	 *
+	 * @return string
+	 */
+	function mycred_ai_token_request_url() {
+		return apply_filters(
+			'mycred_ai_token_request_url',
+			'https://objectsws.atlassian.net/servicedesk/customer/portal/7/group/7/create/93'
+		);
+	}
+endif;
+
 if ( ! function_exists( 'mycred_ai_assistant_can_open' ) ) :
 	/**
 	 * Whether the AI Assistant chat may load.

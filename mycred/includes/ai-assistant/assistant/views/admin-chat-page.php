@@ -105,12 +105,34 @@ if ( $mycred_ai_badges_active ) {
 
 $mycred_ai_featured_prompts = array_slice( $mycred_ai_prompt_chips, 0, 3 );
 $mycred_ai_secondary_chips  = array_slice( $mycred_ai_prompt_chips, 3 );
+
+$mycred_ai_quota = class_exists( 'myCRED_AI_Middleware_Client' )
+	? myCRED_AI_Middleware_Client::fetch_quota( false )
+	: array(
+		'type'  => 'tokens',
+		'used'  => 0,
+		'total' => 60000,
+	);
+if ( ! is_array( $mycred_ai_quota ) ) {
+	$mycred_ai_quota = array(
+		'type'  => 'tokens',
+		'used'  => 0,
+		'total' => 60000,
+	);
+}
+$mycred_ai_quota_used        = isset( $mycred_ai_quota['used'] ) ? (int) $mycred_ai_quota['used'] : 0;
+$mycred_ai_quota_total       = isset( $mycred_ai_quota['total'] ) ? (int) $mycred_ai_quota['total'] : 60000;
+$mycred_ai_quota_exhausted   = $mycred_ai_quota_total > 0 && $mycred_ai_quota_used >= $mycred_ai_quota_total;
+$mycred_ai_token_request_url = function_exists( 'mycred_ai_token_request_url' ) ? mycred_ai_token_request_url() : 'https://objectsws.atlassian.net/servicedesk/customer/portal/7/group/7/create/93';
+$mycred_ai_quota_line        = ( isset( $mycred_ai_quota['type'] ) && 'credits' === $mycred_ai_quota['type'] )
+	? /* translators: 1: used amount, 2: total amount */ __( 'AI Credits: %1$s / %2$s', 'mycred' )
+	: /* translators: 1: used amount, 2: total amount */ __( 'AI Tokens: %1$s / %2$s', 'mycred' );
 ?>
 <div class="wrap mycred-ai-assistant-wrapper">
 	<h1 class="screen-reader-text"><?php esc_html_e( 'AI Assistant', 'mycred' ); ?></h1>
 
 	<div class="mycred-ai-page">
-		<div class="mycred-ai-shell" id="mycred-ai-shell" data-mode="empty">
+		<div class="mycred-ai-shell" id="mycred-ai-shell" data-mode="empty"<?php echo ! empty( $mycred_ai_quota_exhausted ) ? ' data-quota-exhausted="1"' : ''; ?>>
 			<div class="mycred-ai-empty-stage">
 				<div class="mycred-ai-empty-inner">
 					<div class="mycred-ai-empty-mascot" aria-hidden="true">
@@ -149,7 +171,7 @@ $mycred_ai_secondary_chips  = array_slice( $mycred_ai_prompt_chips, 3 );
 
 			<div class="mycred-ai-composer-slot">
 				<form id="mycred-ai-chat-form" class="mycred-ai-composer mycred-ai-chat-form">
-					<textarea id="mycred-ai-chat-input" placeholder="<?php esc_attr_e( 'Ask anything about points...', 'mycred' ); ?>" required rows="2" aria-label="<?php esc_attr_e( 'Message', 'mycred' ); ?>"></textarea>
+					<textarea id="mycred-ai-chat-input" placeholder="<?php esc_attr_e( 'Ask anything about points...', 'mycred' ); ?>" required rows="2" aria-label="<?php esc_attr_e( 'Message', 'mycred' ); ?>"<?php echo $mycred_ai_quota_exhausted ? ' disabled' : ''; ?>></textarea>
 					<div class="mycred-ai-composer-bar">
 						<button type="button" class="mycred-ai-ghost-btn mycred-ai-what-i-can-btn" id="mycred-ai-what-i-can-btn" aria-expanded="false" aria-controls="mycred-ai-what-i-can-panel">
 							<svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M8 .6l1.05 4.05L13.1 5.7 9.05 7.35 8 11.4 6.95 7.35 2.9 5.7l4.05-1.05L8 .6zm5.2 8.7l.7 2.7 2.7.7-2.7.7-.7 2.7-.7-2.7-2.7-.7 2.7-.7.7-2.7z"/></svg>
@@ -196,21 +218,17 @@ $mycred_ai_secondary_chips  = array_slice( $mycred_ai_prompt_chips, 3 );
 
 				<div class="mycred-ai-composer-meta">
 					<p class="mycred-ai-composer-hint"><?php esc_html_e( 'Enter to send, Shift + Enter for a new line', 'mycred' ); ?></p>
-					<?php
-					$mycred_ai_quota       = class_exists( 'myCRED_AI_Middleware_Client' )
-						? myCRED_AI_Middleware_Client::default_quota()
-						: array(
-							'type'  => 'tokens',
-							'used'  => 0,
-							'total' => 60000,
-						);
-					$mycred_ai_quota_used  = isset( $mycred_ai_quota['used'] ) ? (int) $mycred_ai_quota['used'] : 0;
-					$mycred_ai_quota_total = isset( $mycred_ai_quota['total'] ) ? (int) $mycred_ai_quota['total'] : 60000;
-					$mycred_ai_quota_line  = ( isset( $mycred_ai_quota['type'] ) && 'credits' === $mycred_ai_quota['type'] )
-						? /* translators: 1: used amount, 2: total amount */ __( 'AI Credits: %1$s / %2$s', 'mycred' )
-						: /* translators: 1: used amount, 2: total amount */ __( 'AI Tokens: %1$s / %2$s', 'mycred' );
-					?>
-					<p class="mycred-ai-composer-quota" id="mycred-ai-quota-text"><?php echo esc_html( sprintf( $mycred_ai_quota_line, number_format_i18n( $mycred_ai_quota_used ), number_format_i18n( $mycred_ai_quota_total ) ) ); ?></p>
+					<div class="mycred-ai-composer-meta-end">
+						<p class="mycred-ai-composer-quota" id="mycred-ai-quota-text"><?php echo esc_html( sprintf( $mycred_ai_quota_line, number_format_i18n( $mycred_ai_quota_used ), number_format_i18n( $mycred_ai_quota_total ) ) ); ?></p>
+						<a
+							class="mycred-ai-token-request-btn"
+							id="mycred-ai-token-request-btn"
+							href="<?php echo esc_url( $mycred_ai_token_request_url ); ?>"
+							target="_blank"
+							rel="noopener noreferrer"
+							<?php echo $mycred_ai_quota_exhausted ? '' : ' hidden'; ?>
+						><?php esc_html_e( 'Request more AI tokens', 'mycred' ); ?></a>
+					</div>
 				</div>
 			</div>
 		</div>

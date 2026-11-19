@@ -65,12 +65,19 @@ if ( ! class_exists( 'myCRED_Hook_Click_Links' ) ) :
 		 */
 		public function parse_custom_tags( $content, $log_entry ) {
 
-			$data    = maybe_unserialize( $log_entry->data );
-			$content = str_replace( '%url%', $data['link_url'], $content );
-			$content = str_replace( '%id%',  $data['link_id'], $content );
+			$data = maybe_unserialize( $log_entry->data );
+			if ( ! is_array( $data ) ) {
+				return $content;
+			}
+
+			if ( isset( $data['link_url'] ) )
+				$content = str_replace( '%url%', esc_url( $data['link_url'] ), $content );
+
+			if ( isset( $data['link_id'] ) )
+				$content = str_replace( '%id%', esc_html( $data['link_id'] ), $content );
 
 			if ( isset( $data['link_title'] ) )
-				$content = str_replace( '%title%',  $data['link_title'], $content );
+				$content = str_replace( '%title%', esc_html( $data['link_title'] ), $content );
 
 			return $content;
 
@@ -153,7 +160,7 @@ if ( ! class_exists( 'myCRED_Hook_Click_Links' ) ) :
 		/**
 		 * AJAX Call Handler
 		 * @since 1.1
-		 * @version 1.5
+		 * @version 1.6
 		 */
 		public function ajax_call_link_points() {
 
@@ -180,8 +187,9 @@ if ( ! class_exists( 'myCRED_Hook_Click_Links' ) ) :
 			$token = mycred_verify_token( sanitize_text_field( wp_unslash( $_POST['key'] ) ), 4 );
 			if ( $token === false ) wp_send_json( 305 );
 
-			list ( $amount, $point_type, $id, $url ) = $token;
-			if ( $amount == '' || $point_type == '' || $id == '' || $url == '' ) wp_send_json( 310 );
+			list( $token_amount, $point_type, $id, $url ) = $token;
+			$id = sanitize_text_field( $id );
+			if ( $point_type == '' || $id == '' || $url == '' ) wp_send_json( 310 );
 
 			// Make sure the token is not abused
 			if ( $url != urlencode( esc_url_raw( wp_unslash( $_POST['url'] ) ) ) ) wp_send_json( 315 );
@@ -189,11 +197,8 @@ if ( ! class_exists( 'myCRED_Hook_Click_Links' ) ) :
 			// Bail now if this was not intenteded for this type
 			if ( $point_type != $this->mycred_type ) return;
 
-			// Amount
-			if ( $amount == 0 )
-				$amount = $this->prefs['creds'];
-			else
-				$amount = $this->core->number( $amount );
+			// Award amount is server-signed in the token when the shortcode renders ([mycred_link]).
+			$amount = $this->core->number( $token_amount );
 
 			if ( $amount == 0 || $amount == $this->core->zero() ) wp_send_json( 400 );
 

@@ -3,6 +3,7 @@ import { Box, Typography, IconButton, Paper, Button } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import LeaderboardIcon from '@mui/icons-material/Leaderboard';
 import { __ } from '@wordpress/i18n';
@@ -125,7 +126,7 @@ export default function ModernLayout({
     user = {},
     isGuest,
     assetsUrl = '',
-    isPro = false,
+    hasWoo = false,
     ranksEnabled = true,
     badgesEnabled = true,
     onNavigate,
@@ -133,6 +134,7 @@ export default function ModernLayout({
     onPrimaryAction,
     onLoginClick,
     borderRadius = 16,
+    previewMode = false,
 }) {
     const bgColor = design.backgroundColor || '#1A1A1A';
     const textColor = design.textColor || '#FFFFFF';
@@ -140,13 +142,14 @@ export default function ModernLayout({
     const btnTextColor = design.buttonTextColor || '#FFFFFF';
     const overlay = design.headerOverlayOpacity ?? 0;
     const headerImage = design.headerImageUrl || '';
-    const programTitle = design.programTitle || __('Rewards Hub', 'mycred');
-    const headerSubtitle = design.headerSubtitle || __('Welcome to', 'mycred');
+    const programTitle = design.programTitle ?? __('Rewards hub', 'mycred');
+    const headerSubtitle = design.headerSubtitle ?? __('Welcome to', 'mycred');
+    const showHeaderTitle = design.showHeaderTitle === true;
     const tabControls = tabs.tabControls || {};
     const radius = Math.max(12, borderRadius);
 
     const showEarn = tabControls.earn !== false;
-    const showRedeem = tabControls.redeem !== false && isPro;
+    const showRedeem = tabControls.redeem !== false && hasWoo;
     const showBoard = tabControls.board !== false;
     const showLogs = tabControls.logs !== false && !isGuest;
     const showFaq = tabControls.faq !== false;
@@ -155,6 +158,10 @@ export default function ModernLayout({
     const showBadges = badgesEnabled && tabControls.badges !== false;
     const pairBoardInRow = showBoard && !showRedeem;
     const showBoardPromo = showBoard && showRedeem;
+    const compactEarnRow = !showRedeem && !showBoard;
+    // When Redeem & Board are off: only one partner beside Earn — Ranks first, else Badges.
+    const showRanksInEarnRow = compactEarnRow && showRanks;
+    const showBadgesInEarnRow = compactEarnRow && showBadges && !showRanks;
 
     const memberBalances = !isGuest
         ? (user.all_balances?.length
@@ -173,13 +180,21 @@ export default function ModernLayout({
     const isMulti = secondaryBalances.length > 0;
 
     const moreItems = [
-        {
-            key: 'profile',
-            show: showProfile,
-            svg: 'profile-icon.svg',
-            label: content.profileLabel || __('Profile', 'mycred'),
-            subtitle: content.profileMessage,
-        },
+        ...(previewMode && !showHeaderTitle ? [
+            {
+                key: 'logs',
+                show: showLogs,
+                icon: AccessTimeIcon,
+                label: content.logsLabel || __('History', 'mycred'),
+                subtitle: content.logsMessage,
+            },
+            {
+                key: 'faq',
+                show: showFaq,
+                icon: HelpOutlineIcon,
+                label: faq?.screenTitle || __('FAQ', 'mycred'),
+            },
+        ] : []),
         {
             key: 'ranks',
             show: showRanks,
@@ -194,11 +209,40 @@ export default function ModernLayout({
             label: content.badgesLabel || __('Badges', 'mycred'),
             subtitle: content.badgesMessage,
         },
-    ].filter((item) => item.show);
+        {
+            key: 'profile',
+            show: showProfile,
+            svg: 'profile-icon.svg',
+            label: content.profileLabel || __('Profile', 'mycred'),
+            subtitle: content.profileMessage,
+        },
+    ].filter((item) => {
+        if (!item.show) {
+            return false;
+        }
+        if (item.key === 'ranks' && showRanksInEarnRow) {
+            return false;
+        }
+        if (item.key === 'badges' && showBadgesInEarnRow) {
+            return false;
+        }
+        return true;
+    });
+
+    const earnRowActionCount = [
+        showEarn,
+        showRedeem,
+        pairBoardInRow,
+        showRanksInEarnRow,
+        showBadgesInEarnRow,
+    ].filter(Boolean).length;
 
     const panelBg = '#F8F8F8';
 
-    const HEADER_EXPANDED = 160;
+    const headerHasChrome = showFaq || showLogs;
+    const HEADER_EXPANDED = headerHasChrome ? 160 : 120;
+    // Extra top inset when only Logs (no FAQ) so History stays beside the title, not under close (X).
+    const headerContentPt = showFaq ? 2 : (showLogs ? 4.5 : 2);
     const HEADER_COLLAPSED = 48;
     const COLLAPSE_RANGE = 72;
     const CARD_OVERLAP = 36;
@@ -214,10 +258,37 @@ export default function ModernLayout({
     const headerHeight = HEADER_EXPANDED - (HEADER_EXPANDED - HEADER_COLLAPSED) * collapse;
     const expandedFade = 1 - collapse;
     const collapsedFade = collapse;
+    const headerCloseReserve = 4.5;
+    const welcomeGridRow = showFaq ? 2 : 1;
+    const hubGridRow = showFaq ? 3 : 2;
+
+    const logsHeaderButtonSx = {
+        color: textColor,
+        width: 34,
+        height: 34,
+        borderRadius: '10px',
+        bgcolor: 'rgba(255,255,255,0.16)',
+        border: '1px solid rgba(255,255,255,0.18)',
+        flexShrink: 0,
+        p: 0,
+        '&:hover': { bgcolor: 'rgba(255,255,255,0.26)' },
+    };
 
     return (
-        <Box sx={{ position: 'relative', height: '100%', overflow: 'hidden', bgcolor: panelBg }}>
+        <Box sx={{
+            position: 'relative',
+            flex: 1,
+            height: 'auto',
+            minHeight: 0,
+            maxHeight: 'min(602px, calc(100vh - 150px))',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            bgcolor: panelBg,
+            boxSizing: 'border-box',
+        }}>
             {/* Expanded Header BG Layer */}
+            {showHeaderTitle && (
             <Box sx={{
                 position: 'absolute',
                 top: 0,
@@ -256,8 +327,10 @@ export default function ModernLayout({
                     opacity: expandedFade,
                 }} />
             </Box>
+            )}
 
-            {/* Collapsed Header Bar */}
+            {showHeaderTitle && (
+            <>
             <Box sx={{
                 position: 'absolute',
                 top: 0,
@@ -285,7 +358,7 @@ export default function ModernLayout({
                 height: `${headerHeight}px`,
                 zIndex: 11,
                 px: 2.5,
-                pt: 2,
+                pt: headerContentPt,
                 boxSizing: 'border-box',
                 color: textColor,
                 pointerEvents: 'none',
@@ -296,90 +369,122 @@ export default function ModernLayout({
                     transform: `translateY(${-collapse * 10}px)`,
                     pointerEvents: expandedFade < 0.1 ? 'none' : 'auto',
                 }}>
-                    <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                        {showFaq ? (
-                            <Box
-                                component="button"
-                                type="button"
-                                onClick={() => onNavigate?.('faq')}
-                                aria-label={faq?.screenTitle || __('FAQ', 'mycred')}
-                                sx={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: 0.75,
-                                    border: '1px solid rgba(255,255,255,0.22)',
-                                    bgcolor: 'rgba(255,255,255,0.95)',
-                                    color: btnColor,
-                                    fontFamily: "'Instrument Sans', sans-serif",
-                                    fontSize: 11,
-                                    fontWeight: 700,
-                                    letterSpacing: '0.02em',
-                                    px: 1.25,
-                                    py: 0.6,
-                                    pl: 0.85,
-                                    borderRadius: 999,
-                                    cursor: 'pointer',
-                                    boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
-                                    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                                    '&:hover': {
-                                        transform: 'translateY(-1px)',
-                                        boxShadow: '0 6px 16px rgba(0,0,0,0.16)',
-                                    },
-                                }}
-                            >
+                    <Box
+                        sx={{
+                            display: 'grid',
+                            gridTemplateColumns: 'minmax(0, 1fr)',
+                            alignItems: 'center',
+                            width: '100%',
+                            rowGap: 0.25,
+                            boxSizing: 'border-box',
+                        }}
+                    >
+                        {showFaq && (
+                            <Box sx={{ gridColumn: '1 / -1', gridRow: 1, mb: 1.5 }}>
                                 <Box
+                                    component="button"
+                                    type="button"
+                                    onClick={() => onNavigate?.('faq')}
+                                    aria-label={faq?.screenTitle || __('FAQ', 'mycred')}
                                     sx={{
-                                        width: 18,
-                                        height: 18,
-                                        borderRadius: '50%',
-                                        bgcolor: btnColor,
-                                        color: '#fff',
                                         display: 'inline-flex',
                                         alignItems: 'center',
-                                        justifyContent: 'center',
+                                        gap: 0.75,
+                                        border: '1px solid rgba(255,255,255,0.22)',
+                                        bgcolor: 'rgba(255,255,255,0.95)',
+                                        color: btnColor,
+                                        fontFamily: "'Instrument Sans', sans-serif",
                                         fontSize: 11,
-                                        fontWeight: 800,
-                                        lineHeight: 1,
+                                        fontWeight: 700,
+                                        letterSpacing: '0.02em',
+                                        px: 1.25,
+                                        py: 0.6,
+                                        pl: 0.85,
+                                        borderRadius: 999,
+                                        cursor: 'pointer',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                                        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                                        '&:hover': {
+                                            transform: 'translateY(-1px)',
+                                            boxShadow: '0 6px 16px rgba(0,0,0,0.16)',
+                                        },
                                     }}
                                 >
-                                    ?
+                                    <Box
+                                        sx={{
+                                            width: 18,
+                                            height: 18,
+                                            borderRadius: '50%',
+                                            bgcolor: btnColor,
+                                            color: '#fff',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: 11,
+                                            fontWeight: 800,
+                                            lineHeight: 1,
+                                        }}
+                                    >
+                                        ?
+                                    </Box>
+                                    {__('FAQ', 'mycred')}
                                 </Box>
-                                {__('FAQ', 'mycred')}
                             </Box>
-                        ) : (
-                            <Box />
                         )}
-                    </Box>
 
-                    <Box sx={{ position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1.5, pr: 0.5 }}>
-                        <Box>
-                            <Typography color="inherit" sx={{ fontSize: 13, fontWeight: 400, opacity: 0.92, fontFamily: "'Instrument Sans', sans-serif" }}>
-                                {headerSubtitle}
-                            </Typography>
-                            <Typography color="inherit" sx={{ fontSize: 26, fontWeight: 700, lineHeight: 1.2, letterSpacing: '-0.02em', mt: 0.25, fontFamily: "'Instrument Sans', sans-serif" }}>
-                                {programTitle}
-                            </Typography>
-                        </Box>
-                        {showLogs && (
-                            <IconButton
-                                size="small"
-                                onClick={() => onNavigate?.('logs')}
-                                aria-label={content.logsLabel || __('History', 'mycred')}
+                        <Typography
+                            color="inherit"
+                            sx={{
+                                gridColumn: 1,
+                                gridRow: welcomeGridRow,
+                                fontSize: 13,
+                                fontWeight: 400,
+                                opacity: 0.92,
+                                fontFamily: "'Instrument Sans', sans-serif",
+                            }}
+                        >
+                            {showHeaderTitle ? headerSubtitle : ''}
+                        </Typography>
+
+                        <Box
+                            sx={{
+                                gridColumn: 1,
+                                gridRow: hubGridRow,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                                minHeight: 34,
+                                boxSizing: 'border-box',
+                            }}
+                        >
+                            <Typography
+                                color="inherit"
                                 sx={{
-                                    color: textColor,
-                                    width: 34,
-                                    height: 34,
-                                    borderRadius: '10px',
-                                    bgcolor: 'rgba(255,255,255,0.16)',
-                                    border: '1px solid rgba(255,255,255,0.18)',
-                                    mt: 0.5,
-                                    flexShrink: 0,
-                                    '&:hover': { bgcolor: 'rgba(255,255,255,0.26)' },
+                                    fontSize: 26,
+                                    fontWeight: 700,
+                                    lineHeight: 1.2,
+                                    letterSpacing: '-0.02em',
+                                    fontFamily: "'Instrument Sans', sans-serif",
+                                    flex: 1,
+                                    minWidth: 0,
                                 }}
                             >
-                                <AccessTimeIcon sx={{ fontSize: 18 }} />
-                            </IconButton>
-                        )}
+                                {showHeaderTitle ? programTitle : ''}
+                            </Typography>
+                            {showLogs && (
+                                <IconButton
+                                    size="small"
+                                    onClick={() => onNavigate?.('logs')}
+                                    aria-label={content.logsLabel || __('History', 'mycred')}
+                                    sx={{
+                                        ...logsHeaderButtonSx,
+                                        mr: '-8px',
+                                    }}
+                                >
+                                    <AccessTimeIcon sx={{ fontSize: 18 }} />
+                                </IconButton>
+                            )}
+                        </Box>
                     </Box>
                 </Box>
 
@@ -400,7 +505,7 @@ export default function ModernLayout({
                     whiteSpace: 'nowrap',
                     pointerEvents: 'none',
                 }}>
-                    {programTitle}
+                    {showHeaderTitle ? programTitle : ''}
                 </Typography>
 
                 <IconButton
@@ -418,6 +523,28 @@ export default function ModernLayout({
                     <CloseIcon fontSize="small" />
                 </IconButton>
             </Box>
+            </>
+            )}
+
+            {!showHeaderTitle && (
+                <IconButton
+                    size="small"
+                    onClick={onClose}
+                    aria-label={__('Close', 'mycred')}
+                    sx={{
+                        position: 'absolute',
+                        top: 10,
+                        right: 10,
+                        zIndex: 12,
+                        color: '#1a1a1a',
+                        bgcolor: '#fff',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                        '&:hover': { bgcolor: '#fff' },
+                    }}
+                >
+                    <CloseIcon fontSize="small" />
+                </IconButton>
+            )}
 
             {/* Scroll Container */}
             <Box
@@ -426,14 +553,16 @@ export default function ModernLayout({
                 sx={{
                     position: 'relative',
                     zIndex: 1,
-                    height: '100%',
+                    flex: '1 1 auto',
+                    minHeight: 0,
+                    height: 'auto',
                     overflowY: 'auto',
                     overflowX: 'hidden',
                     overscrollBehavior: 'contain',
                     WebkitOverflowScrolling: 'touch',
                     scrollbarWidth: 'none',
                     '&::-webkit-scrollbar': { display: 'none' },
-                    pt: `${HEADER_EXPANDED - CARD_OVERLAP}px`,
+                    pt: showHeaderTitle ? `${HEADER_EXPANDED - CARD_OVERLAP}px` : '52px',
                     px: 2,
                     pb: 2,
                     boxSizing: 'border-box',
@@ -486,14 +615,22 @@ export default function ModernLayout({
                                 )}
                             </Box>
                             <Box sx={{ flex: 1, minWidth: 0 }}>
-
                                 <Typography sx={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em', color: '#1a1a1a', fontFamily: "'Instrument Sans', sans-serif" }}>
                                     {primaryBalance.label || __('Points', 'mycred')}
                                 </Typography>
-
                             </Box>
-                            <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
-                                <Typography sx={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1, color: '#1a1a1a', fontFamily: "'Instrument Sans', sans-serif" }}>
+                            <Box sx={{ textAlign: 'right', flexShrink: 1, minWidth: 0, maxWidth: '52%' }}>
+                                <Typography
+                                    sx={{
+                                        fontSize: 18,
+                                        fontWeight: 700,
+                                        letterSpacing: '-0.02em',
+                                        lineHeight: 1.2,
+                                        color: '#1a1a1a',
+                                        fontFamily: "'Instrument Sans', sans-serif",
+                                        wordBreak: 'break-word',
+                                    }}
+                                >
                                     {formatBalanceValue(primaryBalance)}
                                 </Typography>
                             </Box>
@@ -572,37 +709,41 @@ export default function ModernLayout({
                             boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
                             border: '1px solid rgba(0,0,0,0.04)',
                             textAlign: 'center',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '14px',
+                            '& .MuiTypography-root': { margin: 0 },
                         }}
                     >
-                        <Box sx={{ mb: 1.75 }}>
+                        {design.heroImageUrl ? (
                             <HeroIllustration heroImageUrl={design.heroImageUrl} assetsUrl={assetsUrl} variant="inline" size={88} />
-                        </Box>
-                        <Typography sx={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em', mb: 1, color: '#1a1a1a', fontFamily: "'Instrument Sans', sans-serif" }}>
+                        ) : null}
+                        <Typography sx={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em', color: '#1a1a1a', fontFamily: "'Instrument Sans', sans-serif" }}>
                             {content.joinCardTitle || __('Join the Circle', 'mycred')}
                         </Typography>
-                        <Typography sx={{ fontSize: 12, color: '#888', lineHeight: 1.5, mb: 2, maxWidth: 280, mx: 'auto', fontFamily: "'Instrument Sans', sans-serif" }}>
-                            {content.joinCardDescription || content.welcomeMessage || __('First access to rare rewards, exclusive events, and privileges reserved for members.', 'mycred')}
+                        <Typography sx={{ fontSize: 12, color: '#888', lineHeight: 1.5, maxWidth: 280, mx: 'auto', fontFamily: "'Instrument Sans', sans-serif" }}>
+                            {content.joinCardDescription || __('Rare rewards for members.', 'mycred')}
                         </Typography>
                         <Button
-                            fullWidth
                             variant="contained"
                             onClick={onPrimaryAction}
                             sx={{
                                 bgcolor: btnColor,
                                 color: btnTextColor,
                                 textTransform: 'none',
-                                boxShadow: `0 8px 20px ${hexToRgba(btnColor, 0.3)}`,
-                                borderRadius: `${Math.max(8, radius - 4)}px`,
-                                py: 1.5,
+                                boxShadow: `0 6px 14px ${hexToRgba(btnColor, 0.22)}`,
+                                borderRadius: '999px',
+                                px: 3,
+                                py: 0.75,
                                 fontWeight: 600,
                                 fontFamily: "'Instrument Sans', sans-serif",
-                                mb: 1.5,
-                                fontSize: '15px !important',
-                                lineHeight: '1.4 !important',
-                                whiteSpace: 'normal',
-                                wordBreak: 'break-word',
-                                minHeight: '48px',
-                                '&:hover': { bgcolor: btnColor, boxShadow: `0 8px 20px ${hexToRgba(btnColor, 0.3)}` },
+                                fontSize: '14px !important',
+                                lineHeight: '1.3 !important',
+                                minWidth: 0,
+                                minHeight: 0,
+                                m: 0,
+                                '&:hover': { bgcolor: btnColor, boxShadow: `0 6px 14px ${hexToRgba(btnColor, 0.22)}` },
                             }}
                         >
                             {content.joinButtonText || __('Join now', 'mycred')}
@@ -616,23 +757,12 @@ export default function ModernLayout({
                     </Paper>
                 )}
 
-                {isGuest && (showEarn || showRedeem || showBoard || moreItems.length > 0) && (
-                    <Box sx={{ textAlign: 'center', mb: 1.5, mt: 0.25 }}>
-                        <Typography sx={{ fontSize: 15, fontWeight: 700, color: '#1a1a1a', mb: 0.5, fontFamily: "'Instrument Sans', sans-serif" }}>
-                            {__('Explore', 'mycred')}
-                        </Typography>
-                        <Typography sx={{ fontSize: 11, color: '#888', fontFamily: "'Instrument Sans', sans-serif" }}>
-                            {__('Discover ways to earn, redeem, and track your rewards.', 'mycred')}
-                        </Typography>
-                    </Box>
-                )}
-
-                {/* Earn | Redeem when Redeem on; Earn | Board when Redeem off */}
-                {(showEarn || showRedeem || pairBoardInRow) && (
+                {/* Earn | Redeem; Earn | Board; or Earn | Ranks/Badges when Redeem & Board off */}
+                {(showEarn || showRedeem || pairBoardInRow || showRanksInEarnRow || showBadgesInEarnRow) && (
                     <Box
                         sx={{
                             display: 'grid',
-                            gridTemplateColumns: (showEarn && (showRedeem || pairBoardInRow)) ? '1fr 1fr' : '1fr',
+                            gridTemplateColumns: earnRowActionCount >= 2 ? '1fr 1fr' : '1fr',
                             gap: 1.5,
                             mb: 1.5,
                         }}
@@ -667,6 +797,24 @@ export default function ModernLayout({
                                 onClick={() => onNavigate?.('board')}
                             />
                         )}
+                        {showRanksInEarnRow && (
+                            <ActionCard
+                                icon={<LeaderboardIcon sx={{ fontSize: 28, color: bgColor }} />}
+                                label={content.ranksLabel || __('Ranks', 'mycred')}
+                                accent={btnColor}
+                                borderRadius={radius}
+                                onClick={() => onNavigate?.('ranks')}
+                            />
+                        )}
+                        {showBadgesInEarnRow && (
+                            <ActionCard
+                                icon={<EmojiEventsIcon sx={{ fontSize: 28, color: bgColor }} />}
+                                label={content.badgesLabel || __('Badges', 'mycred')}
+                                accent={btnColor}
+                                borderRadius={radius}
+                                onClick={() => onNavigate?.('badges')}
+                            />
+                        )}
                     </Box>
                 )}
 
@@ -695,21 +843,8 @@ export default function ModernLayout({
                             <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 0.75, color: '#1a1a1a', fontFamily: "'Instrument Sans', sans-serif" }}>
                                 {content.boardLabel || __('Board', 'mycred')}
                             </Typography>
-                            <Typography sx={{ fontSize: 12, color: '#888', lineHeight: 1.45, mb: 1.25, fontFamily: "'Instrument Sans', sans-serif" }}>
+                            <Typography sx={{ fontSize: 12, color: '#888', lineHeight: 1.45, fontFamily: "'Instrument Sans', sans-serif" }}>
                                 {content.boardMessage || __('Check your standing and climb the leaderboard!', 'mycred')}
-                            </Typography>
-                            <Typography
-                                className="action-arrow"
-                                sx={{
-                                    fontSize: 13,
-                                    fontWeight: 600,
-                                    color: btnColor,
-                                    fontFamily: "'Instrument Sans', sans-serif",
-                                    display: 'inline-block',
-                                    transition: 'transform 0.2s ease',
-                                }}
-                            >
-                                {__('View Board', 'mycred')}
                             </Typography>
                         </Box>
                         <Box sx={{ width: 70, height: 70, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -737,28 +872,6 @@ export default function ModernLayout({
                             overflow: 'hidden',
                         }}
                     >
-                        <Box
-                            className="more-header"
-                            sx={{
-                                display: 'flex',
-                                alignItems: 'baseline',
-                                justifyContent: 'space-between',
-                                px: 1.25,
-                                pb: 1.5,
-                                '&:hover .action-arrow': {
-                                    transform: 'translateX(3px)',
-                                },
-                            }}
-                        >
-                            <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
-                                <Typography sx={{ fontSize: 15, fontWeight: 700, color: '#1a1a1a', fontFamily: "'Instrument Sans', sans-serif" }}>
-                                    {__('More', 'mycred')}
-                                </Typography>
-                                <Typography sx={{ fontSize: 11, color: '#aaa', fontWeight: 500, fontFamily: "'Instrument Sans', sans-serif" }}>
-                                    {__('Quick links', 'mycred')}
-                                </Typography>
-                            </Box>
-                        </Box>
                         {moreItems.map((item) => (
                             <Fragment key={item.key}>
                                 <MoreRow

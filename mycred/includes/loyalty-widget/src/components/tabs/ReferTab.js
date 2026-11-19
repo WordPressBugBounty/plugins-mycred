@@ -25,6 +25,7 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import { __ } from '@wordpress/i18n';
+import { widgetTabRootSx, widgetTabScrollBodySx } from '../preview/utils';
 import { getReferral, generateProductReferral } from '../../services/frontend-api';
 
 const copyText = async (text) => {
@@ -179,7 +180,7 @@ export default function ReferTab({
         || __('Invite friends with your link and earn points when they visit or sign up.', 'mycred');
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: bgColor }}>
+        <Box sx={widgetTabRootSx({ bgcolor: bgColor })}>
             <Box sx={{ px: '20px', pt: '18px', pb: '14px', color: '#fff', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, pr: 1 }}>
                     <IconButton size="small" onClick={onBack} sx={{ color: '#fff', p: 0.5, mt: 0.25 }}>
@@ -199,15 +200,11 @@ export default function ReferTab({
                 </IconButton>
             </Box>
 
-            <Box sx={{
-                flex: 1,
+            <Box sx={widgetTabScrollBodySx({
                 bgcolor: '#F7F5FF',
                 borderRadius: '24px 24px 0 0',
                 p: '18px',
-                overflowY: 'auto',
-                scrollbarWidth: 'none',
-                '&::-webkit-scrollbar': { display: 'none' },
-            }}>
+            })}>
                 {isGuest && (
                     <Paper elevation={0} sx={{
                         p: 3, borderRadius: '18px', textAlign: 'center',

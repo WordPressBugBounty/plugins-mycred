@@ -35,14 +35,9 @@ if ( ! function_exists( 'mycred_render_shortcode_video' ) ) :
 		if ( $hooks === false || ! is_array( $hooks ) || ! array_key_exists( 'video_view', $hooks['hook_prefs'] ) ) return;
 		$prefs    = $hooks['hook_prefs']['video_view'];
 
-		if ( $amount == '' )
-			$amount = $prefs['creds'];
-
-		if ( $logic == '' )
-			$logic = $prefs['logic'];
-
-		if ( $interval == '' )
-			$interval = $prefs['interval'];
+		$amount   = $prefs['creds'];
+		$logic    = $prefs['logic'];
+		$interval = $prefs['interval'];
 
 		if ( $streaming == '' )
 			$streaming = 'off';

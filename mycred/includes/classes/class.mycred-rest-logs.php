@@ -99,7 +99,7 @@ class myCRED_REST_Logs {
 
             // Format entry with template tags
             $mycred_obj = mycred( $entry->ctype );
-            $parsed_entry = $mycred_obj->parse_template_tags( $entry->entry, $entry );
+            $parsed_entry = $this->sanitize_log_entry_html( $mycred_obj->parse_template_tags( $entry->entry, $entry ) );
 
             $expiry = apply_filters( 'mycred_log_expiry', '', $entry );
             if ( ! is_string( $expiry ) ) {
@@ -139,6 +139,42 @@ class myCRED_REST_Logs {
             'references'    => $query->references,
             'show_expiry'   => $show_expiry,
         ) );
+    }
+
+    /**
+     * Keep the links a log template is allowed to show, and drop every other tag.
+     *
+     * @param string $html Parsed log entry.
+     * @return string
+     */
+    private function sanitize_log_entry_html( $html ) {
+
+        if ( ! is_string( $html ) || $html === '' ) {
+            return '';
+        }
+
+        return wp_kses(
+            $html,
+            array(
+                'a'      => array(
+                    'href'   => true,
+                    'title'  => true,
+                    'target' => true,
+                    'rel'    => true,
+                    'class'  => true,
+                ),
+                'span'   => array(
+                    'class' => true,
+                ),
+                'strong' => array(),
+                'em'     => array(),
+                'br'     => array(),
+                'button' => array(
+                    'class' => true,
+                ),
+            )
+        );
+
     }
 
     /**

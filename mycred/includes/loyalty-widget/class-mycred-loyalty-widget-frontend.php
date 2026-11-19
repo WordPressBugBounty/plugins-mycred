@@ -404,6 +404,49 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Frontend' ) ) :
                 if ( class_exists( 'myCRED_Loyalty_Widget_API' ) ) {
                     $defaults = myCRED_Loyalty_Widget_API::instance()->get_default_settings();
                     $settings = myCRED_Loyalty_Widget_API::merge_defaults( $settings, $defaults );
+                    $settings = myCRED_Loyalty_Widget_API::normalize_join_card_description( $settings );
+                    $settings = myCRED_Loyalty_Widget_API::normalize_header_copy( $settings );
+
+                    $active_hooks = myCRED_Loyalty_Widget_API::filter_by_visible_point_types( $active_hooks, $settings, 'point_type' );
+                    $point_types  = myCRED_Loyalty_Widget_API::filter_point_types_map( $point_types, $settings );
+
+                    if ( ! empty( $user_data['all_balances'] ) ) {
+                        $user_data['all_balances'] = myCRED_Loyalty_Widget_API::filter_by_visible_point_types( $user_data['all_balances'], $settings, 'type' );
+                    }
+
+                    if ( ! empty( $woo_gateway['enabled'] ) && ! empty( $woo_gateway['point_type'] ) ) {
+                        if ( ! myCRED_Loyalty_Widget_API::is_point_type_visible_in_widget( $woo_gateway['point_type'], $settings ) ) {
+                            $woo_gateway['enabled'] = false;
+                        }
+                    }
+
+                    if ( ! empty( $woo_partial['enabled'] ) && ! empty( $woo_partial['point_types'] ) ) {
+                        $woo_partial['point_types'] = myCRED_Loyalty_Widget_API::filter_by_visible_point_types( $woo_partial['point_types'], $settings, 'key' );
+                        if ( empty( $woo_partial['point_types'] ) ) {
+                            $woo_partial['enabled'] = false;
+                        }
+                    }
+
+                    if ( $user_id && function_exists( 'mycred_get_users_rank' ) ) {
+                        $visible_types = myCRED_Loyalty_Widget_API::get_resolved_visible_point_types( $settings );
+                        $rank_type     = ! empty( $visible_types[0] ) ? $visible_types[0] : 'mycred_default';
+                        $rank          = mycred_get_users_rank( $user_id, $rank_type );
+                        if ( ! is_object( $rank ) || ! isset( $rank->post_title ) ) {
+                            unset( $user_data['rank'], $user_data['rank_image'], $user_data['rank_min'], $user_data['rank_max'] );
+                        } else {
+                            $user_data['rank'] = $rank->post_title;
+                            $rank_logo_id = get_post_meta( $rank->ID, 'mycred_rank_logo', true );
+                            if ( $rank_logo_id ) {
+                                $user_data['rank_image'] = wp_get_attachment_url( $rank_logo_id );
+                            } else {
+                                unset( $user_data['rank_image'] );
+                            }
+                            $rank_min = get_post_meta( $rank->ID, 'mycred_rank_min', true );
+                            $rank_max = get_post_meta( $rank->ID, 'mycred_rank_max', true );
+                            $user_data['rank_min'] = $rank_min !== '' ? (float) $rank_min : 0;
+                            $user_data['rank_max'] = $rank_max !== '' ? (float) $rank_max : 0;
+                        }
+                    }
                 }
 
                 wp_localize_script( 'mycred-loyalty-widget-frontend', 'mycredLoyaltyWidget', array(
@@ -416,6 +459,7 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Frontend' ) ) :
                     'assets_url'          => plugin_dir_url( __FILE__ ) . 'src/assets/widget-icon/',
                     'is_admin'            => current_user_can( 'manage_options' ),
                     'settings_url'        => admin_url( 'admin.php?page=mycred-loyalty-widget' ),
+                    'has_woocommerce'     => class_exists( 'WooCommerce' ),
                     'addons'              => array(
                         'ranks_enabled'  => function_exists( 'mycred_get_users_rank' ),
                         'badges_enabled' => function_exists( 'mycred_get_badge_ids' ),

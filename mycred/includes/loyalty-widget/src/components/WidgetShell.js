@@ -1,7 +1,17 @@
 import { Box, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { __ } from '@wordpress/i18n';
-import { getThemeColors, getAnimationKeyframes, animationStyles, MYCRED_BRANDING_URL } from './preview/utils';
+import {
+    getThemeColors,
+    getAnimationKeyframes,
+    animationStyles,
+    MYCRED_BRANDING_URL,
+    WIDGET_PANEL_BOX_SHADOW,
+    WIDGET_SHELL_MIN_HEIGHT,
+    WIDGET_HOME_SHELL_MIN_HEIGHT,
+    WIDGET_SHELL_MAX_HEIGHT,
+    WIDGET_PANEL_CONTENT_MIN_HEIGHT,
+} from './preview/utils';
 
 export const getAssetsUrl = () => window.mycredLoyaltyWidget?.assets_url || window.mycredLoyaltyWidgetData?.assets_url || '';
 
@@ -12,6 +22,7 @@ export default function WidgetShell({
     showLauncher = true,
     launcherOpen = true,
     containerRadius = 24,
+    compactHome = false,
 }) {
     const bgColor = design.backgroundColor || '#2D1572';
     const textColor = design.textColor || '#FFFFFF';
@@ -25,11 +36,13 @@ export default function WidgetShell({
             <Box
                 key={`widget-${design.launcherAnimation}`}
                 sx={{
-                    width: '420px',
-                    height: '652px',
+                    width: 'min(365px, calc(100vw - 32px))',
+                    height: 'auto',
+                    minHeight: compactHome ? WIDGET_HOME_SHELL_MIN_HEIGHT : WIDGET_SHELL_MIN_HEIGHT,
+                    maxHeight: WIDGET_SHELL_MAX_HEIGHT,
                     bgcolor: '#F8F6FF',
                     borderRadius: `${containerRadius}px`,
-                    boxShadow: '0px 16px 32px 0px rgba(230, 225, 250, 0.5)',
+                    boxShadow: WIDGET_PANEL_BOX_SHADOW,
                     overflow: 'hidden',
                     fontFamily: "'Instrument Sans', sans-serif",
                     position: 'relative',
@@ -39,7 +52,16 @@ export default function WidgetShell({
                     flexDirection: 'column',
                 }}
             >
-                <Box sx={{ flex: 1, overflow: 'hidden', position: 'relative', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                <Box
+                    sx={{
+                        flex: 1,
+                        minHeight: compactHome ? 0 : WIDGET_PANEL_CONTENT_MIN_HEIGHT,
+                        overflow: 'hidden',
+                        position: 'relative',
+                        display: 'flex',
+                        flexDirection: 'column',
+                    }}
+                >
                     {children}
                 </Box>
 

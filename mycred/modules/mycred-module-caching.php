@@ -169,9 +169,11 @@ if ( ! class_exists( 'myCRED_Caching_Module' ) ) :
 
 			}
 
-			if ( $this->caching['autodelete'] > 0 ) {
+			$autodelete_days = absint( $this->caching['autodelete'] );
 
-				$max_age   = ( $this->caching['autodelete'] * DAY_IN_SECONDS );
+			if ( $autodelete_days > 0 ) {
+
+				$max_age   = $autodelete_days * DAY_IN_SECONDS;
 				$now       = current_time( 'timestamp' );
 
 				// Times are stored as unix timestamps so we just deduct the seconds from now
@@ -414,7 +416,7 @@ if ( ! class_exists( 'myCRED_Caching_Module' ) ) :
 				$this->clear_cache( 'leaderboards' );
 			}
 
-			$new_data['caching']['autodelete']   = isset( $data['caching']['autodelete'] ) ? absint( $data['caching']['autodelete'] ) : 'off';
+			$new_data['caching']['autodelete']   = isset( $data['caching']['autodelete'] ) ? absint( $data['caching']['autodelete'] ) : 0;
 
 			return $new_data;
 

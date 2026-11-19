@@ -54,8 +54,11 @@ if ( ! function_exists( 'mycred_render_shortcode_link' ) ) :
 			$atts['class'] = 'mycred-points-link ' . esc_attr( $atts['class'] );
 		}
 
+		// The id is stored in the click log. Strip markup before it is signed into the token.
+		$atts['id'] = sanitize_text_field( $atts['id'] );
+
 		// If no id exists, generate one - Sanitize ID creation
-		if ( empty( $atts['id'] ) ) {
+		if ( $atts['id'] === '' ) {
 			$id = str_replace( array( 'http://', 'https://', 'http%3A%2F%2F', 'https%3A%2F%2F' ), 'hs', esc_url( $atts['href'] ) );
 			$id = str_replace( array( '/', '-', '_', ':', '.', '?', '=', '+', '\\', '%2F' ), '', $id );
 			$atts['id'] = sanitize_html_class( $id );

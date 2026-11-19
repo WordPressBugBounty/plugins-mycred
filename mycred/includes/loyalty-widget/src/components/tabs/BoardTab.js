@@ -4,7 +4,8 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
 import { __ } from '@wordpress/i18n';
 import { getLeaderboard } from '../../services/frontend-api';
-import { getThemeColors, getRankStyle } from '../preview/utils';
+import { getThemeColors, getRankStyle, widgetTabRootSx, widgetTabScrollBodySx } from '../preview/utils';
+import { getVisiblePointTypesMap } from '../../pointTypeVisibility';
 
 const ASSETS_URL = window.mycredLoyaltyWidget?.assets_url || '';
 
@@ -26,12 +27,12 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
 
     // Get unique point types from localized data
     const availableTypes = useMemo(() => {
-        const types = window.mycredLoyaltyWidget?.point_types || {};
-        if (Object.keys(types).length === 0) {
-            types['mycred_default'] = __('Points', 'mycred');
+        const filtered = getVisiblePointTypesMap(settings);
+        if (Object.keys(filtered).length === 0) {
+            return { mycred_default: __('Points', 'mycred') };
         }
-        return types;
-    }, []);
+        return filtered;
+    }, [settings]);
 
     const pointTypeKeys = Object.keys(availableTypes);
 
@@ -39,6 +40,12 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
     const [loading, setLoading] = useState(true);
     const [isOpen, setIsOpen] = useState(false);
     const [pointType, setPointType] = useState(pointTypeKeys[0] || 'mycred_default');
+
+    useEffect(() => {
+        if (pointTypeKeys.length && !pointTypeKeys.includes(pointType)) {
+            setPointType(pointTypeKeys[0]);
+        }
+    }, [pointTypeKeys, pointType]);
 
     const boardSettings = settings.tabs?.boardSettings || {};
     const displayOptions = boardSettings.displayOptions || {
@@ -257,7 +264,7 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
     };
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, bgcolor: bgColor }}>
+        <Box sx={widgetTabRootSx({ bgcolor: bgColor })}>
             {/* Header */}
             <Box sx={{ p: '20px 24px', position: 'relative' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -278,15 +285,12 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
             </Box>
 
             {/* Main Content Area */}
-            <Box sx={{
-                flex: 1,
-                minHeight: 0,
+            <Box sx={widgetTabScrollBodySx({
                 bgcolor: theme.panelBg,
                 borderRadius: '28px 28px 0 0',
                 display: 'flex',
                 flexDirection: 'column',
-                overflow: 'hidden',
-            }}>
+            })}>
 
                 {/* Custom Dropdown */}
                 {displayOptions.filterByPointType !== false && pointTypeKeys.length > 1 && (
@@ -404,13 +408,9 @@ export default function BoardTab({ settings, currentContent, user, onBack, onClo
 
                 {/* List of Users */}
                 <Box sx={{
-                    flex: 1,
-                    minHeight: 0,
+                    flex: '0 1 auto',
                     px: '16px',
                     pb: '16px',
-                    overflowY: 'auto',
-                    scrollbarWidth: 'none',
-                    '&::-webkit-scrollbar': { display: 'none' },
                     pt: displayOptions.filterByPointType !== false && pointTypeKeys.length > 1 ? '8px' : '20px',
                     '& > *': {
                         animation: 'slideKeyframe 0.5s cubic-bezier(0.16, 1, 0.3, 1) both',

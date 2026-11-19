@@ -60,19 +60,28 @@ if ( ! class_exists('mycred_Open_Badge') ) :
 			
 			$user_badge_directory = trailingslashit( $user_badge_directory );
 
-			$badge_image = $badge_image_url;
-			
-			$badge_image_path = str_replace( $baseurl, $basedir, $badge_image );
+			$badge_image_path = mycred_resolve_upload_image_path( $badge_image_url );
+			if ( ! $badge_image_path ) {
+				return;
+			}
 
 			$user_info = get_userdata( $user_id );
 			
 			$identity = 'sha256$' . hash( 'sha256', $user_info->user_email . $this->salt );
-			
-			$json = $this->get_image_json_data( $user_id, $badge_id, $identity, $badge_title, $badge_image  );
+
+			if ( is_numeric( $badge_image_url ) ) {
+				$badge_image_for_json = mycred_get_attachment_url( absint( $badge_image_url ) );
+			}
+			else {
+				$uploads              = wp_upload_dir();
+				$badge_image_for_json = str_replace( wp_normalize_path( $uploads['basedir'] ), untrailingslashit( $uploads['baseurl'] ), $badge_image_path );
+			}
+
+			$json = $this->get_image_json_data( $user_id, $badge_id, $identity, $badge_title, $badge_image_for_json );
 
 			$filename = "badge-{$badge_id}-{$user_id}.png";
 
-			$this->bake_image( $badge_image, $badge_image_path, $json, $filename, $user_badge_directory );
+			$this->bake_image( $badge_image_path, $json, $filename, $user_badge_directory );
 
 			$user_image_url = trailingslashit( $baseurl . $folderName ).$user_id;
 
@@ -266,12 +275,17 @@ if ( ! class_exists('mycred_Open_Badge') ) :
 
 		}
 
-		public function bake_image( $badge_image, $badge_image_path, $json, $filename, $user_badge_directory ) {
+		public function bake_image( $badge_image_path, $json, $filename, $user_badge_directory ) {
 
-			$png = file_get_contents( $badge_image );
-			
-			if( $png == false ) {
-			    $png = file_get_contents( $badge_image_path, true );
+			$badge_image_path = mycred_resolve_upload_image_path( $badge_image_path );
+			if ( ! $badge_image_path ) {
+				return;
+			}
+
+			$png = file_get_contents( $badge_image_path );
+
+			if ( $png === false ) {
+				return;
 			}
 
 			$embed = [
@@ -300,7 +314,17 @@ if ( ! class_exists('mycred_Open_Badge') ) :
 			// before writing this out.
 			$png = substr( $png, 0, $length - 12 ) . $final . substr( $png, $length - 12, 12 );
 			
-			file_put_contents( $user_badge_directory . '/' . $filename, $png );	
+			$filename = sanitize_file_name( $filename );
+			if ( ! preg_match( '/^badge-\d+-\d+\.png$/', $filename ) ) {
+				return;
+			}
+
+			$target_dir = wp_normalize_path( trailingslashit( $user_badge_directory ) );
+			if ( ! mycred_is_path_in_uploads( $target_dir ) ) {
+				return;
+			}
+
+			file_put_contents( $target_dir . $filename, $png );
 
 		}
 

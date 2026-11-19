@@ -5,6 +5,7 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import PaymentsIcon from '@mui/icons-material/Payments';
 import { __ } from '@wordpress/i18n';
 import { useState, useEffect } from '@wordpress/element';
+import { widgetTabRootSx, widgetTabScrollBodySx } from '../preview/utils';
 
 export default function RedeemTab({ settings, currentContent, onBack, onClose, previewMode = false, previewData }) {
     const [coupons, setCoupons]   = useState([]);
@@ -93,7 +94,7 @@ export default function RedeemTab({ settings, currentContent, onBack, onClose, p
     );
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: bgColor }}>
+        <Box sx={widgetTabRootSx({ bgcolor: bgColor })}>
 
             {/* ── Header ─────────────────────────────────────────── */}
             <Box sx={{ p: '20px 24px', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -113,10 +114,8 @@ export default function RedeemTab({ settings, currentContent, onBack, onClose, p
             </Box>
 
             {/* ── Body ───────────────────────────────────────────── */}
-            <Box sx={{
-                flex: 1, bgcolor: '#F4F5F8', borderRadius: '24px 24px 0 0',
-                overflowY: 'auto', p: '20px 16px',
-                scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' },
+            <Box sx={widgetTabScrollBodySx({
+                bgcolor: '#F4F5F8', borderRadius: '24px 24px 0 0', p: '20px 16px',
                 display: 'flex', flexDirection: 'column', gap: '12px',
                 '& > *': {
                     animation: 'slideKeyframe 0.5s cubic-bezier(0.16, 1, 0.3, 1) both',
@@ -125,7 +124,7 @@ export default function RedeemTab({ settings, currentContent, onBack, onClose, p
                     ...acc,
                     [`& > *:nth-of-type(${i + 1})`]: { animationDelay: `${i * 0.05}s` }
                 }), {})
-            }}>
+            })}>
 
                 {/* ── Gateway card ───────────────────────────────── */}
                 {gateway.enabled && infoCard(

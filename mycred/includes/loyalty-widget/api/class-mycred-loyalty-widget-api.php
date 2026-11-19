@@ -154,6 +154,11 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                 $point_type = 'mycred_default';
             }
 
+            $type_check = $this->assert_point_type_visible_in_widget( $point_type );
+            if ( is_wp_error( $type_check ) ) {
+                return $type_check;
+            }
+
             // myCred Leaderboard Query
             $args = array(
                 'number'   => $number,
@@ -299,6 +304,12 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
             }
 
             $point_type = $request->get_param( 'type' ) ?: MYCRED_DEFAULT_TYPE_KEY;
+
+            $type_check = $this->assert_point_type_visible_in_widget( $point_type );
+            if ( is_wp_error( $type_check ) ) {
+                return $type_check;
+            }
+
             $mycred     = mycred( $point_type );
 
             $log = new myCRED_Query_Log( array(
@@ -341,6 +352,282 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
             return $merged;
         }
 
+        /**
+         * The stock join-card line used to wrap to three lines. Keep a custom
+         * description, and show a one-line default when the old stock copy is still stored.
+         *
+         * @param array $settings Widget settings.
+         * @return array
+         */
+        public static function normalize_join_card_description( $settings ) {
+            if ( ! isset( $settings['content']['guest'] ) || ! is_array( $settings['content']['guest'] ) ) {
+                return $settings;
+            }
+
+            $legacy = 'First access to rare rewards, exclusive events, and privileges reserved for members.';
+            $current = isset( $settings['content']['guest']['joinCardDescription'] ) ? $settings['content']['guest']['joinCardDescription'] : '';
+
+            if ( '' === $current || $current === $legacy ) {
+                $settings['content']['guest']['joinCardDescription'] = __( 'Rare rewards for members.', 'mycred' );
+            }
+
+            return $settings;
+        }
+
+        /**
+         * Header is on by default. Keep a cleared subtitle or program title empty.
+         * Only the old stock program title is replaced.
+         *
+         * @param array $settings Widget settings.
+         * @return array
+         */
+        public static function normalize_header_copy( $settings ) {
+            if ( ! isset( $settings['design'] ) || ! is_array( $settings['design'] ) ) {
+                return $settings;
+            }
+
+            $program_title = isset( $settings['design']['programTitle'] ) ? $settings['design']['programTitle'] : '';
+            if ( 'myCred Rewards' === $program_title ) {
+                $settings['design']['programTitle'] = 'Rewards hub';
+                if ( empty( $settings['design']['showHeaderTitle'] ) ) {
+                    $settings['design']['showHeaderTitle'] = true;
+                }
+            }
+
+            return $settings;
+        }
+
+        /**
+         * All point type keys registered on the site.
+         *
+         * @return string[]
+         */
+        public static function get_all_point_type_keys() {
+            if ( ! function_exists( 'mycred_get_types' ) ) {
+                return array( defined( 'MYCRED_DEFAULT_TYPE_KEY' ) ? MYCRED_DEFAULT_TYPE_KEY : 'mycred_default' );
+            }
+
+            $all_types = mycred_get_types();
+            $db_types  = get_option( 'mycred_types', array() );
+            if ( ! empty( $db_types ) && is_array( $db_types ) ) {
+                foreach ( $db_types as $type_key => $type_label ) {
+                    if ( ! isset( $all_types[ $type_key ] ) ) {
+                        $all_types[ $type_key ] = $type_label;
+                    }
+                }
+            }
+
+            $keys = array_keys( $all_types );
+            if ( empty( $keys ) ) {
+                $keys = array( defined( 'MYCRED_DEFAULT_TYPE_KEY' ) ? MYCRED_DEFAULT_TYPE_KEY : 'mycred_default' );
+            }
+
+            return $keys;
+        }
+
+        /**
+         * Point type labels for admin / widget UI.
+         *
+         * @return array<string, string>
+         */
+        public static function get_site_point_types_map() {
+            $point_types = array();
+
+            if ( function_exists( 'mycred_get_types' ) ) {
+                $all_types = mycred_get_types();
+                $db_types  = get_option( 'mycred_types', array() );
+                if ( ! empty( $db_types ) && is_array( $db_types ) ) {
+                    foreach ( $db_types as $type_key => $type_label ) {
+                        if ( ! isset( $all_types[ $type_key ] ) ) {
+                            $all_types[ $type_key ] = $type_label;
+                        }
+                    }
+                }
+
+                foreach ( $all_types as $type => $label ) {
+                    if ( function_exists( 'mycred_get_point_type_name' ) ) {
+                        $point_types[ $type ] = mycred_get_point_type_name( $type, false );
+                    } else {
+                        $mycred_obj = mycred( $type );
+                        $point_types[ $type ] = $mycred_obj->plural();
+                    }
+                }
+            }
+
+            if ( ! isset( $point_types['mycred_default'] ) ) {
+                $mycred_obj = mycred();
+                $point_types['mycred_default'] = $mycred_obj->plural();
+            }
+
+            return $point_types;
+        }
+
+        /**
+         * Resolved list of point types shown in the widget (empty setting = all).
+         *
+         * @param array $settings Widget settings.
+         * @return string[]
+         */
+        public static function get_resolved_visible_point_types( $settings ) {
+            $general  = isset( $settings['general'] ) && is_array( $settings['general'] ) ? $settings['general'] : array();
+            $selected = isset( $general['visiblePointTypes'] ) && is_array( $general['visiblePointTypes'] ) ? $general['visiblePointTypes'] : array();
+
+            $all_types = self::get_all_point_type_keys();
+
+            if ( empty( $selected ) ) {
+                return $all_types;
+            }
+
+            $visible = array();
+            foreach ( $selected as $type ) {
+                $type = sanitize_key( $type );
+                if ( function_exists( 'mycred_point_type_exists' ) ) {
+                    if ( mycred_point_type_exists( $type ) ) {
+                        $visible[] = $type;
+                    }
+                } elseif ( in_array( $type, $all_types, true ) ) {
+                    $visible[] = $type;
+                }
+            }
+
+            return ! empty( $visible ) ? $visible : $all_types;
+        }
+
+        /**
+         * @param array  $settings   Widget settings.
+         * @param string $point_type Point type key.
+         * @return bool
+         */
+        public static function is_point_type_visible_in_widget( $point_type, $settings ) {
+            $visible = self::get_resolved_visible_point_types( $settings );
+            return in_array( $point_type, $visible, true );
+        }
+
+        /**
+         * @param array  $rows     List of rows.
+         * @param array  $settings Widget settings.
+         * @param string $field    Field name holding the point type key.
+         * @return array
+         */
+        public static function filter_by_visible_point_types( $rows, $settings, $field = 'point_type' ) {
+            if ( ! is_array( $rows ) || empty( $rows ) ) {
+                return array();
+            }
+
+            $visible = array_flip( self::get_resolved_visible_point_types( $settings ) );
+
+            return array_values(
+                array_filter(
+                    $rows,
+                    function ( $row ) use ( $field, $visible ) {
+                        if ( ! is_array( $row ) || ! isset( $row[ $field ] ) ) {
+                            return false;
+                        }
+                        return isset( $visible[ $row[ $field ] ] );
+                    }
+                )
+            );
+        }
+
+        /**
+         * @param array<string, string> $map      Point type map.
+         * @param array                 $settings Widget settings.
+         * @return array<string, string>
+         */
+        public static function filter_point_types_map( $map, $settings ) {
+            if ( ! is_array( $map ) ) {
+                return array();
+            }
+
+            $filtered = array();
+            foreach ( self::get_resolved_visible_point_types( $settings ) as $type ) {
+                if ( isset( $map[ $type ] ) ) {
+                    $filtered[ $type ] = $map[ $type ];
+                }
+            }
+
+            return $filtered;
+        }
+
+        /**
+         * Whether a badge should appear in the widget for the current visibility rules.
+         *
+         * @param array    $levels_data      Badge level setup.
+         * @param int|bool $user_level_index User level or false.
+         * @param array    $settings         Widget settings.
+         * @return bool
+         */
+        public static function badge_visible_in_widget( $levels_data, $user_level_index, $settings ) {
+            if ( $user_level_index !== false ) {
+                return true;
+            }
+
+            $visible = array_flip( self::get_resolved_visible_point_types( $settings ) );
+
+            if ( empty( $levels_data ) || ! is_array( $levels_data ) ) {
+                return true;
+            }
+
+            foreach ( $levels_data as $level_setup ) {
+                if ( isset( $level_setup['reward']['type'] ) && isset( $visible[ $level_setup['reward']['type'] ] ) ) {
+                    return true;
+                }
+
+                $requirements = isset( $level_setup['requires'] ) ? $level_setup['requires'] : array();
+                foreach ( $requirements as $req_data ) {
+                    $type_key = ! empty( $req_data['type'] ) ? $req_data['type'] : ( defined( 'MYCRED_DEFAULT_TYPE_KEY' ) ? MYCRED_DEFAULT_TYPE_KEY : 'mycred_default' );
+                    if ( isset( $visible[ $type_key ] ) ) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /**
+         * @return array
+         */
+        private function get_merged_widget_settings() {
+            $settings = get_option( $this->option_name, array() );
+            $defaults = $this->get_default_settings();
+            if ( empty( $settings ) ) {
+                return $defaults;
+            }
+            return self::merge_defaults( $settings, $defaults );
+        }
+
+        /**
+         * @param string $point_type Point type key.
+         * @return true|WP_Error
+         */
+        private function assert_point_type_visible_in_widget( $point_type ) {
+            $settings = $this->get_merged_widget_settings();
+            if ( ! self::is_point_type_visible_in_widget( $point_type, $settings ) ) {
+                return new WP_Error(
+                    'point_type_not_visible',
+                    __( 'This point type is not available in the loyalty widget.', 'mycred' ),
+                    array( 'status' => 400 )
+                );
+            }
+            return true;
+        }
+
+        private function get_default_tab_controls() {
+            $has_woocommerce = class_exists( 'WooCommerce' );
+
+            return array(
+                'earn'    => true,
+                'redeem'  => $has_woocommerce,
+                'board'   => ! $has_woocommerce,
+                'logs'    => false,
+                'badges'  => false,
+                'ranks'   => false,
+                'profile' => false,
+                'faq'     => false,
+            );
+        }
+
         public function get_default_settings() {
             return array(
                 'general' => array(
@@ -356,6 +643,7 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                     'marginRight' => 24,
                     'marginBottom' => 24,
                     'marginLeft' => 24,
+                    'visiblePointTypes' => array(),
                 ),
                 'design' => array(
                     'showLogo' => true,
@@ -366,17 +654,18 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                     'showBranding' => true,
                     'logoUrl' => plugin_dir_url( dirname( __FILE__ ) ) . 'src/assets/widget-icon/widget-logo.png',
                     'logoText' => 'Reward Program',
-                    'launcherRadius' => 45,
+                    'launcherRadius' => 15,
                     'launcherAnimation' => 'fade',
-                    'layoutTemplate' => 'luxury',
+                    'layoutTemplate' => 'modern',
                     'headerStyle' => 'solid',
-                    'headerImageUrl' => plugin_dir_url( dirname( __FILE__ ) ) . 'src/assets/widget-icon/mycred_widget_header.png',
+                    'headerImageUrl' => '',
                     'headerOverlayOpacity' => 0,
+                    'showHeaderTitle' => true,
                     'headerSubtitle' => __( 'Welcome to', 'mycred' ),
-                    'programTitle' => 'myCred Rewards',
+                    'programTitle' => 'Rewards hub',
                     'borderRadius' => 8,
                     'navLayout' => 'grid',
-                    'heroImageUrl' => plugin_dir_url( dirname( __FILE__ ) ) . 'src/assets/widget-icon/default-logo1.svg',
+                    'heroImageUrl' => '',
                 ),
                 'content' => array(
                     'guest' => array(
@@ -396,7 +685,7 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                         'ranksMessage' => __( 'View member ranks', 'mycred' ),
                         'badgesMessage' => __( 'See all badges', 'mycred' ),
                         'joinCardTitle' => __( 'Join the Circle', 'mycred' ),
-                        'joinCardDescription' => __( 'First access to rare rewards, exclusive events, and privileges reserved for members.', 'mycred' ),
+                        'joinCardDescription' => __( 'Rare rewards for members.', 'mycred' ),
                         'joinRedirect' => '',
                         'loginRedirect' => '',
                     ),
@@ -439,16 +728,7 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                             'filterByPointType' => false,
                         ),
                     ),
-                    'tabControls' => array(
-                        'earn' => true,
-                        'redeem' => true,
-                        'profile' => true,
-                        'board' => true,
-                        'logs' => true,
-                        'badges' => true,
-                        'ranks' => true,
-                        'faq' => true,
-                    ),
+                    'tabControls' => $this->get_default_tab_controls(),
                 ),
                 'faq' => array(
                     'screenTitle' => __( 'FAQs', 'mycred' ),
@@ -474,9 +754,12 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                 $settings = self::merge_defaults( $settings, $this->get_default_settings() );
             }
 
+            $settings = self::normalize_join_card_description( $settings );
+            $settings = self::normalize_header_copy( $settings );
+
             if ( isset( $settings['design'] ) && is_array( $settings['design'] ) ) {
                 $settings['design']['layoutTemplate'] = $this->normalize_layout_template(
-                    isset( $settings['design']['layoutTemplate'] ) ? $settings['design']['layoutTemplate'] : 'luxury'
+                    isset( $settings['design']['layoutTemplate'] ) ? $settings['design']['layoutTemplate'] : 'modern'
                 );
             }
             
@@ -516,6 +799,9 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
             } else {
                 $all_settings = self::merge_defaults( $all_settings, $this->get_default_settings() );
             }
+
+            $all_settings = self::normalize_join_card_description( $all_settings );
+            $all_settings = self::normalize_header_copy( $all_settings );
 
             if ( ! isset( $all_settings[ $section ] ) ) {
                 return new WP_Error(
@@ -611,21 +897,44 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                 'marginLeft' => isset( $data['marginLeft'] ) ? absint( $data['marginLeft'] ) : 24,
                 'visibility' => isset( $data['visibility'] ) ? sanitize_text_field( $data['visibility'] ) : 'all',
                 'visibilityRoles' => isset( $data['visibilityRoles'] ) && is_array( $data['visibilityRoles'] ) ? array_map( 'sanitize_text_field', $data['visibilityRoles'] ) : array(),
+                'visiblePointTypes' => isset( $data['visiblePointTypes'] ) && is_array( $data['visiblePointTypes'] )
+                    ? array_values(
+                        array_unique(
+                            array_filter(
+                                array_map(
+                                    'sanitize_key',
+                                    array_filter(
+                                        $data['visiblePointTypes'],
+                                        function ( $type ) {
+                                            if ( ! is_string( $type ) || '' === $type ) {
+                                                return false;
+                                            }
+                                            if ( function_exists( 'mycred_point_type_exists' ) ) {
+                                                return mycred_point_type_exists( $type );
+                                            }
+                                            return true;
+                                        }
+                                    )
+                                )
+                            )
+                        )
+                    )
+                    : array(),
             );
         }
 
         private function normalize_layout_template( $template ) {
             $allowed  = array( 'luxury', 'modern' );
-            $template = is_string( $template ) ? sanitize_key( $template ) : 'luxury';
+            $template = is_string( $template ) ? sanitize_key( $template ) : '';
             if ( ! in_array( $template, $allowed, true ) ) {
-                return 'luxury';
+                return 'modern';
             }
             return $template;
         }
 
         private function sanitize_design_settings( $data ) {
             $layout_template = $this->normalize_layout_template(
-                isset( $data['layoutTemplate'] ) ? $data['layoutTemplate'] : 'luxury'
+                isset( $data['layoutTemplate'] ) ? $data['layoutTemplate'] : 'modern'
             );
             $header_styles   = array( 'solid', 'image' );
             $nav_layouts     = array( 'grid', 'list' );
@@ -669,8 +978,9 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                 'headerStyle' => $header_style,
                 'headerImageUrl' => isset( $data['headerImageUrl'] ) ? esc_url_raw( $data['headerImageUrl'] ) : '',
                 'headerOverlayOpacity' => $overlay,
+                'showHeaderTitle' => ! empty( $data['showHeaderTitle'] ),
                 'headerSubtitle' => isset( $data['headerSubtitle'] ) ? sanitize_text_field( $data['headerSubtitle'] ) : __( 'Welcome to', 'mycred' ),
-                'programTitle' => isset( $data['programTitle'] ) ? sanitize_text_field( $data['programTitle'] ) : 'myCred Rewards',
+                'programTitle' => isset( $data['programTitle'] ) ? sanitize_text_field( $data['programTitle'] ) : 'Rewards hub',
                 'borderRadius' => $border_radius,
                 'showTiersOnHome' => isset( $data['showTiersOnHome'] ) ? (bool) $data['showTiersOnHome'] : false,
                 'navLayout' => $nav_layout,
@@ -770,16 +1080,15 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
             }
 
             if ( isset( $data['tabControls'] ) && is_array( $data['tabControls'] ) ) {
-                $is_pro = $this->is_pro();
                 $sanitized['tabControls'] = array(
                     'earn' => isset( $data['tabControls']['earn'] ) ? (bool) $data['tabControls']['earn'] : true,
-                    'redeem' => ( isset( $data['tabControls']['redeem'] ) && $is_pro ) ? (bool) $data['tabControls']['redeem'] : false,
-                    'profile' => isset( $data['tabControls']['profile'] ) ? (bool) $data['tabControls']['profile'] : true,
-                    'board' => isset( $data['tabControls']['board'] ) ? (bool) $data['tabControls']['board'] : true,
-                    'logs' => isset( $data['tabControls']['logs'] ) ? (bool) $data['tabControls']['logs'] : true,
-                    'badges' => isset( $data['tabControls']['badges'] ) ? (bool) $data['tabControls']['badges'] : true,
-                    'ranks' => isset( $data['tabControls']['ranks'] ) ? (bool) $data['tabControls']['ranks'] : true,
-                    'faq' => isset( $data['tabControls']['faq'] ) ? (bool) $data['tabControls']['faq'] : true,
+                    'redeem' => ( isset( $data['tabControls']['redeem'] ) && class_exists( 'WooCommerce' ) ) ? (bool) $data['tabControls']['redeem'] : false,
+                    'profile' => isset( $data['tabControls']['profile'] ) ? (bool) $data['tabControls']['profile'] : false,
+                    'board' => isset( $data['tabControls']['board'] ) ? (bool) $data['tabControls']['board'] : false,
+                    'logs' => isset( $data['tabControls']['logs'] ) ? (bool) $data['tabControls']['logs'] : false,
+                    'badges' => isset( $data['tabControls']['badges'] ) ? (bool) $data['tabControls']['badges'] : false,
+                    'ranks' => isset( $data['tabControls']['ranks'] ) ? (bool) $data['tabControls']['ranks'] : false,
+                    'faq' => isset( $data['tabControls']['faq'] ) ? (bool) $data['tabControls']['faq'] : false,
                 );
             }
 
@@ -834,10 +1143,11 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
                         if ( ! is_array( $hook ) ) continue;
                         
                         $sanitized[ $category ][] = array(
-                            'id'           => isset( $hook['id'] ) ? sanitize_text_field( $hook['id'] ) : '',
-                            'point_type'   => isset( $hook['point_type'] ) ? sanitize_text_field( $hook['point_type'] ) : '',
-                            'enabled'      => isset( $hook['enabled'] ) ? (bool) $hook['enabled'] : false,
-                            'displayLabel' => isset( $hook['displayLabel'] ) ? sanitize_text_field( $hook['displayLabel'] ) : '',
+                            'id'                  => isset( $hook['id'] ) ? sanitize_text_field( $hook['id'] ) : '',
+                            'point_type'          => isset( $hook['point_type'] ) ? sanitize_text_field( $hook['point_type'] ) : '',
+                            'enabled'             => isset( $hook['enabled'] ) ? (bool) $hook['enabled'] : false,
+                            'displayLabel'        => isset( $hook['displayLabel'] ) ? sanitize_text_field( $hook['displayLabel'] ) : '',
+                            'displayDescription'  => isset( $hook['displayDescription'] ) ? sanitize_textarea_field( $hook['displayDescription'] ) : '',
                         );
                     }
                 }
@@ -851,6 +1161,12 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
             
             // Get point type (default to basic points)
             $point_type = $request->get_param( 'type' ) ?: MYCRED_DEFAULT_TYPE_KEY;
+
+            $type_check = $this->assert_point_type_visible_in_widget( $point_type );
+            if ( is_wp_error( $type_check ) ) {
+                return $type_check;
+            }
+
             $mycred     = mycred( $point_type );
             
             // Get all published ranks
@@ -882,6 +1198,7 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
 
         public function get_badges( WP_REST_Request $request ) {
             $user_id = get_current_user_id();
+            $settings = $this->get_merged_widget_settings();
             
             // Get all published badges
             $badge_ids = mycred_get_badge_ids();
@@ -901,6 +1218,11 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_API' ) ) :
 
                     // Get detailed levels structure
                     $levels_data = mycred_get_badge_levels( $badge_id );
+
+                    if ( ! self::badge_visible_in_widget( $levels_data, $user_level_index, $settings ) ) {
+                        continue;
+                    }
+
                     $formatted_levels = array();
 
                     if ( ! empty( $levels_data ) ) {

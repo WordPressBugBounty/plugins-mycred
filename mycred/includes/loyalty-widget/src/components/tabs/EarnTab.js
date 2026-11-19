@@ -1,7 +1,42 @@
 import { Box, Typography, Paper, IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
+import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
+import LoginIcon from '@mui/icons-material/Login';
+import ShareIcon from '@mui/icons-material/Share';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
+import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import TollIcon from '@mui/icons-material/Toll';
 import { __ } from '@wordpress/i18n';
+import { widgetTabRootSx, widgetTabScrollBodySx } from '../preview/utils';
+import { resolveHookLabel, resolveHookDescription } from '../../hookDisplayDefaults';
+import { filterActiveHooksForWidget } from '../../pointTypeVisibility';
+
+const getHookIcon = (hook) => {
+    const id = String(hook?.id || '').toLowerCase();
+    const category = String(hook?.category || '').toLowerCase();
+
+    if (id.includes('regist') || id.includes('signup') || id.includes('sign_up')) {
+        return PersonAddAlt1Icon;
+    }
+    if (id.includes('login') || id.includes('visit') || id.includes('logging')) {
+        return LoginIcon;
+    }
+    if (id.includes('referr') || id.includes('affiliate')) {
+        return ShareIcon;
+    }
+    if (id.includes('comment')) {
+        return ChatBubbleOutlineIcon;
+    }
+    if (id.includes('publish') || id.includes('content')) {
+        return ArticleOutlinedIcon;
+    }
+    if (id.includes('order') || id.includes('purchase') || id.includes('woo') || category === 'woocommerce') {
+        return ShoppingBagOutlinedIcon;
+    }
+    return TollIcon;
+};
 
 export default function EarnTab({ settings, currentContent, user, activeHooks, onBack, onClose }) {
     currentContent = currentContent || {};
@@ -9,25 +44,7 @@ export default function EarnTab({ settings, currentContent, user, activeHooks, o
     const design = settings.design || {};
     const btnColor = design.buttonColor || '#5E2CED';
     const bgColor = design.backgroundColor || '#2D1572';
-
-    const getHookLabel = (hook) => {
-        const cat = hook.category ? `${hook.category}Hooks` : 'wordpressHooks';
-        let label = hook.title;
-
-        if (settings.eventtriggers && settings.eventtriggers[cat] && Array.isArray(settings.eventtriggers[cat])) {
-            const match = settings.eventtriggers[cat].find(h => String(h.id) === String(hook.id) && String(h.point_type) === String(hook.point_type));
-            if (match && match.displayLabel) {
-                label = match.displayLabel;
-            }
-        }
-
-        if (label) {
-            label = label.replace(/%plural%/g, hook.plural || __('points', 'mycred'));
-            label = label.replace(/%singular%/g, hook.singular || __('point', 'mycred'));
-        }
-
-        return label;
-    };
+    const headerText = design.textColor || '#FFFFFF';
 
     const isHookEnabled = (hook) => {
         const categories = ['wordpressHooks', 'woocommerceHooks', 'buddypressHooks', 'forumHooks'];
@@ -42,44 +59,60 @@ export default function EarnTab({ settings, currentContent, user, activeHooks, o
         return true;
     };
 
-    const filteredHooks = (activeHooks || []).filter(hook => isHookEnabled(hook));
+    const typeVisibleHooks = filterActiveHooksForWidget(activeHooks || [], settings);
+    const filteredHooks = typeVisibleHooks.filter(hook => isHookEnabled(hook));
 
     if (eventtriggers.enableHooks === false) {
         return (
-            <Box sx={{ p: 4, textAlign: 'center' }}>
-                <Typography sx={{ color: '#666' }}>{__('No earning opportunities available at the moment.', 'mycred')}</Typography>
+            <Box sx={widgetTabRootSx({ bgcolor: bgColor })}>
+                <Box sx={{ p: '20px 24px', color: headerText, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                        <IconButton size="small" onClick={onBack} sx={{ color: headerText, p: 0.5 }}>
+                            <ArrowBackIcon />
+                        </IconButton>
+                        <Typography sx={{ fontSize: '16px', fontWeight: 600, color: headerText, fontFamily: "'Instrument Sans', sans-serif", lineHeight: 1.3 }}>
+                            {currentContent.earnMessage || __('Earn', 'mycred')}
+                        </Typography>
+                    </Box>
+                    <IconButton size="small" onClick={onClose} sx={{ color: headerText, flexShrink: 0 }}>
+                        <CloseIcon />
+                    </IconButton>
+                </Box>
+                <Box sx={widgetTabScrollBodySx({
+                    bgcolor: '#F8F9FB',
+                    borderRadius: '24px 24px 0 0',
+                    p: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                })}>
+                    <Typography sx={{ color: '#666', fontSize: '14px', textAlign: 'center' }}>
+                        {__('No earning opportunities available at the moment.', 'mycred')}
+                    </Typography>
+                </Box>
             </Box>
         );
     }
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: bgColor }}>
-            <Box sx={{ p: '20px 24px', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <IconButton size="small" onClick={onBack} sx={{ color: '#fff', p: 0.5 }}>
+        <Box sx={widgetTabRootSx({ bgcolor: bgColor })}>
+            <Box sx={{ p: '20px 24px', color: headerText, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                    <IconButton size="small" onClick={onBack} sx={{ color: headerText, p: 0.5 }}>
                         <ArrowBackIcon />
                     </IconButton>
-                    <Box>
-                        <Typography sx={{ fontSize: '18px', fontWeight: 700 }}>
-                            {currentContent.earnMessage || __('Earn', 'mycred')}
-                        </Typography>
-                    </Box>
+                    <Typography sx={{ fontSize: '16px', fontWeight: 600, color: headerText, fontFamily: "'Instrument Sans', sans-serif", lineHeight: 1.3 }}>
+                        {currentContent.earnMessage || __('Earn', 'mycred')}
+                    </Typography>
                 </Box>
-                <IconButton size="small" onClick={onClose} sx={{ color: '#fff' }}>
+                <IconButton size="small" onClick={onClose} sx={{ color: headerText, flexShrink: 0 }}>
                     <CloseIcon />
                 </IconButton>
             </Box>
 
-            <Box sx={{
-                flex: 1, bgcolor: '#F8F9FB', borderRadius: '24px 24px 0 0', p: '20px', overflowY: 'auto',
-                scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' }
-            }}>
-                {filteredHooks.length > 0 && (
-                    <Typography sx={{ fontSize: '12px', fontWeight: 600, color: '#666', mb: 2, textTransform: 'uppercase' }}>
-                        {__('All Challenges', 'mycred')}
-                    </Typography>
-                )}
-
+            <Box sx={widgetTabScrollBodySx({
+                bgcolor: '#F8F9FB', borderRadius: '24px 24px 0 0', p: '20px',
+            })}>
                 <Box sx={{
                     display: 'flex', flexDirection: 'column', gap: 2,
                     '& > *': {
@@ -90,7 +123,11 @@ export default function EarnTab({ settings, currentContent, user, activeHooks, o
                         [`& > *:nth-of-type(${i + 1})`]: { animationDelay: `${i * 0.05}s` }
                     }), {})
                 }}>
-                    {filteredHooks.map((hook, index) => (
+                    {filteredHooks.map((hook, index) => {
+                        const HookIcon = getHookIcon(hook);
+                        const hookLabel = resolveHookLabel(hook, eventtriggers);
+                        const hookDescription = resolveHookDescription(hook, eventtriggers);
+                        return (
                         <Paper
                             key={`${hook.id}-${hook.point_type}-${index}`}
                             elevation={0}
@@ -101,26 +138,42 @@ export default function EarnTab({ settings, currentContent, user, activeHooks, o
                                 bgcolor: '#fff'
                             }}
                         >
-                            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                            <Box sx={{ display: 'flex', alignItems: hookDescription ? 'flex-start' : 'center', gap: 2 }}>
                                 <Box sx={{
                                     width: 40,
                                     height: 40,
                                     borderRadius: '10px',
                                     bgcolor: `${btnColor}22`,
+                                    color: btnColor,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    flexShrink: 0
+                                    flexShrink: 0,
+                                    mt: hookDescription ? 0.25 : 0,
                                 }}>
-                                    <Typography sx={{ fontSize: '20px' }}>⭐</Typography>
+                                    <HookIcon sx={{ fontSize: 20 }} />
                                 </Box>
-                                <Box sx={{ flex: 1 }}>
-                                    <Typography sx={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
-                                        {getHookLabel(hook)}
+                                <Box sx={{ flex: 1, minWidth: 0 }}>
+                                    <Typography sx={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a', lineHeight: 1.35 }}>
+                                        {hookLabel}
                                     </Typography>
-                                    <Typography sx={{ fontSize: '12px', color: '#666' }}>
-                                        {__('Earn points by participating', 'mycred')}
-                                    </Typography>
+                                    {hookDescription ? (
+                                        <Typography
+                                            sx={{
+                                                fontSize: '12px',
+                                                fontWeight: 400,
+                                                color: '#666',
+                                                lineHeight: 1.45,
+                                                mt: 0.5,
+                                                display: '-webkit-box',
+                                                WebkitLineClamp: 2,
+                                                WebkitBoxOrient: 'vertical',
+                                                overflow: 'hidden',
+                                            }}
+                                        >
+                                            {hookDescription}
+                                        </Typography>
+                                    ) : null}
                                 </Box>
                                 <Typography sx={{
                                     fontSize: '14px',
@@ -136,7 +189,8 @@ export default function EarnTab({ settings, currentContent, user, activeHooks, o
                                 </Typography>
                             </Box>
                         </Paper>
-                    ))}
+                        );
+                    })}
 
                     {filteredHooks.length === 0 && (
                         <Box sx={{ textAlign: 'center', py: 4 }}>

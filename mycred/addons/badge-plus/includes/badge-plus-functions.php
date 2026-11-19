@@ -265,6 +265,123 @@ if ( ! function_exists( 'mycred_get_badge_events' ) ) :
 endif;
 
 /**
+ * Sanitize Badge Plus requirement rows before they are stored.
+ *
+ * @since 1.0.1
+ * @param array $requirements Raw requirement rows from the admin UI.
+ * @return array
+ */
+if ( ! function_exists( 'mycred_sanitize_badge_plus_link_click_value' ) ) :
+	/**
+	 * Normalize a stored link-click filter value for queries.
+	 *
+	 * @param string $based_on Filter mode.
+	 * @param string $link     Raw link value.
+	 * @return array{ based_on: string, link: string }
+	 */
+	function mycred_sanitize_badge_plus_link_click_value( $based_on, $link ) {
+
+		$based_on = sanitize_key( $based_on );
+		if ( ! in_array( $based_on, array( 'any', 'specific_url', 'specific_id' ), true ) ) {
+			$based_on = 'any';
+		}
+
+		if ( $based_on === 'specific_url' ) {
+			$link = esc_url_raw( (string) $link );
+			if ( $link === '' ) {
+				$based_on = 'any';
+			}
+		}
+		elseif ( $based_on === 'specific_id' ) {
+			$link_id = absint( $link );
+			if ( $link_id < 1 ) {
+				$based_on = 'any';
+				$link     = '';
+			} else {
+				$link = (string) $link_id;
+			}
+		}
+		else {
+			$based_on = 'any';
+			$link     = '';
+		}
+
+		return array(
+			'based_on' => $based_on,
+			'link'     => $link,
+		);
+	}
+endif;
+
+if ( ! function_exists( 'mycred_sanitize_badge_plus_requirements' ) ) :
+	function mycred_sanitize_badge_plus_requirements( $requirements ) {
+
+		if ( ! is_array( $requirements ) ) {
+			return array();
+		}
+
+		$requirements    = mycred_sanitize_array( $requirements );
+		$events          = mycred_get_badge_events();
+		$point_type_keys = array_keys( mycred_get_types() );
+		$sanitized       = array();
+
+		foreach ( $requirements as $requirement ) {
+
+			if ( ! is_array( $requirement ) ) {
+				continue;
+			}
+
+			$reference = isset( $requirement['reference'] ) ? sanitize_key( $requirement['reference'] ) : '';
+			if ( empty( $reference ) || ! isset( $events[ $reference ] ) ) {
+				continue;
+			}
+			$requirement['reference'] = $reference;
+
+			$required = isset( $requirement['required'] ) ? sanitize_key( $requirement['required'] ) : 'required';
+			$requirement['required']  = in_array( $required, array( 'required', 'optional' ), true ) ? $required : 'required';
+
+			if ( isset( $requirement['label'] ) ) {
+				$requirement['label'] = sanitize_text_field( $requirement['label'] );
+			}
+
+			$point_type = isset( $requirement['point_type'] ) ? sanitize_key( $requirement['point_type'] ) : MYCRED_DEFAULT_TYPE_KEY;
+			$requirement['point_type'] = in_array( $point_type, $point_type_keys, true ) ? $point_type : MYCRED_DEFAULT_TYPE_KEY;
+
+			$requirement['amount'] = isset( $requirement['amount'] ) ? absint( $requirement['amount'] ) : 1;
+			if ( $requirement['amount'] < 1 ) {
+				$requirement['amount'] = 1;
+			}
+
+			$amount_by = isset( $requirement['amount_by'] ) ? sanitize_key( $requirement['amount_by'] ) : 'times';
+			$requirement['amount_by'] = in_array( $amount_by, array( 'times', 'intotal' ), true ) ? $amount_by : 'times';
+
+			$requirement['limit'] = isset( $requirement['limit'] ) ? absint( $requirement['limit'] ) : 0;
+
+			$limit_by = isset( $requirement['limit_by'] ) ? sanitize_key( $requirement['limit_by'] ) : 'day';
+			$requirement['limit_by'] = in_array( $limit_by, array( 'no_limit', 'day', 'week', 'month', 'year' ), true ) ? $limit_by : 'day';
+
+			if ( $reference === 'link_click' ) {
+				$link_click = mycred_sanitize_badge_plus_link_click_value(
+					isset( $requirement['link_click_based_on'] ) ? $requirement['link_click_based_on'] : 'any',
+					isset( $requirement['link'] ) ? $requirement['link'] : ''
+				);
+				$requirement['link_click_based_on'] = $link_click['based_on'];
+				$requirement['link']                = $link_click['link'];
+			}
+
+			if ( isset( $requirement['post_types'] ) ) {
+				$requirement['post_types'] = sanitize_text_field( $requirement['post_types'] );
+			}
+
+			$sanitized[] = $requirement;
+		}
+
+		return apply_filters( 'mycred_sanitize_badge_plus_requirements', $sanitized, $requirements );
+
+	}
+endif;
+
+/**
  * Get Badge IDs
  * Returns all published badge post IDs.
  * @since 1.5

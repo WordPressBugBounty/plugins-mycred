@@ -83,20 +83,43 @@ endif;
 
 add_shortcode( MYCRED_SLUG . '_send', 'mycred_render_shortcode_send' );
 
-function mycred_send_encrypt_amount($amount, $key) {
-    $cipher = "aes-256-cbc";
-    $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length($cipher));
-    $encrypted = openssl_encrypt($amount, $cipher, $key, 0, $iv);
-    return base64_encode($iv . $encrypted);
-}
+/**
+ * Amounts written into [mycred_send] on a post for one recipient and point type.
+ */
+function mycred_send_amounts_on_post( $post_id, $recipient, $point_type ) {
 
-function mycred_send_decrypt_amount($encrypted_data, $key) {
-    $cipher = "aes-256-cbc";
-    $data = base64_decode($encrypted_data);
-    $iv_length = openssl_cipher_iv_length($cipher);
-    $iv = substr($data, 0, $iv_length);
-    $encrypted = substr($data, $iv_length);
-    return openssl_decrypt($encrypted, $cipher, $key, 0, $iv);
+    $post = get_post( $post_id );
+    if ( ! $post instanceof WP_Post ) {
+        return array();
+    }
+
+    $pattern = get_shortcode_regex( array( MYCRED_SLUG . '_send' ) );
+    if ( ! preg_match_all( '/' . $pattern . '/s', $post->post_content, $found, PREG_SET_ORDER ) ) {
+        return array();
+    }
+
+    $amounts = array();
+    foreach ( $found as $shortcode ) {
+        $atts = shortcode_parse_atts( isset( $shortcode[3] ) ? $shortcode[3] : '' );
+        if ( ! is_array( $atts ) ) {
+            $atts = array();
+        }
+
+        $atts = shortcode_atts( array(
+            'amount' => 0,
+            'to'     => '',
+            'type'   => MYCRED_DEFAULT_TYPE_KEY,
+        ), $atts, MYCRED_SLUG . '_send' );
+
+        $to   = absint( mycred_get_user_id( $atts['to'] ) );
+        $type = sanitize_text_field( $atts['type'] );
+        if ( $to === (int) $recipient && $type === $point_type ) {
+            $amounts[] = $atts['amount'];
+        }
+    }
+
+    return $amounts;
+
 }
 
 
@@ -139,15 +162,21 @@ if ( ! function_exists( 'mycred_shortcode_send_points_ajax' ) ) :
         wp_send_json(['status' => 'error', 'message' => 'Invalid recipient.']);
     }
 
-    $amount_encrypted = isset($_POST['amount']) ? sanitize_text_field(wp_unslash($_POST['amount'])) : '';
-    $amount = mycred_send_decrypt_amount($amount_encrypted, '94jCwvMyi9xe3knklOyysUeNeML5szTXsCVRpk8wA9b48Jd5XM6jSJFrwGBTk6WF');
+    $posted_amount = isset($_POST['amount']) ? sanitize_text_field(wp_unslash($_POST['amount'])) : '';
+    $mycred = mycred($point_type);
+    $amount = false;
+
+    foreach ( mycred_send_amounts_on_post( $post_id, $recipient, $point_type ) as $allowed ) {
+        $allowed = $mycred->number( $allowed );
+        if ( $allowed > 0 && $allowed == $mycred->number( $posted_amount ) ) {
+            $amount = $allowed;
+            break;
+        }
+    }
 
     if ($amount === false || $amount <= 0) {
         wp_send_json(['status' => 'error', 'message' => 'Invalid or manipulated amount.']);
     }
-
-    $mycred = mycred($point_type);
-    $amount = $mycred->number($amount);
 
     $account_limit = $mycred->number(apply_filters('mycred_transfer_acc_limit', $mycred->zero()));
     $balance = $mycred->get_users_balance($user_id, $point_type);
@@ -171,25 +200,6 @@ if ( ! function_exists( 'mycred_shortcode_send_points_ajax' ) ) :
 }
 endif;
 add_action( 'wp_ajax_mycred-send-points', 'mycred_shortcode_send_points_ajax' );
-
-function mycred_encrypt_amount_ajax() {
-    check_ajax_referer('mycred-send-points', 'token');
-
-    $amount = isset($_POST['amount']) ? sanitize_text_field($_POST['amount']) : null;
-    if (!$amount || !is_numeric($amount)) {
-        wp_send_json(['status' => 'error', 'message' => 'Invalid amount.']);
-    }
-
-    $key = '94jCwvMyi9xe3knklOyysUeNeML5szTXsCVRpk8wA9b48Jd5XM6jSJFrwGBTk6WF'; // secure key
-    $encrypted_amount = mycred_send_encrypt_amount($amount, $key);
-
-    if ($encrypted_amount) {
-        wp_send_json(['status' => 'success', 'encrypted_amount' => $encrypted_amount]);
-    } else {
-        wp_send_json(['status' => 'error', 'message' => 'Failed to encrypt amount.']);
-    }
-}
-add_action('wp_ajax_mycred-encrypt-amount', 'mycred_encrypt_amount_ajax');
 
 
 

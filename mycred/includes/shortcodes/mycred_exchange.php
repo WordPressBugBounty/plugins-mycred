@@ -98,6 +98,68 @@ endif;
 add_shortcode( MYCRED_SLUG . '_exchange', 'mycred_render_shortcode_exchange' );
 
 /**
+ * Post that received the exchange form.
+ */
+if ( ! function_exists( 'mycred_exchange_current_post_id' ) ) :
+	function mycred_exchange_current_post_id() {
+
+		$post_id = 0;
+
+		if ( isset( $_GET['p'] ) )
+			$post_id = absint( wp_unslash( $_GET['p'] ) );
+
+		if ( $post_id < 1 && isset( $_GET['page_id'] ) )
+			$post_id = absint( wp_unslash( $_GET['page_id'] ) );
+
+		if ( $post_id < 1 && ! empty( $_SERVER['REQUEST_URI'] ) ) {
+			$path = wp_parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ), PHP_URL_PATH );
+			if ( is_string( $path ) && $path !== '' )
+				$post_id = url_to_postid( home_url( $path ) );
+		}
+
+		return $post_id;
+
+	}
+endif;
+
+/**
+ * Rate and minimum from the shortcode saved on the post.
+ */
+if ( ! function_exists( 'mycred_exchange_terms_from_post' ) ) :
+	function mycred_exchange_terms_from_post( $from, $to ) {
+
+		$post = get_post( mycred_exchange_current_post_id() );
+		if ( ! $post instanceof WP_Post ) return false;
+
+		$pattern = get_shortcode_regex( array( MYCRED_SLUG . '_exchange' ) );
+		if ( ! preg_match_all( '/' . $pattern . '/s', $post->post_content, $found, PREG_SET_ORDER ) ) return false;
+
+		foreach ( $found as $shortcode ) {
+			$atts = shortcode_parse_atts( isset( $shortcode[3] ) ? $shortcode[3] : '' );
+			if ( ! is_array( $atts ) )
+				$atts = array();
+
+			$atts = shortcode_atts( array(
+				'from' => '',
+				'to'   => '',
+				'rate' => 1,
+				'min'  => 1,
+			), $atts, MYCRED_SLUG . '_exchange' );
+
+			if ( (string) $atts['from'] === (string) $from && (string) $atts['to'] === (string) $to ) {
+				return array(
+					'rate' => $atts['rate'],
+					'min'  => $atts['min'],
+				);
+			}
+		}
+
+		return false;
+
+	}
+endif;
+
+/**
  * Catch Exchange
  * Intercepts and executes exchange requests.
  * @since 1.5
@@ -115,11 +177,11 @@ if ( ! function_exists( 'mycred_catch_exchange_requests' ) ) :
 		if ( $token === false ) return;
 
 		global $mycred_exchange;
-		list ( $from, $to, $user_id, $rate, $min ) = $token;
+		list ( $from, $to ) = $token;
 
 		// Check point types
 		$types       = mycred_get_types();
-		if ( ! array_key_exists( $from, $types ) || ! array_key_exists( $to, $types ) ) {
+		if ( ! array_key_exists( $from, $types ) || ! array_key_exists( $to, $types ) || $from === $to ) {
 			$mycred_exchange = array(
 				'success' => false,
 				'message' => apply_filters( 'check_point_type_message', __( 'Point types not found.', 'mycred') )
@@ -127,6 +189,17 @@ if ( ! function_exists( 'mycred_catch_exchange_requests' ) ) :
 			return;
 		}
 
+		$terms = mycred_exchange_terms_from_post( $from, $to );
+		if ( $terms === false ) {
+			$mycred_exchange = array(
+				'success' => false,
+				'message' => __( 'Exchange could not be verified.', 'mycred' )
+			);
+			return;
+		}
+
+		$rate        = $terms['rate'];
+		$min         = $terms['min'];
 		$user_id     = get_current_user_id();
 
 		// Check for exclusion
@@ -151,6 +224,7 @@ if ( ! function_exists( 'mycred_catch_exchange_requests' ) ) :
 
 		// Check for exclusion
 		$mycred_to   = mycred( $to );
+		$rate        = apply_filters( 'mycred_exchange_rate', $rate, $mycred_from, $mycred_to );
 		if ( $mycred_to->exclude_user( $user_id ) ) {
 			$mycred_exchange = array(
 				'success' => false,

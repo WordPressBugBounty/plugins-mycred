@@ -42,4 +42,4 @@ export const getTemplatePreset = (id) => {
     return { ...LUXURY_PRESET };
 };
 
-export const normalizeLayoutTemplate = (id) => (id === 'modern' ? 'modern' : 'luxury');
+export const normalizeLayoutTemplate = (id) => (id === 'luxury' ? 'luxury' : 'modern');

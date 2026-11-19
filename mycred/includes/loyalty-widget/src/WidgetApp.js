@@ -109,14 +109,14 @@ export default function WidgetApp() {
                 }}
             />
             <Box sx={getPositionStyles()}>
-                {/* Launcher Button */}
-                <Launcher
-                    isOpen={isOpen}
-                    onClick={toggleWidget}
-                    settings={settings}
-                />
+                {!isOpen && (
+                    <Launcher
+                        isOpen={false}
+                        onClick={toggleWidget}
+                        settings={settings}
+                    />
+                )}
 
-                {/* Widget Window */}
                 {isOpen && (
                     <WidgetWindow
                         settings={settings}

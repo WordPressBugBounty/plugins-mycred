@@ -57,7 +57,7 @@ if ( ! class_exists( 'myCRED_Query_Export' ) ) :
 		public function set_export_file_name( $name = '' ) {
 
 			$file = mb_ereg_replace( "([^\w\s\d\-_~,;\[\]\(\).])", '', $name );
-			$file = mb_ereg_replace( "([\.]{2,})", '', $name );
+			$file = mb_ereg_replace( "([\.]{2,})", '', $file );
 
 			if ( $file === NULL || $file === false || strlen( $file ) == 0 )
 				$file = 'mycred-export-' . date( $this->args['date_format'], current_time( 'timestamp' ) ) . '.csv';

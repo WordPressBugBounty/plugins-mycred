@@ -23,8 +23,21 @@ import SettingsCard from '../components/admin/SettingsCard';
 import { useRegisterSaveActions } from '../context/SaveActionsContext';
 import { useAdminTheme } from '../../../../src/shared/adminTheme/AdminThemeProvider';
 import { getTabContentSx, getFormStackSx } from '../components/admin/formStyles';
+import { mergeHookAdminState, getDefaultDisplayDescription } from '../hookDisplayDefaults';
+import { usePreviewSettings } from '../context/PreviewSettingsContext';
 
-const HookItem = ({ title, description, checked, onChange, displayLabel, onLabelChange, pointTypeLabel, isPro }) => {
+const HookItem = ({
+    title,
+    description,
+    checked,
+    onChange,
+    displayLabel,
+    onLabelChange,
+    displayDescription,
+    onDescriptionChange,
+    descriptionPlaceholder,
+    pointTypeLabel,
+}) => {
     const { colors } = useAdminTheme();
 
     return (
@@ -58,60 +71,45 @@ const HookItem = ({ title, description, checked, onChange, displayLabel, onLabel
                             {pointTypeLabel || __('Points', 'mycred')}
                         </Typography>
                     </Box>
-                    <Typography
-                        component="div"
-                        sx={{
-                            fontSize: '13px',
-                            color: colors.textSecondary,
-                            mb: 2,
-                            overflowWrap: 'anywhere',
-                            wordBreak: 'break-word',
-                            '& a': { color: colors.primary },
-                        }}
-                        dangerouslySetInnerHTML={{ __html: description || '' }}
-                    />
+                    {description ? (
+                        <Box sx={{ mb: 2 }}>
+                            <Typography sx={{ fontSize: '11px', fontWeight: 700, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.75 }}>
+                                {__('Hook documentation (admin)', 'mycred')}
+                            </Typography>
+                            <Typography
+                                component="div"
+                                sx={{
+                                    fontSize: '13px',
+                                    color: colors.textSecondary,
+                                    overflowWrap: 'anywhere',
+                                    wordBreak: 'break-word',
+                                    '& a': { color: colors.primary },
+                                }}
+                                dangerouslySetInnerHTML={{ __html: description }}
+                            />
+                        </Box>
+                    ) : null}
 
                     {checked && (
-                        <Box sx={{ mt: 2, pl: 0, opacity: !isPro ? 0.7 : 1 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                <Typography sx={{ fontSize: '12px', fontWeight: 700, color: colors.textPrimary, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        <Box sx={{ mt: 2, pl: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <Box>
+                                <Typography sx={{ fontSize: '12px', fontWeight: 700, color: colors.textPrimary, textTransform: 'uppercase', letterSpacing: '0.5px', mb: 1 }}>
                                     {__('Display Label in Widget', 'mycred')}
                                 </Typography>
-                                {!isPro && (
-                                    <Box sx={{
-                                        bgcolor: colors.primaryLight,
-                                        color: colors.primary,
-                                        fontSize: '10px',
-                                        fontWeight: 700,
-                                        px: 1,
-                                        py: 0.25,
-                                        borderRadius: '4px',
-                                        textTransform: 'uppercase',
-                                        border: `1px solid ${colors.borderInput}`
-                                    }}>
-                                        {__('Pro', 'mycred')}
-                                    </Box>
-                                )}
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                 <Box sx={{
-                                    flex: 1,
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: 1.5,
-                                    bgcolor: !isPro ? colors.paperMuted : colors.paper,
+                                    bgcolor: colors.paper,
                                     border: `1px solid ${colors.borderInput}`,
                                     borderRadius: '8px',
                                     px: 2,
                                     py: 1,
-                                    cursor: !isPro ? 'not-allowed' : 'default'
                                 }}>
                                     <Box
                                         component="input"
                                         value={displayLabel || ''}
-                                        onChange={(e) => isPro && onLabelChange(e.target.value)}
-                                        placeholder={!isPro ? __('Upgrade to Pro to customize label', 'mycred') : __('Enter custom label...', 'mycred')}
-                                        disabled={!isPro}
+                                        onChange={(e) => onLabelChange(e.target.value)}
+                                        placeholder={__('Enter custom label...', 'mycred')}
                                         sx={{
                                             border: 'none',
                                             outline: 'none',
@@ -121,7 +119,44 @@ const HookItem = ({ title, description, checked, onChange, displayLabel, onLabel
                                             py: 1.2,
                                             fontFamily: 'inherit',
                                             bgcolor: 'transparent',
-                                            cursor: !isPro ? 'not-allowed' : 'text',
+                                            '&::placeholder': { color: colors.textMuted }
+                                        }}
+                                    />
+                                </Box>
+                            </Box>
+                            <Box>
+                                <Typography sx={{ fontSize: '12px', fontWeight: 700, color: colors.textPrimary, textTransform: 'uppercase', letterSpacing: '0.5px', mb: 0.5 }}>
+                                    {__('Short Description in Widget', 'mycred')}
+                                </Typography>
+                                <Typography sx={{ fontSize: '12px', color: colors.textSecondary, mb: 1 }}>
+                                    {__('Shown under the title on the Earn tab.', 'mycred')}
+                                </Typography>
+                                <Box sx={{
+                                    bgcolor: colors.paper,
+                                    border: `1px solid ${colors.borderInput}`,
+                                    borderRadius: '8px',
+                                    px: 2,
+                                    py: 1,
+                                }}>
+                                    <Box
+                                        component="textarea"
+                                        value={displayDescription || ''}
+                                        onChange={(e) => onDescriptionChange(e.target.value)}
+                                        placeholder={descriptionPlaceholder || __('Short description for members...', 'mycred')}
+                                        rows={2}
+                                        sx={{
+                                            border: 'none',
+                                            outline: 'none',
+                                            fontSize: '14px',
+                                            width: '100%',
+                                            resize: 'vertical',
+                                            minHeight: 52,
+                                            maxHeight: 120,
+                                            px: 1,
+                                            py: 0.75,
+                                            fontFamily: 'inherit',
+                                            bgcolor: 'transparent',
+                                            lineHeight: 1.45,
                                             '&::placeholder': { color: colors.textMuted }
                                         }}
                                     />
@@ -139,9 +174,20 @@ const HookItem = ({ title, description, checked, onChange, displayLabel, onLabel
 };
 
 
+const mapHooksWithSaved = (activeHooksData, category, savedList) => (
+    activeHooksData
+        .filter((h) => h.category === category)
+        .map((hook) => {
+            const savedHook = (savedList || []).find(
+                (s) => String(s.id) === String(hook.id) && String(s.point_type) === String(hook.point_type)
+            );
+            return mergeHookAdminState(hook, savedHook);
+        })
+);
+
 export default function EventTriggersSettings() {
     const { colors } = useAdminTheme();
-    const isPro = window.mycredLoyaltyWidgetData?.is_toolkit_pro_active || false;
+    const { syncFromSaved } = usePreviewSettings();
     const initialTriggers = window.mycredLoyaltyWidgetData?.settings?.eventtriggers || {};
     const activeHooksData = window.mycredLoyaltyWidgetData?.active_hooks || [];
 
@@ -157,54 +203,10 @@ export default function EventTriggersSettings() {
     const [loading, setLoading] = useState(false);
 
     // Filtered hooks based on dynamic data
-    const [wordpressHooks, setWordpressHooks] = useState(() => {
-        const saved = initialTriggers.wordpressHooks || [];
-        return activeHooksData.filter(h => h.category === 'wordpress').map(hook => {
-            const savedHook = saved.find(s => String(s.id) === String(hook.id) && String(s.point_type) === String(hook.point_type));
-            return {
-                ...hook,
-                enabled: savedHook ? savedHook.enabled : true,
-                displayLabel: savedHook ? savedHook.displayLabel : (hook.raw_title || hook.title)
-            };
-        });
-    });
-
-    const [woocommerceHooks, setWoocommerceHooks] = useState(() => {
-        const saved = initialTriggers.woocommerceHooks || [];
-        return activeHooksData.filter(h => h.category === 'woocommerce').map(hook => {
-            const savedHook = saved.find(s => String(s.id) === String(hook.id) && String(s.point_type) === String(hook.point_type));
-            return {
-                ...hook,
-                enabled: savedHook ? savedHook.enabled : true,
-                displayLabel: savedHook ? savedHook.displayLabel : (hook.raw_title || hook.title)
-            };
-        });
-    });
-
-
-    const [buddypressHooks, setBuddypressHooks] = useState(() => {
-        const saved = initialTriggers.buddypressHooks || [];
-        return activeHooksData.filter(h => h.category === 'buddypress').map(hook => {
-            const savedHook = saved.find(s => String(s.id) === String(hook.id) && String(s.point_type) === String(hook.point_type));
-            return {
-                ...hook,
-                enabled: savedHook ? savedHook.enabled : true,
-                displayLabel: savedHook ? savedHook.displayLabel : (hook.raw_title || hook.title)
-            };
-        });
-    });
-
-    const [forumHooks, setForumHooks] = useState(() => {
-        const saved = initialTriggers.forumHooks || [];
-        return activeHooksData.filter(h => h.category === 'forum').map(hook => {
-            const savedHook = saved.find(s => String(s.id) === String(hook.id) && String(s.point_type) === String(hook.point_type));
-            return {
-                ...hook,
-                enabled: savedHook ? savedHook.enabled : true,
-                displayLabel: savedHook ? savedHook.displayLabel : (hook.raw_title || hook.title)
-            };
-        });
-    });
+    const [wordpressHooks, setWordpressHooks] = useState(() => mapHooksWithSaved(activeHooksData, 'wordpress', initialTriggers.wordpressHooks));
+    const [woocommerceHooks, setWoocommerceHooks] = useState(() => mapHooksWithSaved(activeHooksData, 'woocommerce', initialTriggers.woocommerceHooks));
+    const [buddypressHooks, setBuddypressHooks] = useState(() => mapHooksWithSaved(activeHooksData, 'buddypress', initialTriggers.buddypressHooks));
+    const [forumHooks, setForumHooks] = useState(() => mapHooksWithSaved(activeHooksData, 'forum', initialTriggers.forumHooks));
 
     const handleHookChange = (category, hookId, pointType, enabled) => {
         const setters = {
@@ -232,21 +234,47 @@ export default function EventTriggersSettings() {
         ));
     };
 
+    const handleDescriptionChange = (category, hookId, pointType, displayDescription) => {
+        const setters = {
+            wordpress: setWordpressHooks,
+            woocommerce: setWoocommerceHooks,
+            buddypress: setBuddypressHooks,
+            forum: setForumHooks
+        };
+
+        setters[category](prev => prev.map(hook =>
+            (hook.id === hookId && hook.point_type === pointType) ? { ...hook, displayDescription } : hook
+        ));
+    };
+
+    const serializeHooksForSave = (hooks) => hooks.map(({ id, point_type, enabled, displayLabel, displayDescription }) => ({
+        id,
+        point_type,
+        enabled,
+        displayLabel: displayLabel || '',
+        displayDescription: displayDescription || '',
+    }));
 
     const handleSave = async () => {
         setLoading(true);
         try {
             const dataToSave = {
                 enableHooks,
-                wordpressHooks,
-                woocommerceHooks,
-                buddypressHooks,
-                forumHooks
+                wordpressHooks: serializeHooksForSave(wordpressHooks),
+                woocommerceHooks: serializeHooksForSave(woocommerceHooks),
+                buddypressHooks: serializeHooksForSave(buddypressHooks),
+                forumHooks: serializeHooksForSave(forumHooks),
             };
             const response = await saveSectionSettings('eventtriggers', dataToSave);
             if (response.success) {
                 toast.success(__('Settings saved successfully!', 'mycred'));
-                console.log('Settings saved:', response.message);
+                if (window.mycredLoyaltyWidgetData) {
+                    if (!window.mycredLoyaltyWidgetData.settings) {
+                        window.mycredLoyaltyWidgetData.settings = {};
+                    }
+                    window.mycredLoyaltyWidgetData.settings.eventtriggers = dataToSave;
+                }
+                syncFromSaved('eventtriggers', dataToSave);
             } else {
                 toast.error(response.message || __('Failed to save settings', 'mycred'));
             }
@@ -366,8 +394,10 @@ export default function EventTriggersSettings() {
                                                         onChange={(e) => handleHookChange(cat, hook.id, hook.point_type, e.target.checked)}
                                                         displayLabel={hook.displayLabel}
                                                         onLabelChange={(val) => handleLabelChange(cat, hook.id, hook.point_type, val)}
+                                                        displayDescription={hook.displayDescription}
+                                                        onDescriptionChange={(val) => handleDescriptionChange(cat, hook.id, hook.point_type, val)}
+                                                        descriptionPlaceholder={getDefaultDisplayDescription(hook)}
                                                         pointTypeLabel={hook.type_label}
-                                                        isPro={isPro}
                                                     />
                                                 ))}
                                         </Box>

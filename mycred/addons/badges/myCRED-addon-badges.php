@@ -1384,15 +1384,9 @@ if ( ! class_exists( 'myCRED_Badge_Module' ) ) :
             if ( $post === NULL || ! $this->core->user_is_point_editor() || ! isset( $_POST['mycred_badge'] ) ) return $post_id;
 
             // Main image (used when a user has not earned a badge
-            $main_image = ! empty( $_POST['mycred_badge']['main_image'] ) ? absint( $_POST['mycred_badge']['main_image'] ) : '';
-
-            // If we are using an attachment
-            if ( absint( $main_image ) > 0 )
-                $image = absint( $main_image );
-
-            // Else we are using a URL (old setup)
-            else
-                $image = ! empty( $_POST['mycred_badge']['main_image_url'] ) ? sanitize_text_field( wp_unslash( $_POST['mycred_badge']['main_image_url'] ) ) : '';
+            $main_image     = ! empty( $_POST['mycred_badge']['main_image'] ) ? absint( $_POST['mycred_badge']['main_image'] ) : '';
+            $main_image_url = ! empty( $_POST['mycred_badge']['main_image_url'] ) ? wp_unslash( $_POST['mycred_badge']['main_image_url'] ) : '';
+            $image          = mycred_sanitize_badge_main_image_meta( $main_image, $main_image_url );
 
             $manual = 0;
             if ( isset( $_POST['mycred_badge']['manual'] ) )

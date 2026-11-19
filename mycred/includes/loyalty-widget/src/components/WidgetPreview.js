@@ -12,6 +12,7 @@ import LoginIcon from '@mui/icons-material/Login';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import LeaderboardIcon from '@mui/icons-material/Leaderboard';
 import { __, sprintf } from '@wordpress/i18n';
+import { WIDGET_PANEL_BOX_SHADOW } from './preview/utils';
 
 const hexToRgba = (hex, opacity) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -127,7 +128,7 @@ const WidgetPreview = ({ settings = {}, activePreviewTab = 0, content = {} }) =>
                     height: '652px',
                     bgcolor: '#F8F6FF', // Updated to match Figma background
                     borderRadius: '24px',
-                    boxShadow: '0px 16px 32px 0px rgba(230, 225, 250, 0.5)', // Updated shadow
+                    boxShadow: WIDGET_PANEL_BOX_SHADOW,
                     overflow: 'hidden',
                     fontFamily: "'Instrument Sans', sans-serif",
                     position: 'relative',
@@ -298,9 +299,9 @@ const WidgetPreview = ({ settings = {}, activePreviewTab = 0, content = {} }) =>
                         {(settings.tabControls?.redeem !== false && isPro) && <NavButton svgSrc={assetsUrl + 'redeem-icon.svg'} label={currentContent.redeemLabel || __('Redeem', 'mycred')} color={btnColor} textColor={btnTextColor} />}
                         {(settings.tabControls?.board !== false) && <NavButton svgSrc={assetsUrl + 'board-icon.svg'} label={currentContent.boardLabel || __('Board', 'mycred')} color={btnColor} textColor={btnTextColor} />}
                         {(settings.tabControls?.logs !== false && !isGuest) && <NavButton svgSrc={assetsUrl + 'logs-icon.svg'} label={currentContent.logsLabel || __('History', 'mycred')} color={btnColor} textColor={btnTextColor} />}
-                        {(settings.tabControls?.profile !== false && !isGuest) && <NavButton svgSrc={assetsUrl + 'profile-icon.svg'} label={currentContent.profileLabel || __('Profile', 'mycred')} color={btnColor} textColor={btnTextColor} />}
                         {(settings.tabControls?.ranks !== false) && <NavButton icon={LeaderboardIcon} label={currentContent.ranksLabel || __('Ranks', 'mycred')} color={btnColor} textColor={btnTextColor} />}
                         {(settings.tabControls?.badges !== false) && <NavButton icon={EmojiEventsIcon} label={currentContent.badgesLabel || __('Badges', 'mycred')} color={btnColor} textColor={btnTextColor} />}
+                        {(settings.tabControls?.profile !== false && !isGuest) && <NavButton svgSrc={assetsUrl + 'profile-icon.svg'} label={currentContent.profileLabel || __('Profile', 'mycred')} color={btnColor} textColor={btnTextColor} />}
                     </Box>
                 </Box>
 

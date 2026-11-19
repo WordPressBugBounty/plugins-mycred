@@ -592,13 +592,55 @@
 	 color: var(--mycred-text-muted, #978abc);
  }
 
+ .mycred-ai-composer-meta-end {
+	 display: flex;
+	 flex-direction: column;
+	 align-items: flex-end;
+	 gap: 8px;
+	 margin-left: auto;
+ }
+
  .mycred-ai-composer-quota {
-	 margin: 0 0 0 auto;
+	 margin: 0;
 	 font-size: 12px;
 	 line-height: 16px;
 	 font-weight: 500;
 	 color: var(--mycred-text-muted, #978abc);
 	 white-space: nowrap;
+ }
+
+ .mycred-ai-token-request-btn {
+	 display: inline-flex;
+	 align-items: center;
+	 justify-content: center;
+	 padding: 6px 12px;
+	 border-radius: 999px;
+	 font-size: 12px;
+	 font-weight: 600;
+	 line-height: 1.3;
+	 text-decoration: none;
+	 color: #fff;
+	 background: var(--mycred-primary, #5e2ced);
+	 box-shadow: 0 4px 12px rgba(94, 44, 237, 0.22);
+	 transition: background 0.15s ease, box-shadow 0.15s ease;
+ }
+
+ .mycred-ai-token-request-btn:hover,
+ .mycred-ai-token-request-btn:focus-visible {
+	 color: #fff;
+	 background: var(--mycred-primary-dark, #4a22c4);
+	 box-shadow: 0 6px 16px rgba(94, 44, 237, 0.28);
+	 outline: none;
+ }
+
+ .mycred-ai-token-request-btn[hidden] {
+	 display: none !important;
+ }
+
+ .mycred-ai-shell[data-quota-exhausted="1"] .mycred-ai-prompt-card,
+ .mycred-ai-shell[data-quota-exhausted="1"] .mycred-ai-chip {
+	 opacity: 0.55;
+	 pointer-events: none;
  }
  
  /* Typing indicator */

@@ -113,14 +113,6 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Page' ) ) :
             }
 
             $images_to_upload = array(
-                'heroImageUrl' => array(
-                    'file'  => plugin_dir_path( __FILE__ ) . 'src/assets/widget-icon/default-logo1.svg',
-                    'title' => 'myCred Loyalty Widget Hero Brand Image',
-                ),
-                'headerImageUrl' => array(
-                    'file'  => plugin_dir_path( __FILE__ ) . 'src/assets/widget-icon/mycred_widget_header.png',
-                    'title' => 'myCred Loyalty Widget Header Image',
-                ),
                 'logoUrl' => array(
                     'file'  => plugin_dir_path( __FILE__ ) . 'src/assets/widget-icon/widget-logo.png',
                     'title' => 'myCred Loyalty Widget Logo',
@@ -291,6 +283,8 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Page' ) ) :
                 if ( class_exists( 'myCRED_Loyalty_Widget_API' ) ) {
                     $defaults = myCRED_Loyalty_Widget_API::instance()->get_default_settings();
                     $settings = myCRED_Loyalty_Widget_API::merge_defaults( $settings, $defaults );
+                    $settings = myCRED_Loyalty_Widget_API::normalize_join_card_description( $settings );
+                    $settings = myCRED_Loyalty_Widget_API::normalize_header_copy( $settings );
                 }
 
                 global $wp_roles;
@@ -305,17 +299,23 @@ if ( ! class_exists( 'myCRED_Loyalty_Widget_Page' ) ) :
                     );
                 }
 
+                $point_types = class_exists( 'myCRED_Loyalty_Widget_API' )
+                    ? myCRED_Loyalty_Widget_API::get_site_point_types_map()
+                    : array( 'mycred_default' => __( 'Points', 'mycred' ) );
+
                 wp_localize_script( 'mycred-loyalty-widget-script', 'mycredLoyaltyWidgetData', array(
                     'rest_url' => esc_url_raw( rest_url() ),
                     'nonce'    => wp_create_nonce( 'wp_rest' ),
                     'is_toolkit_pro_active' => $is_toolkit_pro_active,
                     'isProActive'           => $is_toolkit_pro_active,
+                    'has_woocommerce'       => class_exists( 'WooCommerce' ),
                     'proDemoUrl'            => 'https://mycred.me/pricing/?utm_source=plugin&utm_medium=loyalty_widget_sidebar',
                     'proPromoImageUrl'      => plugins_url( 'assets/images/test.png', myCRED_THIS ),
                     'settings' => $settings,
                     'available_pages' => $available_pages,
                     'active_hooks' => $active_hooks,
                     'available_roles' => $available_roles,
+                    'point_types' => $point_types,
                     'assets_url' => plugin_dir_url( __FILE__ ) . 'src/assets/widget-icon/'
                 ) );
                 

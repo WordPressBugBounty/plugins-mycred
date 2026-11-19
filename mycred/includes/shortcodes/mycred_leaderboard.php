@@ -35,8 +35,8 @@ if ( ! function_exists( 'mycred_render_shortcode_leaderboard' ) ) :
 		// We need to run the query to populate the leaderboard
 		$leaderboard->get_leaderboard_results( (bool) $args['current'] );
 
-		// Render and return
-		return do_shortcode( $leaderboard->render( $args, $content ) );
+		// User fields are already in the rows, so this output is not passed through shortcodes again.
+		return $leaderboard->render( $args, $content );
 
 	}
 endif;

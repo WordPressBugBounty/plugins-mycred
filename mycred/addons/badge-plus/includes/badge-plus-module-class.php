@@ -493,7 +493,11 @@ if( ! class_exists( 'myCRED_Badge_Plus_Module' ) ):
                         return sanitize_text_field( $meta_value );
                     },
                     'auth_callback' => function() {
-                        return current_user_can('edit_posts');
+                        $post_id = get_the_ID();
+                        if ( $post_id < 1 || MYCRED_BADGE_PLUS_KEY !== get_post_type( $post_id ) ) {
+                            return false;
+                        }
+                        return current_user_can( 'edit_post', $post_id );
                     }
                 )
             );
@@ -592,7 +596,6 @@ if( ! class_exists( 'myCRED_Badge_Plus_Module' ) ):
         add_action( 'mycred_user_edit_after_balances',          array( $this, 'badge_plus_user_screen' ), 10 );
         add_action( 'wp_ajax_mycred_revoke_user_badge',   array( $this, 'mycred_revoke_user_badge' ) );
         add_action( 'wp_ajax_mycred_assign_user_badge',   array( $this, 'mycred_assign_user_badge' ) );
-        add_shortcode( MYCRED_SLUG . '_badge_plus',    'mycred_render_all_badge_plus' );
 
     }
 
@@ -631,34 +634,44 @@ if( ! class_exists( 'myCRED_Badge_Plus_Module' ) ):
      */
     public function save_badge_requirements() {
 
-        if ( 
-            ! current_user_can( 'edit_posts' ) ||
+        if (
             ! isset( $_POST['nonce'] ) ||
             ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'mycredbadgeplus-nonce' ) ||
             ! isset( $_POST['postid'] ) ||
             ! isset( $_POST['is_sequential'] )
-        ) wp_send_json('error');
-
-            $post_id            = absint( $_POST['postid'] );
-            $is_sequential      = boolval( $_POST['is_sequential'] );
-            $badge_requirements = array();
-
-            if ( ! empty( $_POST['requirements'] ) && is_array( $_POST['requirements'] ) ) 
-                $badge_requirements = mycred_sanitize_array( wp_unslash( $_POST['requirements'] ) );
-
-            $meta = mycred_update_post_meta( 
-                $post_id, 
-                'mycred_badge_requirements', 
-                array(
-                    'id' => $post_id,
-                    'is_sequential' => $is_sequential,
-                    'requirements'  => $badge_requirements
-                ) 
-            );
-
-            wp_send_json( $meta );
-
+        ) {
+            wp_send_json( 'error' );
         }
+
+        $post_id = absint( $_POST['postid'] );
+
+        if (
+            $post_id < 1 ||
+            MYCRED_BADGE_PLUS_KEY !== get_post_type( $post_id ) ||
+            ! current_user_can( 'edit_post', $post_id )
+        ) {
+            wp_send_json( 'error' );
+        }
+
+        $is_sequential      = boolval( $_POST['is_sequential'] );
+        $badge_requirements = array();
+
+        if ( ! empty( $_POST['requirements'] ) && is_array( $_POST['requirements'] ) ) {
+            $badge_requirements = mycred_sanitize_badge_plus_requirements( wp_unslash( $_POST['requirements'] ) );
+        }
+
+        $meta = mycred_update_post_meta(
+            $post_id,
+            'mycred_badge_requirements',
+            array(
+                'id'            => $post_id,
+                'is_sequential' => $is_sequential,
+                'requirements'  => $badge_requirements,
+            )
+        );
+
+        wp_send_json( $meta );
+    }
 
     /**
      * Save Badge Details

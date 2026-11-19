@@ -1,4 +1,4 @@
-import { Box, Typography, Button, Fade } from '@mui/material';
+import { Box, Typography, Button } from '@mui/material';
 import { __ } from '@wordpress/i18n';
 import HomeScreen from './HomeScreen';
 import EarnTab from './tabs/EarnTab';
@@ -9,7 +9,18 @@ import RedeemTab from './tabs/RedeemTab';
 import FaqTab from './tabs/FaqTab';
 import Badges from './Badges';
 import Ranks from './Ranks';
-import { getThemeColors, MYCRED_BRANDING_URL, getAnimationKeyframes, animationStyles } from './preview/utils';
+import { filterActiveHooksForWidget } from '../pointTypeVisibility';
+import {
+    getThemeColors,
+    MYCRED_BRANDING_URL,
+    getAnimationKeyframes,
+    animationStyles,
+    WIDGET_SHELL_MIN_HEIGHT,
+    WIDGET_HOME_SHELL_MIN_HEIGHT,
+    WIDGET_SHELL_MAX_HEIGHT,
+    WIDGET_PANEL_BOX_SHADOW,
+    WIDGET_PANEL_CONTENT_MIN_HEIGHT,
+} from './preview/utils';
 
 export default function WidgetWindow({ settings, user, currentTab, setCurrentTab, onClose }) {
     const design = settings.design || {};
@@ -23,6 +34,7 @@ export default function WidgetWindow({ settings, user, currentTab, setCurrentTab
     const ranksEnabled = addons.ranks_enabled !== false && addons.ranks_enabled !== 0;
     const badgesEnabled = addons.badges_enabled !== false && addons.badges_enabled !== 0;
     const isPro = addons.is_toolkit_pro_active;
+    const hasWoo = Boolean(window.mycredLoyaltyWidget?.has_woocommerce);
 
     const isAdmin = window.mycredLoyaltyWidget?.is_admin;
     const settingsUrl = window.mycredLoyaltyWidget?.settings_url;
@@ -37,19 +49,21 @@ export default function WidgetWindow({ settings, user, currentTab, setCurrentTab
     const isBottom = position.includes('bottom');
     const isRight = position.includes('right');
     const animation = getAnimationKeyframes(design.launcherAnimation || 'none');
-
+    const isHomeTab = currentTab === 'home';
     const windowStyles = {
         ...animationStyles,
         animation,
         width: 'min(365px, calc(100vw - 32px))',
-        height: 'min(652px, calc(100vh - 120px))',
+        height: 'auto',
+        minHeight: isHomeTab ? WIDGET_HOME_SHELL_MIN_HEIGHT : WIDGET_SHELL_MIN_HEIGHT,
+        maxHeight: WIDGET_SHELL_MAX_HEIGHT,
         bgcolor: '#F8F6FF',
         borderRadius: '24px',
-        boxShadow: '0px 16px 32px 0px rgba(230, 225, 250, 0.5)',
+        boxShadow: WIDGET_PANEL_BOX_SHADOW,
         overflow: 'hidden',
         position: 'absolute',
-        bottom: isBottom ? '60px' : 'auto',
-        top: isBottom ? 'auto' : '88px',
+        bottom: isBottom ? 0 : 'auto',
+        top: isBottom ? 'auto' : 0,
         right: isRight ? '0' : 'auto',
         left: isRight ? 'auto' : '0',
         zIndex: 10,
@@ -77,6 +91,7 @@ export default function WidgetWindow({ settings, user, currentTab, setCurrentTab
                     user={user}
                     isGuest={isGuest}
                     isPro={isPro}
+                    hasWoo={hasWoo}
                     assetsUrl={assetsUrl}
                     ranksEnabled={ranksEnabled}
                     badgesEnabled={badgesEnabled}
@@ -86,7 +101,14 @@ export default function WidgetWindow({ settings, user, currentTab, setCurrentTab
             );
         }
 
-        if (currentTab === 'earn') return <EarnTab {...tabProps} activeHooks={window.mycredLoyaltyWidget?.active_hooks || []} />;
+        if (currentTab === 'earn') {
+            return (
+                <EarnTab
+                    {...tabProps}
+                    activeHooks={filterActiveHooksForWidget(window.mycredLoyaltyWidget?.active_hooks || [], settings)}
+                />
+            );
+        }
         if (currentTab === 'board') return <BoardTab {...tabProps} />;
         if (currentTab === 'redeem') return <RedeemTab {...tabProps} />;
         if (currentTab === 'logs') return <LogsTab {...tabProps} />;
@@ -96,7 +118,15 @@ export default function WidgetWindow({ settings, user, currentTab, setCurrentTab
         if (currentTab === 'ranks') return <Ranks {...tabProps} />;
 
         return (
-            <Box sx={{ p: '24px', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <Box sx={{
+                p: '24px',
+                flex: 1,
+                minHeight: WIDGET_PANEL_CONTENT_MIN_HEIGHT,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}>
                 <Typography variant="h6" sx={{ fontFamily: "'Instrument Sans', sans-serif", color: '#2D1572' }}>{currentTab.toUpperCase()}</Typography>
                 <Typography variant="body2" sx={{ color: '#8670C4', fontFamily: "'Instrument Sans', sans-serif" }}>{__('Coming Soon...', 'mycred')}</Typography>
                 <Button sx={{ mt: 2, color: btnColor }} onClick={() => setCurrentTab('home')}>{__('Back to Home', 'mycred')}</Button>
@@ -109,8 +139,13 @@ export default function WidgetWindow({ settings, user, currentTab, setCurrentTab
             <Box
                 key={currentTab}
                 sx={{
-                    flex: 1, overflow: 'hidden', position: 'relative', minHeight: 0, display: 'flex', flexDirection: 'column',
-                    animation: 'fadeKeyframe 0.25s ease-out both'
+                    flex: 1,
+                    overflow: 'hidden',
+                    position: 'relative',
+                    minHeight: isHomeTab ? 0 : WIDGET_PANEL_CONTENT_MIN_HEIGHT,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    animation: 'fadeKeyframe 0.25s ease-out both',
                 }}
             >
                 {renderContent()}

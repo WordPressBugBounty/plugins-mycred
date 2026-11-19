@@ -31,25 +31,24 @@ if ( ! class_exists('myCRED_content_buyer_count') ) :
         public function render_block( $attributes, $content ) {
             
             // Extract the attributes
-            $wrapper = isset($attributes['wrapper']) ? $attributes['wrapper'] : '';
-            $post_id = isset($attributes['postID']) ? intval($attributes['postID']) : null;
+            $wrapper = '';
+            if ( isset( $attributes['wrapper'] ) && function_exists( 'mycred_sanitize_sellcontent_wrapper_tag' ) ) {
+                $wrapper = mycred_sanitize_sellcontent_wrapper_tag( $attributes['wrapper'] );
+            }
+            $post_id = isset( $attributes['postID'] ) ? absint( $attributes['postID'] ) : 0;
 
-            // Call the function to get the buyer count
-            $buyer_count = mycred_get_content_buyers_count($post_id); // Replace with your actual function to fetch buyer count
+            $buyer_count = mycred_get_content_buyers_count( $post_id );
 
-            // Prepare the content
             $output = '';
 
-            // Wrap the content if a wrapper is specified
-            if (!empty($wrapper)) {
-                $output .= '<' . esc_html($wrapper) . ' class="mycred-buyer-count">';
+            if ( $wrapper !== '' ) {
+                $output .= '<' . $wrapper . ' class="mycred-buyer-count">';
             }
 
-            $output .= esc_html($buyer_count); // Escape the buyer count output
+            $output .= esc_html( $buyer_count );
 
-            // Close the wrapper if one was opened
-            if (!empty($wrapper)) {
-                $output .= '</' . esc_html($wrapper) . '>';
+            if ( $wrapper !== '' ) {
+                $output .= '</' . $wrapper . '>';
             }
 
             return $output; // Return the rendered output

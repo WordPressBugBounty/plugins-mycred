@@ -4,18 +4,20 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
 import { getRanks } from '../services/frontend-api';
 import { __, sprintf } from '@wordpress/i18n';
+import { widgetTabRootSx, widgetTabScrollBodySx } from './preview/utils';
+import { getVisiblePointTypesMap } from '../pointTypeVisibility';
 
 export default function Ranks({ settings, currentContent, user, onBack, onClose, previewMode = false, previewData }) {
     currentContent = currentContent || {};
     
     // Get unique point types from localized data
     const availableTypes = useMemo(() => {
-        const types = window.mycredLoyaltyWidget?.point_types || {};
-        if (Object.keys(types).length === 0) {
-            types['mycred_default'] = __('Points', 'mycred');
+        const filtered = getVisiblePointTypesMap(settings);
+        if (Object.keys(filtered).length === 0) {
+            return { mycred_default: __('Points', 'mycred') };
         }
-        return types;
-    }, []);
+        return filtered;
+    }, [settings]);
 
     const pointTypeKeys = Object.keys(availableTypes);
 
@@ -24,6 +26,12 @@ export default function Ranks({ settings, currentContent, user, onBack, onClose,
     const [loading, setLoading]         = useState(true);
     const [isOpen, setIsOpen]           = useState(false);
     const [pointType, setPointType]     = useState(pointTypeKeys[0] || 'mycred_default');
+
+    useEffect(() => {
+        if (pointTypeKeys.length && !pointTypeKeys.includes(pointType)) {
+            setPointType(pointTypeKeys[0]);
+        }
+    }, [pointTypeKeys, pointType]);
 
     const design    = settings.design || {};
     const btnColor  = design.buttonColor  || '#5E2CED';
@@ -52,7 +60,7 @@ export default function Ranks({ settings, currentContent, user, onBack, onClose,
     const currentRankIndex = ranks.findIndex(r => r.is_current);
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: bgColor }}>
+        <Box sx={widgetTabRootSx({ bgcolor: bgColor })}>
 
             {/* ── Header ────────────────────────────────────────── */}
             <Box sx={{ p: '20px 24px', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -72,18 +80,14 @@ export default function Ranks({ settings, currentContent, user, onBack, onClose,
             </Box>
 
             {/* ── Body ──────────────────────────────────────────── */}
-            <Box sx={{
-                flex: 1,
+            <Box sx={widgetTabScrollBodySx({
                 bgcolor: '#F4F5F8',
                 borderRadius: '24px 24px 0 0',
-                overflowY: 'auto',
                 p: '20px 16px',
-                scrollbarWidth: 'none',
-                '&::-webkit-scrollbar': { display: 'none' },
-            }}>
+            })}>
 
                 {/* ── Point Type Switcher (If multiple) ───────────────── */}
-                {pointTypeKeys.length > 0 && (
+                {pointTypeKeys.length > 1 && (
                     <Box sx={{ position: 'relative', mb: '20px' }}>
                         <Box
                             onClick={() => setIsOpen(!isOpen)}

@@ -47,7 +47,10 @@ if ( ! class_exists( 'myCRED_Protect' ) ) :
 
 			if ( $value === NULL || empty( $value ) ) return false;
 
-            return trim( $this->do_safe_b64encode( $value ));
+			$payload = trim( $this->do_safe_b64encode( $value ) );
+			if ( $payload === '' ) return false;
+
+			return $payload . '.' . hash_hmac( 'sha256', $payload, $this->mac_key() );
 		}
 
 		/**
@@ -55,9 +58,28 @@ if ( ! class_exists( 'myCRED_Protect' ) ) :
 		 */
 		public function do_decode( $value ) {
 
-			if ( $value === NULL || empty( $value ) ) return false;
+			if ( ! is_string( $value ) || $value === '' ) return false;
 
-            return trim( $this->do_safe_b64decode( $value ) );
+			$parts = explode( '.', $value, 2 );
+			if ( count( $parts ) !== 2 || $parts[0] === '' || $parts[1] === '' ) return false;
+
+			$expected = hash_hmac( 'sha256', $parts[0], $this->mac_key() );
+			if ( ! hash_equals( $expected, $parts[1] ) ) return false;
+
+			$decoded = $this->do_safe_b64decode( $parts[0] );
+			if ( ! is_string( $decoded ) || $decoded === '' ) return false;
+
+			return trim( $decoded );
+		}
+
+		/**
+		 * Signature key. Uses the stored plugin key together with the site salt.
+		 */
+		protected function mac_key() {
+
+			$key = is_string( $this->skey ) ? $this->skey : '';
+
+			return $key . '|' . wp_salt( 'nonce' );
 		}
 
 		/**
@@ -67,12 +89,12 @@ if ( ! class_exists( 'myCRED_Protect' ) ) :
 
 			if ( $value === NULL || empty( $value ) ) return false;
 
-            $crypttext   = $this->do_safe_b64decode( $value );
-            $string      = trim( $crypttext );
+			$string = $this->do_decode( $value );
+			if ( ! is_string( $string ) || $string === '' ) return false;
 
-            parse_str( $string, $output );
+			parse_str( $string, $output );
 
-            return $output;
+			return $output;
 		}
 
 		/**
@@ -163,9 +185,11 @@ if ( ! function_exists( 'mycred_verify_token' ) ) :
 		if ( $protect !== false ) {
 
 			$decoded = $protect->do_decode( $string );
-			$array   = explode( ':', $decoded );
-			if ( count( $array ) == $length )
-				$reply = $array;
+			if ( is_string( $decoded ) && $decoded !== '' ) {
+				$array = explode( ':', $decoded );
+				if ( count( $array ) == $length )
+					$reply = $array;
+			}
 		}
 		else {
 			$reply = $string;

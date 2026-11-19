@@ -3,7 +3,7 @@ Contributors: mycred,wpexpertsio
 Tags: badges, loyalty program, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 7.1
-Stable tag: 4.0.3
+Stable tag: 4.0.4
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -453,6 +453,9 @@ Both features use the myCred AI service. Site administrators send plain-language
 
 == Upgrade Notice ==
 
+= 4.0.4 =
+Code improvements and Loyalty Widget UI improvements.
+
 = 4.0.3 =
 Security fixes and code improvements.
 
@@ -704,6 +707,10 @@ New features and Bug fixes.
 The banking module have been replaced by Central deposite module, and interest related functionality has been removed. If you are using simple interest or compound interest related functionality, you will fine the respective functionalities missing after the update.
 
 == Changelog ==
+
+= 4.0.4 =
+- **TWEAK** - Code improvements.
+- **TWEAK** - Loyalty Widget UI improvements.
 
 = 4.0.3 =
 - **FIX** - Security fixes and code improvements.

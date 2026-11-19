@@ -18,7 +18,6 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import BrandingWatermarkIcon from '@mui/icons-material/BrandingWatermark';
 import SaveIcon from '@mui/icons-material/Save';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import WidgetPreviewPanel from '../components/preview/WidgetPreviewPanel';
 import { usePreviewSettings } from '../context/PreviewSettingsContext';
 import { saveSectionSettings } from '../services/api';
 import { toast } from 'react-hot-toast';
@@ -27,7 +26,7 @@ import SectionHeader from '../components/admin/SectionHeader';
 import SettingsCard from '../components/admin/SettingsCard';
 import { useRegisterSaveActions } from '../context/SaveActionsContext';
 import { useAdminTheme } from '../../../../src/shared/adminTheme/AdminThemeProvider';
-import { getTabContentSx, getSplitLayoutSx, getColorInputSx, getTemplateCardSx, getPreviewPanelSx, getFieldLabelSx, getSecondaryTextSx, getTextFieldSx, getSelectSx, getFileUploadRowSx, getFileUploadButtonSx, getImagePreviewBoxSx, getWarningBannerSx, getDisabledInputTextSx } from '../components/admin/formStyles';
+import { getTabContentSx, getColorInputSx, getTemplateCardSx, getFieldLabelSx, getSecondaryTextSx, getTextFieldSx, getSelectSx, getFileUploadRowSx, getFileUploadButtonSx, getImagePreviewBoxSx, getWarningBannerSx, getDisabledInputTextSx } from '../components/admin/formStyles';
 import { TEMPLATE_OPTIONS, getTemplatePreset, normalizeLayoutTemplate } from '../components/preview/templatePresets';
 import ViewQuiltIcon from '@mui/icons-material/ViewQuilt';
 
@@ -111,17 +110,18 @@ const getDefaultDesignSettings = () => ({
     showBranding: true,
     logoUrl: window.mycredLoyaltyWidgetData?.assets_url ? window.mycredLoyaltyWidgetData.assets_url + 'widget-logo.png' : '',
     logoText: 'Reward Program',
-    launcherRadius: 45,
+    launcherRadius: 15,
     launcherAnimation: 'fade',
-    layoutTemplate: 'luxury',
-    headerStyle: 'image',
-    headerImageUrl: window.mycredLoyaltyWidgetData?.assets_url ? window.mycredLoyaltyWidgetData.assets_url + 'mycred_widget_header.png' : '',
+    layoutTemplate: 'modern',
+    headerStyle: 'solid',
+    headerImageUrl: '',
     headerOverlayOpacity: 0,
+    showHeaderTitle: true,
     headerSubtitle: __('Welcome to', 'mycred'),
-    programTitle: 'Rewards Hub',
+    programTitle: 'Rewards hub',
     borderRadius: 8,
-    navLayout: 'list',
-    heroImageUrl: window.mycredLoyaltyWidgetData?.assets_url ? window.mycredLoyaltyWidgetData.assets_url + 'default-logo1.svg' : '',
+    navLayout: 'grid',
+    heroImageUrl: '',
 });
 
 const DesignSettings = () => {
@@ -283,9 +283,7 @@ const DesignSettings = () => {
 
     return (
         <Box sx={getTabContentSx({ fullWidth: true })}>
-            <Box sx={getSplitLayoutSx()}>
-                <Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                         {/* Template picker */}
                         <SettingsCard>
                             <SectionHeader
@@ -421,7 +419,18 @@ const DesignSettings = () => {
                                 desc={__('Customize the widget header and home layout', 'mycred')}
                             />
 
-                            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 2 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                <Box>
+                                    <Typography sx={{ fontWeight: 600, fontSize: '15px' }}>{__('Show header title', 'mycred')}</Typography>
+                                    <Typography sx={{ fontSize: '13px', color: colors.textSecondary }}>{__('Display the header subtitle and program title', 'mycred')}</Typography>
+                                </Box>
+                                <ToggleSwitch
+                                    checked={settings.showHeaderTitle === true}
+                                    onChange={(e) => handleChange('showHeaderTitle', e.target.checked)}
+                                />
+                            </Box>
+
+                            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 2, opacity: settings.showHeaderTitle === true ? 1 : 0.5 }}>
                                 <Box>
                                     <Typography sx={{ ...getFieldLabelSx(colors), mb: 1 }}>{__('Header Subtitle', 'mycred')}</Typography>
                                     <TextField
@@ -539,23 +548,6 @@ const DesignSettings = () => {
                             )}
                         </SettingsCard>
 
-                    </Box>
-                </Box>
-
-                <Box>
-                    <Box sx={{ ...getPreviewPanelSx(colors), display: 'flex', flexDirection: 'column', gap: 3 }}>
-                        <SettingsCard>
-                            <SectionHeader
-                                icon={AutoAwesomeIcon}
-                                title={__('Live Widget Preview', 'mycred')}
-                                desc={__('See your design changes in real-time', 'mycred')}
-                            />
-                            <Box sx={{ mt: 2 }}>
-                                <WidgetPreviewPanel />
-                            </Box>
-                        </SettingsCard>
-
-                        {/* Launcher Button Settings (Below Preview) */}
                         <SettingsCard>
                             <SectionHeader
                                 icon={AutoAwesomeIcon}
@@ -598,8 +590,7 @@ const DesignSettings = () => {
                                 </FormControl>
                             </Box>
                         </SettingsCard>
-                    </Box>
-                </Box>
+
             </Box>
         </Box>
     );

@@ -158,6 +158,7 @@ if ( ! function_exists( 'mycred_render_sell_buyer_count' ) ) :
 			$post_id = mycred_sell_content_post_id();
 
 		$content = '';
+		$wrapper = mycred_sanitize_sellcontent_wrapper_tag( $wrapper );
 
 		if ( $wrapper != '' )
 			$content .= '<' . $wrapper . ' class="mycred-sell-this-author-count">';

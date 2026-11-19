@@ -33,6 +33,7 @@ import TabsSettings from './tabs/TabsSettings';
 import EventTriggersSettings from './tabs/EventTriggersSettings';
 import FaqSettings from './tabs/FaqSettings';
 import { PreviewSettingsProvider } from './context/PreviewSettingsContext';
+import WidgetPreviewPanel from './components/preview/WidgetPreviewPanel';
 import { SaveActionsProvider, useSaveActions } from './context/SaveActionsContext';
 
 const TAB_CONFIG = [
@@ -101,7 +102,11 @@ function AppContent() {
                     },
                 }}
             />
-            <Toaster position="bottom-right" toastOptions={toastOptions} />
+            <Toaster
+                position="bottom-right"
+                toastOptions={toastOptions}
+                containerStyle={{ zIndex: 100001 }}
+            />
             <Box
                 className="mycred-react-root"
                 sx={{
@@ -175,6 +180,7 @@ function AppContent() {
                                 <Box sx={{ flex: 1, width: '100%' }}>
                                     <PreviewSettingsProvider>
                                         <ActivePanel />
+                                        <WidgetPreviewPanel />
                                     </PreviewSettingsProvider>
                                 </Box>
 

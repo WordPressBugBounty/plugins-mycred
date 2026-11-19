@@ -42,6 +42,11 @@ if ( ! class_exists('mycred_give_block') ) :
             
             unset( $attributes['content'] );
 
+            $type = $attributes['type'];
+            if ( function_exists( 'mycred_give_content_author_is_point_editor' ) && ! mycred_give_content_author_is_point_editor( $type ) ) {
+                return $content;
+            }
+
             return "[mycred_give " . mycred_blocks_functions::mycred_extract_attributes( $attributes ) . "]" . $content . "[/mycred_give]";
 
         }

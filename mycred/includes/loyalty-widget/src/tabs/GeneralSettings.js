@@ -30,11 +30,13 @@ import ToggleSwitch from '../components/admin/ToggleSwitch';
 import SectionHeader from '../components/admin/SectionHeader';
 import SettingsCard from '../components/admin/SettingsCard';
 import { useRegisterSaveActions } from '../context/SaveActionsContext';
+import { usePreviewSettings } from '../context/PreviewSettingsContext';
 import { useAdminTheme } from '../../../../src/shared/adminTheme/AdminThemeProvider';
 import { getTabContentSx, getFormStackSx, getFieldLabelSx, getTextFieldSx, getSelectSx, getSecondaryTextSx } from '../components/admin/formStyles';
 
 export default function GeneralSettings() {
     const { colors } = useAdminTheme();
+    const { syncFromSaved } = usePreviewSettings();
     const initialSettings = window.mycredLoyaltyWidgetData?.settings?.general || {};
 
     const parseTime = (timeStr, fallback) => {
@@ -58,9 +60,13 @@ export default function GeneralSettings() {
         marginLeft: initialSettings.marginLeft !== undefined ? initialSettings.marginLeft : 24,
         visibility: initialSettings.visibility || 'all',
         visibilityRoles: initialSettings.visibilityRoles || [],
+        visiblePointTypes: Array.isArray(initialSettings.visiblePointTypes) ? initialSettings.visiblePointTypes : [],
     });
 
     const availableRoles = window.mycredLoyaltyWidgetData?.available_roles || [];
+    const sitePointTypes = window.mycredLoyaltyWidgetData?.point_types || { mycred_default: __('Points', 'mycred') };
+    const pointTypeEntries = Object.entries(sitePointTypes);
+    const limitPointTypes = settings.visiblePointTypes.length > 0;
 
     const [loading, setLoading] = useState(false);
 
@@ -98,8 +104,14 @@ export default function GeneralSettings() {
 
             const response = await saveSectionSettings('general', dataToSave);
             if (response.success) {
+                if (window.mycredLoyaltyWidgetData?.settings) {
+                    window.mycredLoyaltyWidgetData.settings.general = {
+                        ...(window.mycredLoyaltyWidgetData.settings.general || {}),
+                        ...dataToSave,
+                    };
+                }
+                syncFromSaved('general', dataToSave);
                 toast.success(__('Settings saved successfully!', 'mycred'));
-                console.log('Settings saved:', response.message);
             } else {
                 toast.error(response.message || __('Failed to save settings', 'mycred'));
             }
@@ -182,6 +194,61 @@ export default function GeneralSettings() {
                             </FormControl>
                         )}
                     </SettingsCard>
+
+                    {/* Point types in widget */}
+                    {pointTypeEntries.length > 0 && (
+                        <SettingsCard>
+                            <SectionHeader
+                                icon={SettingsIcon}
+                                title={__('Point types in widget', 'mycred')}
+                                desc={__('Choose which point types appear across balances, earn, history, board, ranks, and redeem.', 'mycred')}
+                            />
+                            <Typography sx={{ ...getSecondaryTextSx(colors), mb: 2, fontSize: '13px' }}>
+                                {__('Leave none selected to show every point type. Select specific types to limit the widget.', 'mycred')}
+                            </Typography>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                {pointTypeEntries.map(([typeKey, typeLabel]) => {
+                                    const checked = !limitPointTypes || settings.visiblePointTypes.indexOf(typeKey) > -1;
+                                    return (
+                                        <Box
+                                            key={typeKey}
+                                            onClick={() => {
+                                                if (!limitPointTypes) {
+                                                    const allExcept = pointTypeEntries
+                                                        .map(([k]) => k)
+                                                        .filter((k) => k !== typeKey);
+                                                    handleChange('visiblePointTypes', allExcept);
+                                                    return;
+                                                }
+                                                const next = checked
+                                                    ? settings.visiblePointTypes.filter((k) => k !== typeKey)
+                                                    : [...settings.visiblePointTypes, typeKey];
+                                                handleChange('visiblePointTypes', next);
+                                            }}
+                                            sx={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 1,
+                                                py: 0.75,
+                                                px: 1,
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                '&:hover': { bgcolor: colors.hover },
+                                            }}
+                                        >
+                                            <Checkbox checked={checked} size="small" sx={{ p: 0.5 }} />
+                                            <ListItemText
+                                                primary={typeLabel}
+                                                secondary={typeKey}
+                                                primaryTypographyProps={{ fontSize: '14px', fontWeight: 600 }}
+                                                secondaryTypographyProps={{ fontSize: '11px' }}
+                                            />
+                                        </Box>
+                                    );
+                                })}
+                            </Box>
+                        </SettingsCard>
+                    )}
 
                     {/* Widget Position */}
                     <SettingsCard>

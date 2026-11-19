@@ -645,8 +645,11 @@ if ( ! class_exists( 'myCRED_Settings' ) ) :
 			if ( ! isset( $user->ID ) ) return $content;
 
 			// Replace template tags
+			$plain_user  = str_replace( array( '[', ']' ), array( '&#91;', '&#93;' ), esc_attr( $user->user_login ) );
+			$plain_name  = str_replace( array( '[', ']' ), array( '&#91;', '&#93;' ), esc_attr( $user->display_name ) );
+
 			$content     = str_replace( '%user_id%',            $user->ID, $content );
-			$content     = str_replace( '%user_name%',          esc_attr( $user->user_login ), $content );
+			$content     = str_replace( '%user_name%',          $plain_user, $content );
 			$content     = str_replace( '%user_name_en%',       urlencode( $user->user_login ), $content );
 
 			$profile_url = mycred_get_users_profile_url( $user->ID );
@@ -654,11 +657,11 @@ if ( ! class_exists( 'myCRED_Settings' ) ) :
 			if ( $link_target != '' )
 				$link_target = ' target="' . esc_attr( $link_target ) . '"';
 
-			$content     = str_replace( '%display_name%',       esc_attr( $user->display_name ), $content );
+			$content     = str_replace( '%display_name%',       $plain_name, $content );
 			$content     = str_replace( '%user_profile_url%',   esc_url_raw( $profile_url ), $content );
-			$content     = str_replace( '%user_profile_link%',  '<a href="' . esc_url_raw( $profile_url ) . '"' . $link_target . '>' . esc_attr( $user->display_name ) . '</a>', $content );
+			$content     = str_replace( '%user_profile_link%',  '<a href="' . esc_url_raw( $profile_url ) . '"' . $link_target . '>' . $plain_name . '</a>', $content );
 
-			$content     = str_replace( '%user_nicename%',      ( isset( $user->user_nicename ) ) ? esc_attr( $user->user_nicename ) : '', $content );
+			$content     = str_replace( '%user_nicename%',      ( isset( $user->user_nicename ) ) ? str_replace( array( '[', ']' ), array( '&#91;', '&#93;' ), esc_attr( $user->user_nicename ) ) : '', $content );
 			$content     = str_replace( '%user_email%',         ( isset( $user->user_email ) ) ? esc_attr( $user->user_email ) : '', $content );
 			$content     = str_replace( '%user_url%',           ( isset( $user->user_url ) ) ? esc_url_raw( $user->user_url ) : '', $content );
 
@@ -3300,6 +3303,154 @@ if ( ! function_exists( 'mycred_trash_post' ) ) :
 endif;
 
 /**
+ * Check whether a filesystem path sits inside the WordPress uploads directory.
+ *
+ * @since 1.8.12
+ * @param string $path Absolute filesystem path.
+ * @return bool
+ */
+if ( ! function_exists( 'mycred_is_path_in_uploads' ) ) :
+	function mycred_is_path_in_uploads( $path ) {
+
+		$uploads   = wp_upload_dir();
+		$basedir   = isset( $uploads['basedir'] ) ? wp_normalize_path( $uploads['basedir'] ) : '';
+		$real_path = realpath( $path );
+		$real_base = $basedir ? realpath( $basedir ) : false;
+
+		if ( ! $real_path || ! $real_base ) {
+			return false;
+		}
+
+		return ( strpos( $real_path, $real_base ) === 0 );
+
+	}
+endif;
+
+/**
+ * Resolve a badge image reference to a local uploads image path.
+ *
+ * @since 1.8.12
+ * @param string|int $image_ref Attachment ID or image URL.
+ * @return string|false Absolute path when safe, otherwise false.
+ */
+if ( ! function_exists( 'mycred_resolve_upload_image_path' ) ) :
+	function mycred_resolve_upload_image_path( $image_ref ) {
+
+		if ( $image_ref === null || $image_ref === '' || $image_ref === false ) {
+			return false;
+		}
+
+		if ( is_numeric( $image_ref ) ) {
+			$attachment_id = absint( $image_ref );
+			if ( $attachment_id < 1 || get_post_type( $attachment_id ) !== 'attachment' ) {
+				return false;
+			}
+
+			$file = get_attached_file( $attachment_id );
+			if ( ! $file || ! file_exists( $file ) || ! mycred_is_path_in_uploads( $file ) ) {
+				return false;
+			}
+
+			$filetype = wp_check_filetype( $file );
+			if ( empty( $filetype['type'] ) || strpos( $filetype['type'], 'image/' ) !== 0 ) {
+				return false;
+			}
+
+			return wp_normalize_path( $file );
+		}
+
+		$url = esc_url_raw( $image_ref );
+		if ( empty( $url ) ) {
+			return false;
+		}
+
+		$uploads = wp_upload_dir();
+		$baseurl = untrailingslashit( $uploads['baseurl'] );
+		$basedir = wp_normalize_path( $uploads['basedir'] );
+
+		if ( strpos( $url, $baseurl ) !== 0 ) {
+			return false;
+		}
+
+		$relative = ltrim( substr( $url, strlen( $baseurl ) ), '/' );
+		$path     = wp_normalize_path( $basedir . '/' . $relative );
+
+		$real_path = realpath( $path );
+		if ( ! $real_path || ! mycred_is_path_in_uploads( $real_path ) || ! is_file( $real_path ) ) {
+			return false;
+		}
+
+		$filetype = wp_check_filetype( $real_path );
+		if ( empty( $filetype['type'] ) || strpos( $filetype['type'], 'image/' ) !== 0 ) {
+			return false;
+		}
+
+		return wp_normalize_path( $real_path );
+
+	}
+endif;
+
+/**
+ * Sanitize badge main image meta for storage.
+ *
+ * @since 1.8.12
+ * @param int|string $main_image     Attachment ID when set.
+ * @param string     $main_image_url Legacy image URL when no attachment is used.
+ * @return int|string Empty string when invalid.
+ */
+if ( ! function_exists( 'mycred_sanitize_badge_main_image_meta' ) ) :
+	function mycred_sanitize_badge_main_image_meta( $main_image, $main_image_url = '' ) {
+
+		if ( absint( $main_image ) > 0 ) {
+			$attachment_id = absint( $main_image );
+			if ( get_post_type( $attachment_id ) === 'attachment' && mycred_resolve_upload_image_path( $attachment_id ) ) {
+				return $attachment_id;
+			}
+			return '';
+		}
+
+		if ( ! empty( $main_image_url ) ) {
+			$url = esc_url_raw( $main_image_url );
+			if ( mycred_resolve_upload_image_path( $url ) ) {
+				return $url;
+			}
+		}
+
+		return '';
+
+	}
+endif;
+
+/**
+ * Validate a remote URL before myCred tools import it as media.
+ *
+ * @since 1.8.12
+ * @param string $url Remote URL.
+ * @return string|false Sanitized URL or false.
+ */
+if ( ! function_exists( 'mycred_validate_remote_import_url' ) ) :
+	function mycred_validate_remote_import_url( $url ) {
+
+		$url = esc_url_raw( $url );
+		if ( empty( $url ) ) {
+			return false;
+		}
+
+		if ( ! wp_http_validate_url( $url ) ) {
+			return false;
+		}
+
+		$scheme = wp_parse_url( $url, PHP_URL_SCHEME );
+		if ( ! in_array( $scheme, array( 'http', 'https' ), true ) ) {
+			return false;
+		}
+
+		return $url;
+
+	}
+endif;
+
+/**
  * Get Attachment URL
  * @since 1.8.11
  * @version 1.0
@@ -4485,12 +4636,12 @@ if( !function_exists( 'mycred_sanitize_array' ) ):
 		foreach( $_array as $key => $value ) {
 
 			$key = sanitize_text_field( $key );
-			
-			if( is_array( $value ) ) {
-				$value = mycred_sanitize_array( $value );
+
+			if ( is_array( $value ) ) {
+				$_array[ $key ] = mycred_sanitize_array( $value );
 			}
 			else {
-				$_array[$key] = sanitize_text_field( $value );
+				$_array[ $key ] = sanitize_text_field( $value );
 			}
 
 		}

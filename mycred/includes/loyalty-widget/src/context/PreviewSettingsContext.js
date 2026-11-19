@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback, useMemo } from '@wordpress/element';
+import { normalizeLayoutTemplate } from '../components/preview/templatePresets';
 
 const PreviewSettingsContext = createContext(null);
 
@@ -13,21 +14,21 @@ const getInitialSettings = () => {
         showBranding: true,
         logoUrl: '',
         logoText: 'Reward Program',
-        launcherRadius: 45,
+        launcherRadius: 15,
         launcherAnimation: 'fade',
-        layoutTemplate: 'luxury',
+        layoutTemplate: 'modern',
         headerStyle: 'solid',
-        headerImageUrl: window.mycredLoyaltyWidgetData?.assets_url ? window.mycredLoyaltyWidgetData.assets_url + 'mycred_widget_header.png' : '',
+        headerImageUrl: '',
         headerOverlayOpacity: 0,
+        showHeaderTitle: true,
         headerSubtitle: 'Welcome to',
-        programTitle: 'Rewards Hub',
+        programTitle: 'Rewards hub',
         borderRadius: 8,
         navLayout: 'grid',
-        heroImageUrl: window.mycredLoyaltyWidgetData?.assets_url ? window.mycredLoyaltyWidgetData.assets_url + 'default-logo1.svg' : '',
+        heroImageUrl: '',
         ...(data.design || {}),
     };
-    const tpl = design.layoutTemplate === 'modern' ? 'modern' : 'luxury';
-    design.layoutTemplate = tpl;
+    design.layoutTemplate = normalizeLayoutTemplate(design.layoutTemplate);
     return {
         design,
         content: data.content || {},
@@ -44,6 +45,7 @@ const getInitialSettings = () => {
 
 export function PreviewSettingsProvider({ children }) {
     const [settings, setSettings] = useState(getInitialSettings);
+    const [previewGuest, setPreviewGuestState] = useState(true);
 
     const updateDesign = useCallback((patch) => {
         setSettings((prev) => ({
@@ -90,6 +92,10 @@ export function PreviewSettingsProvider({ children }) {
         setSettings((prev) => ({ ...prev, [section]: data }));
     }, []);
 
+    const setPreviewGuest = useCallback((value) => {
+        setPreviewGuestState(Boolean(value));
+    }, []);
+
     const value = useMemo(() => ({
         settings,
         design: settings.design,
@@ -98,6 +104,7 @@ export function PreviewSettingsProvider({ children }) {
         general: settings.general,
         eventtriggers: settings.eventtriggers,
         faq: settings.faq,
+        previewGuest,
         updateDesign,
         setDesign,
         updateContent,
@@ -105,7 +112,8 @@ export function PreviewSettingsProvider({ children }) {
         updateFaq,
         setFaq,
         syncFromSaved,
-    }), [settings, updateDesign, setDesign, updateContent, setContentAudience, updateFaq, setFaq, syncFromSaved]);
+        setPreviewGuest,
+    }), [settings, previewGuest, updateDesign, setDesign, updateContent, setContentAudience, updateFaq, setFaq, syncFromSaved, setPreviewGuest]);
 
     return (
         <PreviewSettingsContext.Provider value={value}>

@@ -23,7 +23,7 @@ import SectionHeader from '../components/admin/SectionHeader';
 import SettingsCard from '../components/admin/SettingsCard';
 import { useRegisterSaveActions } from '../context/SaveActionsContext';
 import { useAdminTheme } from '../../../../src/shared/adminTheme/AdminThemeProvider';
-import { getTabContentSx, getFieldLabelSx, getSecondaryTextSx, getTextFieldSx, getSelectSx, getTabsSx, getProBadgeSx } from '../components/admin/formStyles';
+import { getTabContentSx, getFieldLabelSx, getSecondaryTextSx, getTextFieldSx, getSelectSx, getTabsSx } from '../components/admin/formStyles';
 
 const ToggleOption = ({ colors: propColors, title, description, checked, onChange, showDivider = true, disabled = false }) => {
     const { colors: themeColors } = useAdminTheme();
@@ -44,11 +44,6 @@ const ToggleOption = ({ colors: propColors, title, description, checked, onChang
                         <Typography sx={{ fontWeight: 600, fontSize: '15px', color: colors?.textPrimary }}>
                             {title}
                         </Typography>
-                        {disabled && (
-                            <Box sx={getProBadgeSx(colors)}>
-                                {__('Pro', 'mycred')}
-                            </Box>
-                        )}
                     </Box>
                     <Typography sx={{ ...getSecondaryTextSx(colors), mt: 0.5 }}>
                         {description}
@@ -66,17 +61,17 @@ export default function TabsSettings() {
 
     const [activeTab, setActiveTab] = useState(0);
     const [loading, setLoading] = useState(false);
-    const isPro = window.mycredLoyaltyWidgetData?.is_toolkit_pro_active || false;
+    const hasWoo = Boolean(window.mycredLoyaltyWidgetData?.has_woocommerce);
 
     const [tabControls, setTabControls] = useState({
         earn: initialTabs.tabControls?.earn !== undefined ? initialTabs.tabControls.earn : true,
-        redeem: isPro ? (initialTabs.tabControls?.redeem !== undefined ? initialTabs.tabControls.redeem : true) : false,
-        profile: initialTabs.tabControls?.profile !== undefined ? initialTabs.tabControls.profile : true,
-        board: initialTabs.tabControls?.board !== undefined ? initialTabs.tabControls.board : true,
-        logs: initialTabs.tabControls?.logs !== undefined ? initialTabs.tabControls.logs : true,
-        badges: initialTabs.tabControls?.badges !== undefined ? initialTabs.tabControls.badges : true,
-        ranks: initialTabs.tabControls?.ranks !== undefined ? initialTabs.tabControls.ranks : true,
-        faq: initialTabs.tabControls?.faq !== undefined ? initialTabs.tabControls.faq : true,
+        redeem: initialTabs.tabControls?.redeem !== undefined ? initialTabs.tabControls.redeem : hasWoo,
+        board: initialTabs.tabControls?.board !== undefined ? initialTabs.tabControls.board : !hasWoo,
+        logs: initialTabs.tabControls?.logs === true,
+        badges: initialTabs.tabControls?.badges === true,
+        ranks: initialTabs.tabControls?.ranks === true,
+        profile: initialTabs.tabControls?.profile === true,
+        faq: initialTabs.tabControls?.faq === true,
     });
 
     const [leaderboardSettings, setLeaderboardSettings] = useState({
@@ -172,10 +167,10 @@ export default function TabsSettings() {
                         <ToggleOption
                             colors={colors}
                             title={__('Redeem Tab', 'mycred')}
-                            description={isPro ? __('Show the rewards redemption tab', 'mycred') : __('Reward redemptions are available in Pro version', 'mycred')}
+                            description={hasWoo ? __('Show the rewards redemption tab', 'mycred') : __('Redeem is available when WooCommerce is active', 'mycred')}
                             checked={tabControls.redeem}
                             onChange={handleTabControlChange('redeem')}
-                            disabled={!isPro}
+                            disabled={!hasWoo}
                         />
                         <ToggleOption
                             colors={colors}

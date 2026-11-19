@@ -76,6 +76,30 @@ if ( ! class_exists( 'myCRED_Skrill' ) ) :
 		}
 
 		/**
+		 * A Skrill transaction can credit only one purchase.
+		 *
+		 * @param string $transaction_id Signed Skrill transaction id.
+		 * @return bool
+		 */
+		protected function skrill_transaction_is_new( $transaction_id ) {
+
+			$transaction_id = (string) $transaction_id;
+			if ( $transaction_id === '' ) return false;
+
+			global $wpdb, $mycred_log_table;
+
+			$like  = '%' . $wpdb->esc_like( ':"' . $transaction_id . '";' ) . '%';
+			$found = $wpdb->get_var( $wpdb->prepare(
+				"SELECT id FROM {$mycred_log_table} WHERE ref LIKE %s AND data LIKE %s LIMIT 1",
+				'buy_creds_with_%',
+				$like
+			) );
+
+			return $found === null;
+
+		}
+
+		/**
 		 * Process Handler
 		 * @since 0.1
 		 * @version 1.2
@@ -97,8 +121,10 @@ if ( ! class_exists( 'myCRED_Skrill' ) ) :
 						$new_call = array();
 
 						$received_amount   = isset( $_POST['mb_amount'] ) ? sanitize_text_field( wp_unslash( $_POST['mb_amount'] ) ) : '';
-						$received_currency = isset( $_POST['currency'] ) ? sanitize_text_field( wp_unslash( $_POST['currency'] ) ) : '';
+						$received_currency = isset( $_POST['mb_currency'] ) ? sanitize_text_field( wp_unslash( $_POST['mb_currency'] ) ) : '';
 						$received_status   = isset( $_POST['status'] ) ? sanitize_text_field( wp_unslash( $_POST['status'] ) ) : '';
+						$signed_id         = isset( $_POST['transaction_id'] ) ? sanitize_text_field( wp_unslash( $_POST['transaction_id'] ) ) : '';
+						$order_id          = isset( $pending_payment->public_id ) ? (string) $pending_payment->public_id : '';
 
 						// Signed amount must match the pending purchase. A missing amount is not a match.
 						if ( $received_amount === '' || (float) $received_amount != (float) $pending_payment->cost ) {
@@ -118,11 +144,17 @@ if ( ! class_exists( 'myCRED_Skrill' ) ) :
 							$errors     = true;
 						}
 
+						// The signed transaction must belong to this pending order and must not already be credited.
+						if ( $signed_id === '' || $order_id === '' || strlen( $signed_id ) !== strlen( $order_id ) || ! hash_equals( $order_id, $signed_id ) || ! $this->skrill_transaction_is_new( $signed_id ) ) {
+							$new_call[] = __( 'Transaction does not match this pending payment.', 'mycred' );
+							$errors     = true;
+						}
+
 						// Credit payment
 						if ( $errors === false ) {
 
 							// If account is credited, delete the post and it's comments.
-							if ( $this->complete_payment( $pending_payment, sanitize_text_field( wp_unslash( $_POST['transaction_id'] ) ) ) )
+							if ( $this->complete_payment( $pending_payment, $signed_id ) )
 								$this->trash_pending_payment( $pending_post_id );
 							else
 								$new_call[] = esc_html__( 'Failed to credit users account.', 'mycred' );

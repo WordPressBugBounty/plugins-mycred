@@ -4,7 +4,7 @@ import CloseIcon from '@mui/icons-material/Close';
 export default function Launcher({ isOpen, onClick, settings }) {
     const design = settings.design || {};
     const general = settings.general || {};
-    const assetsUrl = window.mycredLoyaltyWidget?.assets_url || '';
+    const assetsUrl = window.mycredLoyaltyWidget?.assets_url || window.mycredLoyaltyWidgetData?.assets_url || '';
 
     const bgColor = design.backgroundColor || '#2D1572';
     const textColor = design.textColor || '#5E2CED';

@@ -3,6 +3,40 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 export const MYCRED_BRANDING_URL = 'https://mycred.me/?utm_source=plugin&utm_medium=mycred-loyaltywidget';
 
+/** Storefront window: fixed min height when tab content is sparse; cap on large viewports. */
+export const WIDGET_SHELL_MIN_HEIGHT = 'min(440px, calc(100vh - 100px))';
+/** Card home with few actions (e.g. Earn + Redeem only) — shorter shell, no forced body stretch. */
+export const WIDGET_HOME_SHELL_MIN_HEIGHT = 'min(360px, calc(100vh - 100px))';
+export const WIDGET_SHELL_MAX_HEIGHT = 'min(652px, calc(100vh - 80px))';
+export const WIDGET_PANEL_BOX_SHADOW = '0 24px 70px rgba(20, 32, 55, 0.2)';
+export const WIDGET_FOOTER_HEIGHT_PX = 50;
+/** Main column above footer (shell min − footer). */
+export const WIDGET_PANEL_CONTENT_MIN_HEIGHT = 'min(390px, calc(100vh - 150px))';
+/** Inner tab scroll region (content min − ~64px tab header). */
+export const WIDGET_TAB_BODY_MIN_HEIGHT = 'min(326px, calc(100vh - 214px))';
+export const WIDGET_TAB_SCROLL_MAX_HEIGHT = 'min(520px, calc(100vh - 220px))';
+
+export const widgetTabRootSx = (extra = {}) => ({
+    display: 'flex',
+    flexDirection: 'column',
+    flex: 1,
+    width: '100%',
+    minHeight: WIDGET_PANEL_CONTENT_MIN_HEIGHT,
+    boxSizing: 'border-box',
+    ...extra,
+});
+
+export const widgetTabScrollBodySx = (extra = {}) => ({
+    flex: 1,
+    minHeight: WIDGET_TAB_BODY_MIN_HEIGHT,
+    maxHeight: WIDGET_TAB_SCROLL_MAX_HEIGHT,
+    overflowY: 'auto',
+    scrollbarWidth: 'none',
+    boxSizing: 'border-box',
+    '&::-webkit-scrollbar': { display: 'none' },
+    ...extra,
+});
+
 export const hexToRgba = (hex, opacity) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result

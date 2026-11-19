@@ -341,8 +341,10 @@ if ( ! class_exists( 'myCRED_AI_Admin' ) ) {
 					'refreshYear'  => __( 'refreshes every year', 'mycred' ),
 					'tokensHint'   => __( 'Tokens used of your site budget.', 'mycred' ),
 					'creditsHint'  => __( 'AI requests used of your credit budget.', 'mycred' ),
+					'tokenRequest' => __( 'Request more AI tokens', 'mycred' ),
 				),
-				'ai_settings_url' => $this->get_ai_connectors_settings_url(),
+				'ai_settings_url'   => $this->get_ai_connectors_settings_url(),
+				'token_request_url' => function_exists( 'mycred_ai_token_request_url' ) ? mycred_ai_token_request_url() : 'https://objectsws.atlassian.net/servicedesk/customer/portal/7/group/7/create/93',
 			) );
 		}
 
@@ -754,6 +756,11 @@ if ( ! class_exists( 'myCRED_AI_Admin' ) ) {
 					$quota    = myCRED_AI_Middleware_Client::quota_from_error( $result );
 					if ( is_array( $quota ) ) {
 						$error['quota'] = $quota;
+					}
+					if ( 'no_middleware_credits' === $result->get_error_code() ) {
+						$error['quota_exhausted'] = true;
+					} elseif ( is_array( $quota ) && (int) $quota['total'] > 0 && (int) $quota['used'] >= (int) $quota['total'] ) {
+						$error['quota_exhausted'] = true;
 					}
 					wp_send_json_error( $error );
 				}

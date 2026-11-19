@@ -307,7 +307,13 @@ if ( ! class_exists( 'myCRED_Events_Manager_Gateway' ) && defined( 'EM_VERSION' 
 			// Get Booking
 			$booking_id = absint( $_POST['booking_id'] );
 			$booking    = em_get_booking( $booking_id );
-			
+
+			if ( ! is_object( $booking ) || ! is_object( $booking->person ) ) die( 'ERROR_1' );
+
+			$booking_owner = (int) $booking->person->ID;
+			$can_pay_booking = ( $booking_owner === get_current_user_id() ) || current_user_can( 'manage_bookings' ) || current_user_can( 'manage_options' );
+			if ( $booking_owner < 1 || ! $can_pay_booking ) die( 'ERROR_1' );
+
 			// User
 			if ( $this->core->exclude_user( $booking->person->ID ) ) die( 'ERROR_2' );
 
